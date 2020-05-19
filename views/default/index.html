@@ -1,0 +1,206 @@
+{{extend 'layout.html'}}
+
+<!-- <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700' rel='stylesheet' type='text/css'> -->
+<style>
+*{
+	margin:0;
+	padding:0;
+	box-sizing:
+}
+body{
+	background:#CCCAA1;
+	font-family: 'Source Sans Pro', sans-serif;
+}
+ul li{
+	list-style:none;
+}
+h1{
+	padding:15px 0 25px 0;
+	text-align:center;
+	font-family: 'Roboto Condensed', sans-serif;
+	font-size:2.2em;
+}
+#wrapper{
+	width: 728px;
+	margin: 60px auto;
+	background: #fff;
+	padding: 10px;
+	height: 280px;
+	border:12px solid #DDE0CA;
+}
+.nav2{
+	overflow:hidden;
+	margin:0 auto;
+	/* width:750px; */
+    /* width:1100px; */
+	width:100%;
+}
+.nav2 li{
+	/* width:145px;
+	height:180px; */
+	width:150px;
+	height:220px;
+
+	display:inline-block;
+	float:left;
+	cursor:pointer;
+	transition:all 0.4s;
+	-webkit-transition:all 0.4s;
+	-moz-transition:all 0.4s;
+}
+.nav2 li:hover{
+	opacity:1;
+	height:240px;
+}
+.nav2 li.hm:hover{
+	border-bottom:4px solid rgba(11, 132, 138, 1);
+}
+.nav2 li.fb:hover{
+	border-bottom:4px solid rgba(241, 83, 70, 1);
+}
+.nav2 li.gp:hover{
+	border-bottom:4px solid rgba(32, 16, 49, 1);
+}
+.nav2 li.tw:hover{
+	border-bottom:4px solid rgba(228, 148, 7, 1);
+}
+.nav2 li.oa:hover{
+	border-bottom:4px solid rgba(143, 79, 26, 0.849);
+}
+.nav2 li.fi:hover{
+	border-bottom:4px solid rgb(81, 97, 23);
+}
+.nav2 li.po:hover{
+	border-bottom:4px solid rgb(91, 117, 105);
+}
+.nav2 li.cl:hover{
+	border-bottom:4px solid rgba(67, 138, 15, 1);
+}
+
+img.icon{
+	background:rgba(255, 255, 255, 0.4);
+	padding:14px;
+	border-radius:100%;
+	margin:30px auto;
+	display:block;
+	transition:all 0.8s;
+	-webkit-transition:all 0.8s;
+	-moz-transition:all 0.8s;
+	box-shadow: 0 0 0 30px rgba(255,255,255,0.1);
+	-webkit-box-shadow: 0 0 0 10px rgba(255,255,255,0.1);
+}
+.nav2 li:hover img.icon{
+	background:rgba(255, 255, 255, 0.9);
+	box-shadow: 0 0 0 10px rgba(255,255,255,0.8);
+	-webkit-box-shadow: 0 0 0 0 rgba(255,255,255,0.8);
+}
+.nav2 li span{
+	text-align:center;
+	display:block;
+	padding-top:10px;
+	color:rgba(255, 255, 255, 1);
+	font-size:0.9em;
+	transition:padding-top 0.4s;
+	-webkit-transition:padding-top 0.4s;
+}
+.nav2 li:hover span{
+	padding-top:20px;
+}
+.hm{
+	background:rgba(29, 162, 168, 0.8);
+}
+.fb{
+	background:rgba(255, 89, 76, 0.8);
+}
+.gp{
+	background:rgba(47, 31, 64, 0.8);
+}
+.tw{
+	background:rgba(254, 162, 14, 0.8);
+}
+.oa{
+    background:rgba(181, 97, 29, 0.8);
+}
+.fi{
+    background:rgba(114, 136, 33, 0.8);
+}
+.po{
+    background:rgba(129, 165, 148);
+}
+.cl{
+	background:rgba(93, 181, 29, 0.8);
+}
+
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 20%;
+  height: 20%;
+}
+</style>
+<img class="center" src="{{=URL('static','images/merch_bg.png')}}" width="400px" height="400px">
+	<ul class="nav2">
+		<li class="hm">
+			<!-- <a href ="http://localhost:3010/mtc_inv" style="text-decoration:none"> -->
+			<a href ="http://128.1.2.13:3010/mtc_inv" style="text-decoration:none">
+            <img class="icon" src="{{=URL('static','dist/images/flat/box.png')}}" alt="">
+            <span>Inventory</span>
+            </a>
+		</li>
+		<li class="fb">
+			<!-- <a href="http://localhost:3010/Merch_Sales" style="text-decoration:none"> -->
+			<a href="http://128.1.2.13:3020/Merch_Sales" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/bulb.png')}}" alt="">
+            <span>Sales</span>
+            </a>
+		</li>
+		<li class="gp">				
+			<a href="http://128.1.2.13:3030/Merch_Procurement" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/shopping-bag.png')}}" alt="">
+			<span>Procurement</span>
+			</a>
+		</li>
+		<li class="fi">
+			<img class="icon" src="{{=URL('static','dist/images/flat/bank.png')}}" alt="">
+			<span>Finance</span>
+		</li>        		
+	
+		<li class="oa">
+			<img class="icon" src="{{=URL('static','dist/images/flat/airplane.png')}}" alt="">
+			<span>Assets</span>
+		</li>        		
+		<li class="po">
+			<img class="icon" src="{{=URL('static','dist/images/flat/bicycle.png')}}" alt="">
+			<span>Fleet</span>
+		</li>      		
+		<li class="tw">
+			<!-- <a href ="http://localhost:3020/Merch_HR" style="text-decoration:none"> -->
+			<a href ="http://128.1.2.13:3020/Merch_HR" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/heart.png')}}" alt="">
+			<span>Human Resources</span>
+			</a>
+        </li>
+		<li class="oa">
+			<!-- <a href ="http://localhost:3030/Merch_Off_Admin" style="text-decoration:none"> -->
+			<a href ="http://128.1.2.13:3030/Merch_Off_Admin" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/laptop.png')}}" alt="">
+			<span>Office Administration</span>
+			</a>
+		</li>        
+		<li class="po"> 				
+			<a href ="http://128.1.2.4:8088/" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/bell.png')}}" alt="">
+			<span>POS</span>
+			</a>
+		</li>        
+
+        <li class="cl">
+			<!-- <a href ="http://localhost:3000/Merch_ERP/sili/labuyo" style="text-decoration:none"> -->
+			<a href ="http://128.1.2.13:3000/Merch_ERP/sili/labuyo" style="text-decoration:none">
+			<img class="icon" src="{{=URL('static','dist/images/flat/config.png')}}" alt="">
+			<span>IT Administration</span>
+			</a>
+		</li>
+	</ul>
