@@ -34,41 +34,6 @@
     {{block head}}{{end}}
   </head>
   <body>
-    <nav class="navbar navbar-light navbar-expand-md bg-faded bg-dark navbar-dark justify-content-center">
-      <!-- <a href="http://localhost:3000/Merch_ERP"><img src="{{=URL('static','images/merch_logo.png')}}"><span class="text-lg text-bold text-primary">MERCH ERP</span></a> -->
-      <!-- <a href="http://localhost:3000" class="navbar-brand d-flex w-50 mr-auto">Merch ERP</a> -->
-      <a href="http://128.1.2.13:3000" class="navbar-brand d-flex w-50 mr-auto">Merch ERP</a>
-      <div class="navbar-collapse collapse w-100" id="navbarNavDropdown">
-
-       {{if 'auth' in globals():}}
-       <ul class="nav navbar-nav ml-auto w-100 justify-content-end">
-         <li class="nav-item dropdown">
-           <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-             {{if auth.user:}}{{=auth.user.first_name}} {{=auth.user.last_name}}{{else:}}LOGIN{{pass}}
-           </a>
-           <div class="dropdown-menu dropdown-menu-right">
-             {{if auth.user:}}
-             <a class="dropdown-item" href="{{=URL('default','user/profile')}}">{{=T('Profile')}}</a>
-             {{if 'change_password' not in auth.settings.actions_disabled:}}
-             <a class="dropdown-item" href="{{=URL('default','user/change_password')}}">{{=T('Change Password')}}</a>
-             {{pass}}
-             <a class="dropdown-item" href="{{=URL('default','user/logout')}}">{{=T('Logout')}}</a>
-             {{else:}}
-             <a class="dropdown-item" href="{{=URL('default','user/login')}}">{{=T('Login')}}</a>
-             {{if 'register' not in auth.settings.actions_disabled:}}
-             <a class="dropdown-item" href="{{=URL('default','user/register')}}">{{=T('Sign up')}}</a>
-             {{pass}}
-             {{if 'retrieve_password' not in auth.settings.actions_disabled:}}
-             <a class="dropdown-item" href="{{=URL('default','user/retrieve_password')}}">{{=T('Lost Password')}}</a>
-             {{pass}}
-             {{pass}}
-           </div>
-         </li>
-       </ul>
-       {{pass}}
-     </div>
-   </nav>
-    <!-- Masthead ===================================== -->
 
     <!-- Main ========================================= -->
     <!-- Begin page content -->
