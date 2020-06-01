@@ -5,7 +5,7 @@
 # -------------------------------------------------------------------------
 
 # ---- example index page ----
-@auth.requires_login()
+# @auth.requires_login()
 def index():
     response.flash = T("Hello World")
     response.js =  "jQuery('#target').get(0).reload();"

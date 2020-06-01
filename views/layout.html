@@ -123,7 +123,21 @@
             <li><a href="{{=URL('default','index')}}"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>
             <li><a href="{{=URL('default','index')}}"><i class="fa fa-cubes"></i> <span>Inventory</span></a></li>
             <li><a href="{{=URL('default','index')}}"><i class="fa fa-users"></i> <span>Core HR</span></a></li>
-            <li><a href="{{=URL('sili','labuyo')}}"><i class="fa fa-cogs"></i> <span>IT Admin</span></a></li>
+            <li class="treeview menu">
+              <a href="#">
+                <i class="fa fa-cogs"></i> <span>IT Admin</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                <li><a href="{{=URL('sili','labuyo')}}"><i class="fa fa-caret-right"></i> <span>User's Group</span></a></li>
+                <li><a href="{{=URL('sili','labuyo')}}"><i class="fa fa-caret-right"></i> <span>User's</span></a></li>
+                <li><a href="{{=URL('sili','labuyo')}}"><i class="fa fa-caret-right"></i> <span>User's Membership</span></a></li>
+                
+              </ul>
+              
+            </li>
             <li><a href="{{=URL('default','get_help')}}"><i class="fa fa-question"></i> <span>Help</span></a></li>            
           </ul>
         </section>
