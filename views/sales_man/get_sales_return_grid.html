@@ -1,0 +1,18 @@
+
+{{extend 'layout.html'}}
+<div class="col-md-12">
+  <div class="card card-underline">
+      <div class="card-head">        
+        <span class="card-title">Sales Return Workflow </span>               
+    </div>
+    <div class="card-body tab-content">
+        {{=table}}
+        <a class="btn btn-primary" id="btnAdd" role="button" href="{{=URL('sales_man','post_sales_return_form', extension = False)}}">+ create sales return</a>
+    </div>
+  </div>
+
+<script>
+$(document).ready(function(){
+    $(".table").DataTable();
+});
+</script>

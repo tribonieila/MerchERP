@@ -1,0 +1,36 @@
+{{=table}}
+{{if db((db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.processed == False)).select().first():}}
+    <button type="button" class="btn btn-primary" onClick="onSaleOR()" id="btnSI">+ Consolidate Sales Invoice</button>
+{{else:}}
+    <button type="button" class="btn btn-primary disabled" onClick="onSaleOR()" id="btnSI">+ Consolidate Sales Invoice</button>
+{{pass}}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onSaleOR(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to consolidate the record(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_sales_invoice_consolidation')}}")                                              
+                } else {                    
+                    toastr['error']('Consolidation Canceled')
+                }
+
+            }
+        })            
+        
+        
+    }
+</script>

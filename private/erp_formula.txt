@@ -1,0 +1,18 @@
+SALES RETURN: 
+
+condition: 
+    if category_id == 3:
+        price_cost = average_cost / uom 
+        sales_cost = sale_cost_no_tax = 0 
+        price_cost_no_tax = average_cost
+        total_amount = 0
+    else:
+        sale_cost_no_tax = (net_price / uom) - (selective_tax / uom)
+        sale_cost = (wholesale_price - ((wholesale_price * discount_percentage) / 100)) / uom
+        price_cost = wholesale_price / uom
+        price_cost_no_tax = wholesale_price 
+        net_price = (wholesale_price - ((wholesale_price * discount_percentage) / 100)) + selective_tax
+        total_amount = net_price / uom * quantity
+    price_cost_discount = price_cost - ((price_cost * discount_percentage) / 100)
+    net_price = (wholesale_price - ((wholesale_price * discount_percentage) / 100)) + selective_tax
+

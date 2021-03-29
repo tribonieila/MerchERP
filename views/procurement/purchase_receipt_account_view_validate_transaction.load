@@ -1,0 +1,113 @@
+<div class="form-horizontal">
+    
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Location</label>
+                    <div class="col-sm-8">{{=_pr.location_code_id.location_name}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Supplier/Acct Code</label>
+                    <div class="col-sm-8">{{=_pr.supplier_code_id.supp_sub_code}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">                    
+                    <label class="col-sm-4 control-label">Supplier/Account Name</label>
+                    <div class="col-sm-8">{{=_pr.supplier_code_id.supp_name}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Currency</label>
+                    <div class="col-sm-8">{{=_pr.currency_id.mnemonic}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Trade Terms</label>
+                    <div class="col-sm-8">{{=_pr.trade_terms_id.trade_terms}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">                    
+                    <label class="col-sm-4 control-label">Supplier Invoice</label>
+                    <div class="col-sm-8">{{=_pr.supplier_reference_order}}</div>
+                </div>
+            </div>
+        </div>   
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Exchange Rate</label>
+                    <div class="col-sm-4">{{=_pr.exchange_rate}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Landed Cost Rate</label>
+                    <div class="col-sm-4">{{=_pr.landed_cost}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">                    
+                    <label class="col-sm-4 control-label">Other Charges</label>
+                    <div class="col-sm-4">{{=_pr.other_charges}}</div>
+                </div>
+            </div>
+        </div>          
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Custom Duty Charges</label>
+                    <div class="col-sm-4">{{=_pr.custom_duty_charges}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Selective Tax</label>
+                    <div class="col-sm-4">{{=_pr.selective_tax}}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+
+                {{ if auth.has_membership(role='ACCOUNTS MANAGER'):}}
+                    {{if _pr.status_id == 25:}}
+                        <input class="btn btn-success" type="button" value="approved" id="btnApproved">
+                        <input class="btn btn-danger" type="button" value="reject" id="btnReject">
+                    {{else:}}
+                        <input class="btn btn-success" type="button" value="approved" id="btnApproved" disabled>
+                        <input class="btn btn-danger" type="button" value="reject" id="btnReject" disabled>
+
+                    {{ pass }}
+                {{pass}}
+                <button class="btn btn-danger" type="button" onclick=onReturn()>Close</button>
+            </div>
+        </div>                 
+    
+</div>
+
+<hr> 
+
+{{=table}}
+
+<script>
+    $(document).ready(function(){
+        $('#btnApproved').click(function(){
+            ajax("{{=URL('procurement','purchase_receipt_approved', args = request.args(0))}}");
+            window.location.replace("{{=URL('inventory','account_manager_workflow', extension=False)}}")
+        });
+    
+        $("#btnReject").click(function(){
+            ajax("{{=URL('procurement','purchase_receipt_rejected', args = request.args(0),extension=False)}}");            
+            window.location.replace("{{=URL('inventory','account_manager_workflow', extension=False)}}")
+        })
+    })
+    function onReturn(){
+        window.history.back();
+    }
+</script>

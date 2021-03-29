@@ -1,0 +1,242 @@
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------
+# AppConfig configuration made easy. Look inside private/appconfig.ini
+# Auth is for authenticaiton and access control
+# -------------------------------------------------------------------------
+from gluon.contrib.appconfig import AppConfig
+from gluon.tools import Auth, Crud
+# import psycopg2 
+# -------------------------------------------------------------------------
+# This scaffolding model makes your app work on Google App Engine too
+# File is released under public domain and you can use without limitations
+# -------------------------------------------------------------------------
+
+if request.global_settings.web2py_version < "2.15.5":
+    raise HTTP(500, "Requires web2py 2.15.5 or newer")
+
+# -------------------------------------------------------------------------
+# if SSL/HTTPS is properly configured and you want all HTTP requests to
+# be redirected to HTTPS, uncomment the line below:
+# -------------------------------------------------------------------------
+# request.requires_https()
+
+# -------------------------------------------------------------------------
+# once in production, remove reload=True to gain full speed
+# -------------------------------------------------------------------------
+configuration = AppConfig(reload=True)
+
+if not request.env.web2py_runtime_gae:
+    # ---------------------------------------------------------------------
+    # if NOT running on Google App Engine use SQLite or other DB
+    # ---------------------------------------------------------------------
+    db = DAL(configuration.get('db.uri'),
+             pool_size=configuration.get('db.pool_size'),
+             migrate_enabled=configuration.get('db.migrate'),
+             check_reserved=['all'])
+else:
+    # ---------------------------------------------------------------------
+    # connect to Google BigTable (optional 'google:datastore://namespace')
+    # ---------------------------------------------------------------------
+    db = DAL('google:datastore+ndb')
+    # ---------------------------------------------------------------------
+    # store sessions and tickets there
+    # ---------------------------------------------------------------------
+    session.connect(request, response, db=db)
+    # ---------------------------------------------------------------------
+    # or store session in Memcache, Redis, etc.
+    # from gluon.contrib.memdb import MEMDB
+    # from google.appengine.api.memcache import Client
+    # session.connect(request, response, db = MEMDB(Client()))
+    # ---------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# by default give a view/generic.extension to all actions from localhost
+# none otherwise. a pattern can be 'controller/function.extension'
+# -------------------------------------------------------------------------
+response.generic_patterns = [] 
+if request.is_local and not configuration.get('app.production'):
+    response.generic_patterns.append('*')
+
+# -------------------------------------------------------------------------
+# choose a style for forms
+# -------------------------------------------------------------------------
+response.formstyle = 'bootstrap4_inline'
+response.form_label_separator = ''
+
+# -------------------------------------------------------------------------
+# (optional) optimize handling of static files
+# -------------------------------------------------------------------------
+# response.optimize_css = 'concat,minify,inline'
+# response.optimize_js = 'concat,minify,inline'
+
+# -------------------------------------------------------------------------
+# (optional) static assets folder versioning
+# -------------------------------------------------------------------------
+# response.static_version = '0.0.0'
+
+# -------------------------------------------------------------------------
+# Here is sample code if you need for
+# - email capabilities
+# - authentication (registration, login, logout, ... )
+# - authorization (role based authorization)
+# - services (xml, csv, json, xmlrpc, jsonrpc, amf, rss)
+# - old style crud actions
+# (more options discussed in gluon/tools.py)
+# -------------------------------------------------------------------------
+
+# host names must be a list of allowed host names (glob syntax allowed)
+auth = Auth(db, host_names=configuration.get('host.names'))
+
+# -------------------------------------------------------------------------
+# create all tables needed by auth, maybe add a list of extra fields
+# -------------------------------------------------------------------------
+auth.settings.extra_fields['auth_user'] = []
+auth.define_tables(username=True, signature=False)
+
+# -------------------------------------------------------------------------
+# configure email
+# -------------------------------------------------------------------------
+mail = auth.settings.mailer
+mail.settings.server = 'logging' if request.is_local else configuration.get('smtp.server')
+mail.settings.sender = configuration.get('smtp.sender')
+mail.settings.login = configuration.get('smtp.login')
+mail.settings.tls = configuration.get('smtp.tls') or False
+mail.settings.ssl = configuration.get('smtp.ssl') or False
+
+# -------------------------------------------------------------------------
+# configure auth policy
+# -------------------------------------------------------------------------
+auth.settings.registration_requires_verification = False
+auth.settings.registration_requires_approval = False
+auth.settings.reset_password_requires_verification = True
+
+# -------------------------------------------------------------------------  
+# read more at http://dev.w3.org/html5/markup/meta.name.html               
+# -------------------------------------------------------------------------
+response.meta.author = configuration.get('app.author')
+response.meta.description = configuration.get('app.description')
+response.meta.keywords = configuration.get('app.keywords')
+response.meta.generator = configuration.get('app.generator')
+
+# -------------------------------------------------------------------------
+# your http://google.com/analytics id                                      
+# -------------------------------------------------------------------------
+response.google_analytics_id = configuration.get('google.analytics_id')
+
+# -------------------------------------------------------------------------
+# maybe use the scheduler
+# -------------------------------------------------------------------------
+if configuration.get('scheduler.enabled'):
+    from gluon.scheduler import Scheduler
+    scheduler = Scheduler(db, heartbeat=configure.get('heartbeat'))
+
+# -------------------------------------------------------------------------
+# Define your tables below (or better in another model file) for example
+#
+# >>> db.define_table('mytable', Field('myfield', 'string'))
+#
+# Fields can be 'string','text','password','integer','double','boolean'
+#       'date','time','datetime','blob','upload', 'reference TABLENAME'
+# There is an implicit 'id integer autoincrement' field
+# Consult manual for more options, validators, etc.
+#
+# More API examples for controllers:
+#
+# >>> db.mytable.insert(myfield='value')
+# >>> rows = db(db.mytable.myfield == 'value').select(db.mytable.ALL)
+# >>> for row in rows: print row.id, row.myfield
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# after defining tables, uncomment below to enable auditing
+# -------------------------------------------------------------------------
+# auth = Auth(db,cas_provider = 'http://127.0.0.1:3000/merch_erp/default/user/cas')
+auth.enable_record_versioning(db)
+# db = DAL('postgres://postgres:admin@localhost:5432/mpc_inv') #,fake_migrate=True,migrate=False,fake_migrate_all=True,do_connect=True)
+# d2 = DAL('postgres://postgres:admin@localhost:5432/Merch_HRM_DB',migrate=False,fake_migrate_all=True,do_connect=True)
+# db1 = DAL('postgres://postgres:admin@localhost:5432/Merch_HRM_DB', pool_size=0, migrate = False)
+
+# db = DAL("mssql4://SA:M3rch2018@localhost:1433/M3rchDB?driver={ODBC Driver 17 for SQL Server}", migrate=False,fake_migrate_all=True,do_connect=True) # production
+db = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_inv_db?driver={ODBC Driver 17 for SQL Server}", pool_size=0) # production
+dc = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_almeera_db?driver={ODBC Driver 17 for SQL Server}", pool_size=0) # production
+# d2 = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_hr_db?driver={ODBC Driver 17 for SQL Server}", migrate=False,fake_migrate_all=True,do_connect=True) # production
+# db = DAL("mssql4://SA:M3rch2018@localhost:1433/M3rchDB_Test?driver={ODBC Driver 17 for SQL Server}") # testing
+# db = DAL("mssql4://SA:M3rch2018@localhost:1433/M3rchDB_Deve?driver={ODBC Driver 17 for SQL Server}") # development
+# db = DAL("mssql4://SA:M3rch2018@MERCHERP:1433/M3rchDB?driver={SQL Server}") # production
+auth = Auth(globals(),db)
+
+db.define_table(
+    auth.settings.table_user_name,
+    Field('first_name', length=128),
+    Field('last_name', length=128),
+    Field('username', unique = True, readable = False),
+    Field('email', length=128), # required
+    Field('password', 'password', length=512,readable=False, label='Password'), # required
+    Field('registration_key', length=512, writable=False, readable=False, default=''),# required
+    Field('reset_password_key', length=512,writable=False, readable=False, default=''),# required
+    Field('registration_id', length=512, writable=False, readable=False, default=''), format = '%(first_name)s %(last_name)s')# required
+
+## do not forget validators
+custom_auth_table = db[auth.settings.table_user_name] # get the custom_auth_table
+custom_auth_table.first_name.requires =   IS_NOT_EMPTY(error_message=auth.messages.is_empty)
+custom_auth_table.last_name.requires =   IS_NOT_EMPTY(error_message=auth.messages.is_empty)
+custom_auth_table.password.requires = [CRYPT()]
+custom_auth_table.email.requires =   IS_EMAIL(error_message=auth.messages.invalid_email)
+
+auth.settings.table_user = custom_auth_table # tell auth to use custom_auth_table
+auth.define_tables(username = True)
+
+# d2.define_table(
+#     auth.settings.table_user_name,
+#     Field('first_name', length=128),
+#     Field('last_name', length=128),
+#     Field('username', unique = True, readable = False),
+#     Field('email', length=128), # required
+#     Field('password', 'password', length=512,readable=False, label='Password'), # required
+#     Field('registration_key', length=512, writable=False, readable=False, default=''),# required
+#     Field('reset_password_key', length=512,writable=False, readable=False, default=''),# required
+#     Field('registration_id', length=512, writable=False, readable=False, default=''), format = '%(first_name)s %(last_name)s')# required
+
+# d2.define_table('auth_group',
+#     Field('role','string'),
+#     Field('description','text'))
+
+# d2.define_table('auth_membership',
+#     Field('user_id','reference auth_user',ondelete='NO ACTION'),
+#     Field('group_id','reference auth_group',ondelete='NO ACTION'))
+
+# d2.define_table('Employee_Master',
+#     Field('title','string',length = 25, requires = IS_IN_SET(['Mr.','Ms.','Mrs.','Mme'], zero = 'Title')),
+#     Field('first_name','string',length = 50, requires = [IS_UPPER(), IS_NOT_EMPTY()]),
+#     Field('middle_name','string',length = 50),
+#     Field('last_name','string',length = 50, requires = [IS_UPPER(), IS_NOT_EMPTY()]))
+
+# d2.define_table('Employee_Employment_Details',
+#     Field('employee_id', 'reference Employee_Master', ondelete = 'NO ACTION', writable = False),
+#     Field('employee_no', 'integer'),
+#     Field('account_code', 'string', length = 10))
+
+
+# for n in d2().select(orderby = d2.auth_user.id): # copy all username from hr_db to mpv_inv_db            
+#     _id = db(db.auth_user.id == int(n.id)).select().first()
+#     if _id:            
+#         _id.update_record(first_name = n.first_name, last_name=n.last_name,email=n.email,username=n.username,password=n.password)
+#     else:   
+#         db.auth_user.insert(first_name=n.first_name,last_name=n.last_name,email=n.email,username=n.username,password=n.password)
+
+# for n in d2().select(orderby = d2.auth_group.id): # copy all group name from hr_db to mpv_inv_db    
+#     _id = db(db.auth_group.id == int(n.id)).select().first()
+#     if _id:
+#         _id.update_record(role=n.role,description=n.description)
+#     else:
+#         db.auth_group.insert(role=n.role,description=n.description)
+
+
+# for n in d2().select(orderby = d2.auth_membership.id): # copy all memberships from hr_db to mpv_inv_db    
+#     _id = db(db.auth_membership.id == int(n.id)).select().first()
+#     if _id:
+#         _id.update_record(user_id=n.user_id,group_id=n.group_id)
+#     else:
+#         db.auth_membership.insert(user_id=n.user_id,group_id=n.group_id)
+

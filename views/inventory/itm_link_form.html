@@ -1,0 +1,75 @@
+{{extend 'layout.html'}}
+<style>@import url("//unpkg.com/element-ui/lib/theme-chalk/index.css");</style>
+<script src="//unpkg.com/vue"></script>
+<script src="//unpkg.com/element-ui"></script>
+<script src="//unpkg.com/element-ui/lib/umd/locale/en.js"></script>
+<script>ELEMENT.locale(ELEMENT.lang.en)</script>
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li class="active"><a href="#">INFO</a></li>                
+                <li class=""><a href="#" onclick=window.location="{{=URL('itm_mas')}}";>BROWSE</a></li>
+            </ul>            
+            <span id="capLabel" class="card-title"></span>
+        </div>
+        <div class="card-body tab-content">
+            <div id="app">
+                <template>                
+                    <el-tabs :tab-position="tabPosition">
+                        <el-tab-pane label="ITEM PROFILE">                                                    
+                            {{=LOAD('inventory','item_master_profile', args = request.args(0))}}
+                        </el-tab-pane>
+                        <el-tab-pane label="ITEM PRICES">                            
+                            {{=LOAD('inventory','item_master_prices', args = request.args(0))}}
+                        </el-tab-pane>
+                        <el-tab-pane label="ITEM STOCKS">
+                            {{=LOAD('inventory','item_master_stocks', args = request.args(0))}}
+                        </el-tab-pane>
+                        <el-tab-pane label="BATCH INFO">
+                            {{=LOAD('inventory','item_master_batch_info', args = request.args(0))}}
+                        </el-tab-pane>
+                        <el-tab-pane label="SALES QUANTITY">
+                            {{=LOAD('inventory','item_master_sales_quantity', args = request.args(0))}}
+                        </el-tab-pane>
+                    </el-tabs>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var Main = {
+    data() {
+      return {
+        tabPosition: 'right'
+      };
+    },
+  };
+var Ctor = Vue.extend(Main)
+new Ctor().$mount('#app')
+</script>
+<script>
+$(document).ready(function(){
+    $('#capLabel').text('ITEM MASTER PROFILE');
+    $('#tab-0').click(function(){
+        $('#capLabel').text('ITEM MASTER PROFILE');
+    });
+    $('#tab-1').click(function(){
+        $('#capLabel').text('ITEM MASTER PRICES');
+    });
+    $('#tab-2').click(function(){
+        $('#capLabel').text('ITEM MASTER STOCKS');
+    });
+
+    $('#tab-3').click(function(){
+        $('#capLabel').text('ITEM MASTER BATCH INFO');
+    });
+    $('#tab-4').click(function(){
+        $('#capLabel').text('ITEM MASTER SALES QUANTITY');
+    });
+
+
+});
+</script>

@@ -1,0 +1,112 @@
+{{=table}} 
+
+<input type="text" class="form-control" id="var_total_amount" name="var_total_amount" value="0" hidden>
+<input type="text" class="form-control" id="var_discount_added" name="0" hidden>
+<input type="text" class="form-control" id="var_net_amount" name="var_net_amount" value="0" hidden>
+
+<script>
+$(document).ready(function(){
+    $(".price_cost, .net_price, .total_amount").prop("readonly", true);
+    var $tblrows = $("#tblSR tbody tr");
+    $tblrows.each(function(index){
+        var $tblrow = $(this); 
+        $tblrow.find(".quantity, .pieces, .discount_percentage").on("change", function(){
+            var ctr = $tblrow.find("[name=ctr]").val();
+            var uom = $tblrow.find("[name=uom]").val();
+            var qty = $tblrow.find("[name=quantity]").val();
+            var pcs = $tblrow.find("[name=pieces]").val();
+            var pri = $tblrow.find("[name=price_cost]").val();
+            var itd = $tblrow.find("[name=discount_percentage]").val();
+            var net = $tblrow.find("[name=net_price]").val();
+
+            var itm = parseInt(qty) * parseInt(uom) + parseInt(pcs);
+            var ppp = parseFloat(pri) / parseInt(uom);
+            var npr = parseFloat(pri) * (100 - parseFloat(itd)) / 100
+            var sub = parseFloat(npr) / parseInt(uom) * parseFloat(itm, 10)
+            
+            var dis = $("#discount_added").val();
+            if(!isNaN(sub)){                
+                $tblrow.find(".net_price").val(npr.toLocaleString());
+                $tblrow.find(".total_amount").val(sub.toLocaleString());
+                var grandTotal = 0;
+                $(".total_amount").each(function(){
+                    var stval = parseFloat($(this).val().replace(/,/g, ""));
+                    grandTotal += isNaN(stval) ? 0 : stval;                    
+                });
+                $(".grand_total").val(grandTotal.toLocaleString());
+                netAmount = parseFloat(grandTotal) - parseFloat(dis)
+                $(".net_total").val(netAmount.toLocaleString());
+            }                     
+        });        
+    });
+    $("#discount_added").change(function(){
+        var _grand_total = $("#grand_total").val().replace(/,/g, "");
+        var _discount = $("#discount_added").val();
+        netAmount = parseFloat(_grand_total) - parseFloat(_discount)
+        $(".net_total").val(netAmount.toLocaleString());        
+    })    
+});
+</script>
+<script>
+    
+    $('.delete').click(function(){
+        var _id = $(this).attr('data-id');
+        var parent = $(this).parent("div").parent("td").parent("tr");
+        bootbox.confirm({
+            size: "small",
+            message: "Are you sure you want to delete this record?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    ajax("{{=URL('sales','sales_return_delete_view')}}" + '/' + _id);
+                    // parent.fadeOut('slow');
+                    //
+                }
+            }
+        })
+    });    
+
+    function zero(){
+        console.log("zero");
+    }
+
+    function redirect(){
+        window.location.replace("{{=URL('inventory','get_fmcg_workflow_grid',extension=False)}}")
+    }
+    function autoCancel(){
+        var _id = $(this).attr('data-id');
+        var parent = $(this).parent("div").parent("td").parent("tr");
+
+        bootbox.confirm({
+            size: "small",
+            message: "Remove the last transaction will auto cancel.",
+            buttons: {
+                confirm: {
+                    label: "Ok",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "Cancel",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    redirect()                  
+                } 
+            }
+        })
+    }
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>

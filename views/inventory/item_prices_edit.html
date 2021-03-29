@@ -1,0 +1,56 @@
+{{extend 'layout.html'}}
+    <div class="col-md-12">
+        <div class="card card-underline">
+            <div class="card-head">
+                <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                    <!-- <li class=""><a href="#"onclick=window.location="{{=URL('inventory','item_prices_edit')}}";>+ ADD NEW</a></li>                     -->
+                    <li class="active"><a href="#">BROWSE</a></li>
+                </ul>            
+                <span class="card-title">ITEM PRICES MASTER</span>
+            </div>
+            <div class="card-body tab-content">
+                {{=table}}
+                {{=form.custom.begin}}                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="col-sm-4 control-label">Wholesale Price</label>
+                        <div class="col-sm-8">{{=form.custom.widget.wholesale_price}}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="col-sm-4 control-label">Retail Price</label>
+                        <div class="col-sm-8">{{=form.custom.widget.retail_price}}</div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="col-sm-4 control-label">Vansale Price</label>
+                        <div class="col-sm-8">{{=form.custom.widget.vansale_price}}</div>
+                    </div>
+                </div>    
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="col-sm-4 control-label"></label>
+                        <div class="col-sm-8">{{=form.custom.submit}}</div>
+                    </div>
+                </div>                
+                {{=form.custom.end}}
+            </div>        
+        </div>
+    </div>        
+     
+<script>
+    $(document).ready( function () {
+        $('table').DataTable();
+    } );
+</script>
+    
+        
+<script>
+    $(document).ready(function(){
+        $('.popover-dismiss').popover({
+          trigger: 'focus'
+        })
+    });
+</script>

@@ -1,0 +1,292 @@
+    {{=form}}
+    <hr>
+    {{=form2.custom.begin}} 
+    <table class="table">
+        <thead>
+            <tr class="bg-primary">
+                <th>Item Code</th>
+                <th>Quantity</th>
+                <th>Pieces</th>
+                <th>Discount</th>
+                <th>Most Recent Cost</th>
+                <th>Category</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{=form2.custom.widget.item_code}}</td>
+                <td>{{=form2.custom.widget.quantity}}</td>
+                <td>{{=form2.custom.widget.pieces}}</td>
+                <td>{{=form2.custom.widget.discount_percentage}}</td>
+                <td>{{=form2.custom.widget.most_recent_cost}}</td>
+                <td>{{=form2.custom.widget.category_id}}</td>
+                <td><input class="btn btn-primary" type="submit" value="add" id="btnadd"> </td>
+            </tr>
+        <tbody>
+    </table>
+
+    {{=form2.custom.end}}
+    <div id = "_item_code_description"></div>      
+
+
+<script>
+
+    $(document).on('paste', '#no_table_item_code', function(e) {
+        window.setTimeout(function() {
+        var withoutSpaces = $("#no_table_item_code").val();
+        withoutSpaces = withoutSpaces.replace(/\s+/g, '');
+        $("#no_table_item_code").val(withoutSpaces);
+            }, 1);
+    });
+    $('#no_table_item_code').change(function(){
+        ajax('{{=URL('get_item_code_id',args = request.args(0))}}', ['item_code'], '_item_code_description');     
+        ajax('{{=URL('generate_item_code_recent_cost')}}', ['item_code'], '_most_recent_cost');     
+        return false;
+    });    
+
+    $("#btnDraft").click(function(){
+        ajax('{{=URL('procurement','save_as_draft', args=request.args(0))}}',['landed_cost','other_charges','custom_duty_charges','supplier_account_code','supplier_account_code_description','supplier_invoice','selective_tax','remarks','discount']);
+        
+    });
+    //$('#btnValidate').click(function(){        
+        //ajax('{{=URL('procurement','validate', args=request.args(0))}}', ['landed_cost', 'other_charges','custom_duty_charges','trade_terms_id','exchange_rate','selective_tax','supplier_invoice','supplier_account_code','location_code_id', 'discount']);        
+        //$( "#POTtbl" ).load(window.location.href + " #POTtbl" );
+        
+    //});   
+
+    $('#btnadd').click(function(){
+        $( "#POTtbl" ).load(window.location.href + " #POTtbl" );
+    });
+    
+
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+
+$(document).ready(function(){    
+    $(".total_amount").prop("readonly", true);
+
+    $("#no_table_quantity, #no_table_pieces").on("keyup", function(event) {        
+        nospaces(this);
+    });
+
+    function nospaces(t){
+        if(t.value.match(/\s/g)){
+        alert('Sorry, you are not allowed to enter any spaces');
+        t.value=t.value.replace(/\s/g,'0');
+        }
+    }    
+
+    $('#btnAbort').click(function(){
+        console.log('abort');
+        window.location.href = '{{=URL('inventory','account_grid', extension = False)}}';
+    });    
+
+    $('.del').click(function(){
+        var _idd = $(this).attr('data-id');
+        $("#btnSubmit, #btnSave, #btnDraft").attr('disabled','disabled')
+        bootbox.confirm({
+            size: "small",
+            message: "Delete this record?",
+            buttons: {
+                confirm: {
+                    label: "Yes", 
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    ajax("{{=URL('procurement','purchase_receipt_transaction_delete_cons')}}" + '/'+ _idd);                                        
+                }
+
+            }
+        })
+    });    
+    Calculate();
+});
+    function onError(){
+        toastr["warning"]("Form has error.")
+    }
+
+    function Calculate(){
+        var $tblrows = $("#POTtbl tbody tr");
+
+        $tblrows.each(function(index){
+            var $tblrow = $(this);
+            $tblrow.find(".quantity, .pieces, .discount, .price_cost").on("change", function(){            
+                $("#btnSubmit, #btnSave, #btnDraft").attr('disabled','disabled')
+                var ctr = $tblrow.find("[name=ctr]").val();
+                var uom = $tblrow.find("[name=uom]").val();
+                var qty = $tblrow.find("[name=quantity]").val();
+                var pcs = $tblrow.find("[name=pieces]").val();
+                var pri = $tblrow.find("[name=price_cost]").val();
+                var itd = $tblrow.find("[name=discount]").val();
+                var net = $tblrow.find("[name=net_price]").val();
+                var itm = parseInt(qty) * parseInt(uom) + parseInt(pcs);
+                var ppp = parseFloat(pri) / parseInt(uom);
+                var npr = parseFloat(pri) * (100 - parseFloat(itd)) / 100
+                var sub = parseFloat(npr) / parseInt(uom) * parseInt(itm, 10)
+                
+                if(parseInt(qty) < parseInt(0)){
+                    $("#btnDraft").attr("disabled","disabled");
+                    onNegZero()
+                    //return alert("Please enter positive integer.");
+                } else if (parseInt(pcs) < parseInt(0)) {
+                    $("#btnDraft").attr("disabled","disabled");
+                    onNegZero()
+                    //return alert("Please enter positive integer.");
+                } else if (parseFloat(itd) < parseFloat(0)) {
+                    $("#btnDraft").attr("disabled","disabled");
+                    onNegZero()
+                    //return alert("Please enter positive integer.");
+                } else {
+                    $("#btnDraft").removeAttr("disabled");
+                }
+                var xch = $("#Purchase_Request_exchange_rate").val();
+                var lnd = $("#Purchase_Request_landed_cost").val();
+                var foc = $("#grand_total").val();
+                var loc = $("#net_amount_qr").val();
+                var pur = $("#purchase_value").val();
+                var dis = $("#discount").val();                
+                
+                if (!isNaN(sub)){
+                    var _grand_total = 0;
+                    var _net_amount = 0;
+                    var local = 0;
+                    $tblrow.find(".net_price").val(npr.toLocaleString());
+                    $tblrow.find(".total_amount").val(sub.toFixed(3));
+                    $(".total_amount").each(function(){
+                        var stval = parseFloat($(this).val());
+                        _grand_total += isNaN(stval.toFixed(3)) ? 0 : stval;
+                    });
+
+                    $(".grand_total").val(_grand_total.toLocaleString());
+                    _net_amount = parseFloat(_grand_total) 
+                    local = parseFloat(xch) * parseFloat(_net_amount);
+                    landed_cost = parseFloat(lnd) * parseFloat(_net_amount);
+                    purch = parseFloat()
+                    console.log(_grand_total,dis, _net_amount);
+                    $(".net_amount").val(_net_amount.toLocaleString());                    
+                    $(".net_amount_qr").val(local.toLocaleString());
+                    $("#purchase_value").val(landed_cost.toLocaleString());
+
+                }
+            });
+        });
+    }
+    $("#added_discount").change(function(){        
+        onAddedDiscount();
+    });
+
+    function onAddedDiscount(){
+        var _lan = $('#Purchase_Request_landed_cost').val();
+        var _cus = $('#no_table_custom_duty_charges').val();
+        var _oth = $('#Purchase_Request_other_charges').val();
+        var _exc = $('#Purchase_Request_exchange_rate').val();
+        var grand_total = $('#grand_total').val();
+        var _dis = $('#added_discount').val();            
+        var _loc = $('#net_amount_qr').val();
+        var _fta = $('#grand_total').val();
+        
+        _net_amount = parseFloat(grand_total.replace(/,/g, '')) - parseFloat(_dis)
+        _net_amount_qr = parseFloat(_net_amount) * parseFloat(_exc)      
+        _pur = parseFloat(_net_amount) * parseFloat(_lan)                
+        $('#net_amount').val(_net_amount.toLocaleString());   
+        $('#net_amount_qr').val(_net_amount_qr.toLocaleString());   
+        $('#purchase_value').val(_pur.toLocaleString());                   
+                   
+    };
+
+</script>
+
+<script>
+    var xch = $("#Purchase_Request_exchange_rate").val();
+    var lnd = $("#Purchase_Request_landed_cost").val();
+    var foc = $("#foreign_total_amount").val();
+    var loc = $("#net_amount_qr").val();
+    var pur = $("#purchase_value").val();
+    var dis = $("#discount").val();
+    var total = parseFloat(loc.replace(/,/g, ''));
+    $('#Purchase_Request_exchange_rate').change(function(){
+        if ($('#Purchase_Request_exchange_rate').val() > $('#Purchase_Request_landed_cost').val()) {
+            excAlert();
+        } else {            
+            var _for = $('#foreign_total_amount').val();
+            var _exc = $('#Purchase_Request_exchange_rate').val();
+            var _res = parseFloat(_for.replace(/,/g, '')) * parseFloat(_exc.replace(/,/g, ''))
+            $('.net_amount_qr').val(_res.toFixed(3));              }
+        
+    });
+
+    $('#no_table_other_charges').change(function(){
+        recompute();
+    });
+
+    $('#Purchase_Request_landed_cost').change(function(){
+        
+        var _landed_cost = $('#Purchase_Request_landed_cost').val()
+        var _exchan_rate = $('#Purchase_Request_exchange_rate').val()
+        if (parseFloat(_landed_cost) < parseFloat(_exchan_rate)) {
+            lanAlert();
+            $(':button').prop('disabled', true); // Disable all the buttons
+        } else {
+            // $(':button').prop('disabled', true); // Disable all the buttons
+            // $('#btnSave').removeAttr('disabled');
+            var _for = $('#net_amount').val();
+            var _pur = $('#Purchase_Request_landed_cost').val();
+            var _res = parseFloat(_for.replace(/,/g, '')) * parseFloat(_pur.replace(/,/g, ''))
+            $('#purchase_value').val(_res.toFixed(3));
+        }
+        
+    });
+
+
+
+    function onNegZero(){
+        toastr["warning"]("Negative value not allowed.")
+    }
+
+    function onUpdate(){
+        toastr["success"]("Transaction save.")
+    }
+
+    function errAlert(){
+        bootbox.alert({
+            size: "small",
+            message: "Pieces value already exceed. \n Reset to zero.",
+            callback: function(){ 
+                $('.pieces').val(0);
+                // location.reload();
+            }
+        });        
+    }
+
+    function excAlert(){
+        bootbox.alert({
+            size: "small",
+            message: "Exchange Rate value must not more than Landed Cost Value.",
+            callback: function(){ 
+                $(':button').prop('disabled', true); // Disable all the buttons
+            }
+        });        
+    }
+
+    
+    function lanAlert(){        
+        bootbox.alert({
+            size: "small",
+            message: "Landed Cost Value must not less than Exchange Rate Value.",
+            callback: function(){ 
+                //$('#Purchase_Request_exchange_rate').val(3.64);
+                $(':button').prop('disabled', true); // Disable all the buttons
+            }
+        });        
+    }
+
+</script>

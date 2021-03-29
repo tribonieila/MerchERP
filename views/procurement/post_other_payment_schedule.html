@@ -1,0 +1,58 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">Other Payment Schedule Form</span>
+        </div>
+        <div class="card-body tab-content">            
+            <div class="form-horizontal">
+            {{=form.custom.begin}}
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Serial No</label>
+                        <div class="col-sm-8">{{=form.custom.widget.serial_no}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Order No</label>
+                        <div class="col-sm-8">{{=form.custom.widget.order_no}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Supplier Name</label>
+                        <div class="col-sm-8">{{=form.custom.widget.supplier_name}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Trade Terms</label>
+                        <div class="col-sm-8">{{=form.custom.widget.trade_terms}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Terms of Payment</label>
+                        <div class="col-sm-8">{{=form.custom.widget.terms_of_payment}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Currency</label>
+                        <div class="col-sm-8">{{=form.custom.widget.currency}}</div>
+                    </div>
+                </div>
+            </div>
+
+            {{=form}}            
+            {{=form.custom.end}}
+            </div>
+        </div>
+    </div>
+</div>
+        
+

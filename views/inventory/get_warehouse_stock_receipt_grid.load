@@ -1,0 +1,38 @@
+{{=table}}
+ 
+<script>
+$(document).ready(function(){
+    $(".table").DataTable();
+});
+    $("#btnSrp").click(function(){        
+        var parent = $(this).parent("div").parent("td").parent("tr")
+        var _id = $(this).attr('data-id');
+        bootbox.confirm({
+            size: "small",
+            message: "Would you like to generate Stock Receipt and Print?",
+            buttons: {
+                confirm: {
+                    label: 'Yes',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'No',
+                    className: 'btn-danger'
+                }
+            },
+            callback: function (result) {
+                if (result) {
+                    console.log('approved');
+                    parent.fadeOut('slow');
+                    ajax("{{=URL('inventory','stock_receipt_generator')}}" + '/'+ _id);                  
+                    parent.fadeIn('slow');
+                    location.reload();
+                    window.open("{{=URL('inventory','stock_receipt_report')}}" + '/' + _id);
+                } else {
+                    console.log('not approved');
+                }    
+            }
+        });
+    });
+</script>
+

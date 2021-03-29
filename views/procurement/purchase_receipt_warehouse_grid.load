@@ -1,0 +1,30 @@
+{{=table}}
+
+<a class="btn btn-success" id="btnPro" href="{{=URL('procurement','purchase_receipt_warehouse_grid_process', extension = False)}}" role="button">Proceed </a>
+<script>    
+    $(document).ready(function(){
+        $('#btnCon').attr('disabled','disabled');        
+        ajax("{{=URL('procurement','unmarked_items_po')}}");
+        $(".checkbox").click(function(e){     
+            var value = $(this).closest('tr').find('input:checkbox').val();
+            if (this.checked) {                
+                ajax("{{=URL('procurement','selected_po')}}" + '/'+ value);
+            } else {
+                ajax("{{=URL('procurement','deselected_po')}}" + '/'+ value);
+            }
+        });        
+    });
+</script>
+
+
+<script>
+    function errSelection(){
+        bootbox.alert({
+            size: "small",
+            message: "Supplier name should all equal.",
+            callback: function(){                 
+                location.reload();
+            }
+        });        
+    }    
+</script>

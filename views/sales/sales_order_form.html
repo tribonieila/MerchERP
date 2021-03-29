@@ -1,0 +1,216 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li class="active"><a href="#">+ ADD NEW</a></li>
+                {{ if auth.has_membership(role = 'SALES'): }}
+                <li class=""><a href="#" onclick=window.location="{{=URL('inventory','get_fmcg_workflow_grid')}}";>BROWSE</a></li>
+                {{ pass }}
+
+    
+            </ul>
+            <span class="card-title">SALES ORDER FORM</span>
+        </div>
+        <div class="card-body tab-content">                                            
+            <div class="form-horizontal">   
+                {{=form.custom.begin}}	                                    
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Order No</label>
+                            <div class="col-sm-8">                                
+                                <input type="text" class="form-control" id="ticket_no_id" name = "ticket_no_id" value="{{=ticket_no_id}}" hidden>
+                                <div id="_sales_order_no"></div>
+                            </div>                           
+                        </div>                        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Date</label>
+                            <div class="col-sm-8"> {{import datetime}}
+                                <input type="text" class="form-control" value="{{=datetime.date.today()}}" readonly >
+                                <p class="help-block">readonly</p>                            
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Delivery Due Date</label>
+                            <div class="col-sm-8">{{=form.custom.widget.delivery_due_date}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Department</label>
+                            <div class="col-sm-8">
+                                    {{=form.custom.widget.dept_code_id}}
+                            </div>
+                        </div>            
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Location Source</label>
+                            <div class="col-sm-8">
+                                {{=form.custom.widget.stock_source_id}}   
+                            </div>
+                        </div>                                           
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group"> 
+                            <label class="col-sm-4 control-label">Sales Man</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=auth.user.first_name.upper()}} {{=auth.user.last_name.upper()}} " readonly="">
+                            </div>
+                        </div>
+                    </div>    
+                </div>                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Code</label>
+                            <div class="col-sm-8">
+                                {{=form.custom.widget.customer_code_id}}
+                            </div>
+                            <p class="help-block">Ex: 07-1234, MV-1234, 15-1234</p>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Order Reference</label>
+                            <div class="col-sm-8">{{=form.custom.widget.customer_order_reference}}</div>
+                        </div>                 
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Status</label>
+                            <div class="col-sm-8">{{=form.custom.widget.status_id}}</div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Name</label>
+                            <div class="col-sm-8">
+                                <div id="customer_address"></div>
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Remarks</label>
+                            <div class="col-sm-8">{{=form.custom.widget.remarks}}</div>
+                        </div>                                               
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label"></label>
+                            <div class="col-sm-8">                               
+                                <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit">
+                                <input class="btn btn-success" type="button" value="proceed" id="btnproceed">                                
+                                <a class="btn btn-danger" id="btnAbort" role="button" href="{{=URL('inventory','get_fmcg_workflow_grid')}}">abort</a>
+                                <a class="btn btn-info" id="btnhelp" role="button" target="_blank" href="{{=URL('inventory','help_request')}}">help?</a>
+                                <input class="form-control" type="text" value=0 id="discount_var" name="discount_var" hidden>
+                                <input class="form-control" type="text" value=0 id="net_amount_var" name="net_amount_var" hidden>
+                                {{=form.custom.end}}
+                            </div>    
+                            
+                        </div>                         
+                    </div>
+                </div> 
+                <div id = "order_panel">
+                    {{=LOAD('sales','sales_order_transaction_temporary.load', ajax = True, target = 'tblsot')}}
+                </div>
+            </div>          
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function(){    
+    $('#btnsubmit').attr('disabled','disabled');
+    $('#btnhelp').attr('disabled','disabled');
+    $('#btnproceed').attr('disabled','disabled');
+    $('#selective_tax').hide();
+    $('#order_panel').hide();
+    
+    $('#no_table_dept_code_id, #no_table_stock_source_id, #no_table_customer_code_id, #no_table_status_id').change(function(){        
+        if ($('#no_table_dept_code_id').val() && $('#no_table_stock_source_id').val() && $('#no_table_customer_code_id').val() && $('#no_table_status_id').val()) {                        
+                ajax('{{=URL('customer_address')}}', ['customer_code_id'], 'customer_address');                                    
+        } else {
+            $('#btnproceed').attr('disabled','disabled');
+        }
+    });
+
+
+    $('#no_table_dept_code_id').change(function(){
+        ajax('{{=URL('generate_sales_order_no')}}', ['dept_code_id'], '_sales_order_no');     
+    });
+    
+    $('#btnproceed').click(function(){
+        $('#order_panel').slideDown('slow');
+        ajax('{{=URL('sales','sales_session')}}', ['dept_code_id', 'stock_source_id', 'ticket_no_id','customer_code_id']);
+        $('#btnhelp').removeAttr('disabled');
+        $("#item_code").focus();
+        $("#no_table_dept_code_id").attr('disabled','disabled');
+        $("#no_table_stock_source_id").attr('disabled','disabled');
+        $("#no_table_customer_code_id").attr('disabled','disabled');
+        $("#no_table_sales_order_date").attr('disabled','disabled');
+        $("#no_table_customer_order_reference").attr('disabled','disabled');
+        $("#no_table_sales_man_id").attr('disabled','disabled');
+        $("#no_table_status_id").attr('disabled','disabled');
+        $("#no_table_remarks").attr('disabled','disabled');
+        $("#btnproceed").attr('disabled','disabled');
+        return false;
+    });
+
+    $('#btnsubmit').click(function(){
+        // ajax("{{=URL('sales','post_sales_order')}}", ['ticket_no_id', 'dept_code_id','stock_source_id','customer_code_id'])
+        $("#no_table_dept_code_id").removeAttr('disabled');
+        $("#no_table_stock_source_id").removeAttr('disabled');
+        $("#no_table_customer_code_id").removeAttr('disabled');
+        $("#no_table_sales_order_date").removeAttr('disabled');
+        $("#no_table_customer_order_reference").removeAttr('disabled');
+        $("#no_table_sales_man_id").removeAttr('disabled');
+        $("#no_table_status_id").removeAttr('disabled');
+        $("#no_table_remarks").removeAttr('disabled');
+
+    });
+
+    $('#btnAbort').click(function(){
+        ajax('{{=URL('sales','sales_order_form_abort')}}', ['ticket_no_id']);
+    });        
+});
+
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+
+var _id = $(this).attr('data-id');
+var _qt = $(this).attr('data-qt');
+var _pc = $(this).attr('data-pc');
+var form = $('<div id="form_edit" style="display:none:"><div class="form-group"><label for="quantity">Quantity</label><input type="text" class="form-control" id="quantity" name="quantity" value="0"></div><div class="form-group"><label for="pieces">Pieces</label><input type="text" class="form-control" id="pieces" name="pieces" value="0"></div></div>');    
+$(document).on("click",".edit", function(){
+    
+    var _id = $(this).attr('data-id');
+    var _qt = $(this).attr('data-qt');
+    var _pc = $(this).attr('data-pc');
+    var parent = $(this).parent("div").parent("td").parent("tr");
+    bootbox.alert({        
+        message: form,
+        callback: function() {
+            var qty = form.find(_qt);
+            var pcs = form.find(_pc);
+            var qty = form.find('input[name=quantity]').val();
+            var pcs = form.find('input[name=pieces]').val();
+            ajax("{{=URL('sales','sales_order_transaction_temporary_edit')}}" + '/'+ _id+ '/' + qty + '/' + pcs);
+            
+        }
+    })
+});   
+</script>

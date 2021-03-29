@@ -1,0 +1,36 @@
+{{=table}}
+{{if db((db.Stock_Adjustment.processed == False)).select().first():}}
+    <button type="button" class="btn btn-primary" onClick="onStockAdjustment()" id="btnSR">+ Consolidate Stock Adjustment</button>
+{{else:}}
+    <button type="button" class="btn btn-primary disabled" onClick="onStockAdjustment()" id="btnSR">+ Consolidate Stock Adjustment</button>
+{{pass}}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onStockAdjustment(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to consolidate the record(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                                        
+                    ajax("{{=URL('utility','put_stock_adjustment_consolidation')}}")
+                } else {                    
+                    toastr['error']('Consolidation Canceled')
+                }
+
+            }
+        })            
+        
+        
+    }
+</script>

@@ -1,0 +1,52 @@
+{{extend 'layout.html'}}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-underline">
+            <div class="card-head">
+                <span class="card-title">Unconsolidated Transaction</span>
+                <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                    <li class="active"><a href="#sales_invoice">Sales Invoice <span class="badge style-warning">{{=db(db.Sales_Invoice.processed == False).count()}} </span></a></li>
+                    <li><a href="#sales_return">Sales Return <span class="badge style-warning">{{=db((db.Sales_Return.status_id == 13) & (db.Sales_Return.processed == False)).count()}}</span></a></li>
+                    <li><a href="#stock_transfer">Stock Transfer <span class="badge style-accent">{{=db(db.Stock_Transfer.processed == False).count()}}</span></a></li>
+                    <li><a href="#stock_corrections">Stock Corrections <span class="badge style-accent">{{=db((db.Stock_Corrections.status_id == 16) & (db.Stock_Corrections.processed == False)).count()}}</span></a></li>
+                    <li><a href="#stock_adjustment">Stock Adjustment <span class="badge style-accent">{{=db((db.Stock_Adjustment.srn_status_id == 15) & (db.Stock_Adjustment.processed == False)).count()}}</span></a></li>
+                    <li><a href="#obsolescense_of_stock">Obsolescence <span class="badge style-accent">{{=db((db.Obsolescence_Stocks.status_id == 24) & (db.Obsolescence_Stocks.processed == False)).count()}}</span></a></li>
+                    <li><a href="#purchase_receipt">Purchase Receipt <span class="badge style-primary">{{=db((db.Purchase_Receipt.status_id == 21) & (db.Purchase_Receipt.processed == False)).count()}}</span></a></li>
+                    <li><a href="#direct_purchase">Direct Purchase <span class="badge style-primary">{{=db((db.Direct_Purchase_Receipt.status_id == 21) & (db.Direct_Purchase_Receipt.processed == False)).count()}}</span></a></li>
+                    <li><a href="#purchase_return">Purchase Return <span class="badge style-primary">{{=db((db.Purchase_Return.status_id == 15) & (db.Purchase_Return.processed == False)).count()}}</span></a></li>
+                </ul>
+                
+            </div>
+            <div class="card-body tab-content">
+                <div class="tab-pane active" id="sales_invoice">						                    
+                    {{=LOAD('utility','get_sales_invoice_utility_grid.load', ajax = True, target = 'tblSI')}}
+                </div>
+                <div class="tab-pane" id="sales_return">		
+                    {{=LOAD('utility','get_sales_return_utility_grid.load', ajax = True, target = 'tblSR')}}
+                </div>
+                <div class="tab-pane" id="stock_transfer">
+                    {{=LOAD('utility','get_stock_transfer_utility_grid.load', ajax = True, target = 'tblST')}}
+                </div>
+                <div class="tab-pane" id="stock_corrections">
+                    {{=LOAD('utility','get_stock_corrections_utility_grid.load', ajax = True, target = 'tblCOR')}}
+                </div>                
+                <div class="tab-pane" id="stock_adjustment">
+                    {{=LOAD('utility','get_stock_adjustment_utility_grid.load', ajax = True, target = 'tblADJ')}}
+                </div>                
+                <div class="tab-pane" id="obsolescense_of_stock">
+                    {{=LOAD('utility','get_obsolescene_stocks_utility_grid.load', ajax = True, target = 'tblOBS')}}
+                </div>                
+                <div class="tab-pane" id="purchase_receipt">
+                    {{=LOAD('utility','get_purchase_receipt_utility_grid.load', ajax = True, target = 'tblPR')}}
+                </div>                
+                <div class="tab-pane" id="direct_purchase">
+                    {{=LOAD('utility','get_direct_purchase_utility_grid.load', ajax = True, target = 'tblDPr')}}
+                </div>                
+                <div class="tab-pane" id="purchase_return">
+                    {{=LOAD('utility','get_purchase_return_utility_grid.load', ajax = True, target = 'tblPRt')}}
+                </div>                
+
+            </div>
+        </div>        
+    </div>
+</div>

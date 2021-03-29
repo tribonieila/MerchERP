@@ -1,0 +1,158 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li class="active"><a href="#"> VIEW EDIT</a></li> 
+                <li class=""><a href="#" onclick=window.location="{{=URL('inventory','mngr_req_grid')}}";>BROWSE</a></li>
+            </ul>
+            <span class="card-title">Sales Return Request</span>
+        </div>
+        <div class="card-body tab-content">                                            
+            <div class="form-horizontal">   
+                {{=form.custom.begin}}	                    
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Return Request No.</label>
+                            <div class="col-sm-8">                                
+                                <input type="text" class="form-control" value="{{=_id.sales_return_request_prefix_id.prefix}}{{=_id.sales_return_request_no}}" readonly>
+                            </div>                           
+                        </div>                        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Return Request Date</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.sales_return_request_date}}" readonly >
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Posted By</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.sales_man_id.sales_man_name}}, {{=_id.sales_man_id.mv_code}}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Department</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.dept_code_id.dept_code}} - {{=_id.dept_code_id.dept_name}}" readonly >
+                                <input type="text" class="form-control" id="dept_code_id" name="dept_code_id" value="{{=_id.dept_code_id.dept_code}}" hidden >
+                            </div>
+                        </div>            
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Location</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.location_code_id.location_code}} - {{=_id.location_code_id.location_name}}" readonly >
+                                <input type="text" class="form-control" id="location_code_id" name="location_code_id" value="{{=_id.location_code_id}}" hidden >
+                            </div>
+                        </div>                                           
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Man</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.sales_man_on_behalf.users_id.first_name.upper()}} {{=_id.sales_man_on_behalf.users_id.last_name.upper()}}, {{=_id.sales_man_on_behalf.mv_code}} " readonly>
+                            </div>
+                        </div>
+                    </div>    
+                </div>                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Customer</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.customer_code_id.account_name}}, {{=_id.customer_code_id.account_code}} " readonly>
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Return Reference</label>
+                            <div class="col-sm-8">
+                                    <input type="text" class="form-control" value="{{=_id.customer_order_reference}} " readonly>
+                            </div>
+                        </div>                 
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Status</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.status_id.description}} " readonly>                                    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Address</label>
+                            <div class="col-sm-8">{{=_address}}</div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Remarks</label>
+                            <div class="col-sm-8">{{=form.custom.widget.remarks}}</div>
+                        </div>                                               
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label"></label>
+                            <div class="col-sm-8">                                
+                                {{ if _id.status_id == 4: }}
+                                    <input class="btn btn-success" type="submit" value="approved">
+                                    <input class="btn btn-warning" type="button" value="reject" id="btnReject" onclick="Rejected()">                                                                            
+                                {{ else: }}
+                                    <input class="btn btn-success" type="submit" value="approved" disabled>
+                                    <input class="btn btn-warning" type="submit" value="reject" disabled>                                                                            
+                                {{ pass }}            
+                                {{=form.custom.end}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            {{=LOAD('sales','sales_return_transaction_table.load', ajax = True, args = request.args(0),  target = 'tblSR')}}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+    })
+
+    function Rejected(){
+        bootbox.confirm({
+        size: "small",
+        message: "Are you sure you want to reject this sales return?",
+        buttons: {
+            confirm: {
+                label: "Yes",
+                className: "btn-success"
+            },
+            cancel: {
+                label: "No",
+                className: "btn-danger"
+            }
+        },
+        callback: function (result) {
+            if (result) {
+                ajax("{{=URL('sales','sales_return_sales_manager_rejected', args = request.args(0))}}", ['remarks']);                
+                window.location.replace("{{=URL('inventory','mngr_req_grid')}}")
+            }
+        }
+        })
+    }
+</script>

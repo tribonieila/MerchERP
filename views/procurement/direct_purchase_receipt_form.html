@@ -1,0 +1,363 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li class="active"><a href="#">+ ADD NEW</a></li>
+                <li class=""><a href="#" onclick=window.location="{{=URL('inventory','account_grid')}}";>BROWSE</a></li>
+            </ul>
+            <span class="card-title">DIRECT PURCHASE RECEIPT FORM</span>
+        </div>
+        <div class="card-body tab-content">                                            
+            <div class="form-horizontal">      
+                           
+                    {{=form.custom.begin}}	                                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Transaction No</label>
+                                <div class="col-sm-3">   
+                                    <input type="text" class="form-control" id="ticket_no_id" name = "ticket_no_id" value="{{=ticket_no_id}}" hidden>
+                                    <div id="_purchase_receipt_no"></div>
+                                </div>                           
+                                <label class="col-sm-2 control-label">Transaction Date</label>
+                                <div class="col-sm-3"> {{import datetime}}                                    
+                                    <input type="text" class="form-control" value="{{=request.now.date()}}" readonly >                                    
+                                </div>                                                        
+
+                            </div>                        
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Purchase Receipt Date</label>
+                                <div class="col-sm-8">{{=form.custom.widget.purchase_receipt_date}}</div>
+                            </div>                    
+
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Department</label>
+                                <div class="col-sm-8">{{=form.custom.widget.dept_code_id}}</div>
+                            </div>            
+                        </div>                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Supplier Code</label>
+                                <div class="col-sm-8">{{=form.custom.widget.supplier_code_id}}</div>
+                            </div>      
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Location Source</label>
+                                <div class="col-sm-8">{{=form.custom.widget.location_code_id}}</div>
+                            </div>                                           
+                        </div>                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Purchase Order No</label>
+                                <div class="col-sm-8">{{=form.custom.widget.purchase_order_no}}</div>
+                            </div> 
+                        </div>                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Account Code</label>
+                                <div class="col-sm-8">{{=form.custom.widget.supplier_account_code}}</div>                                
+
+
+                            </div>
+                        </div>   
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Account Name</label>
+                                <div class="col-sm-8">                                    
+                                    <input type="text" class="form-control" name="account_code" id="account_code" value="" >                                                                                          
+                                </div>                                
+                            </div>
+                        </div>                              
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Trade Terms</label>
+                                <div class="col-sm-8">
+                                    {{=form.custom.widget.trade_terms_id}}
+                                </div>
+                    
+                            </div>                   
+                        </div>                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Supplier Proforma Invoice</label>
+                                <div class="col-sm-8">{{=form.custom.widget.supplier_reference_order}}</div>
+                            </div>                             
+                        </div>    
+                    </div>       
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Mode of Shipment</label>
+                                <div class="col-sm-8">{{=form.custom.widget.mode_of_shipment}}</div>
+                            </div>             
+                    
+                        </div>     
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Supplier Invoice No</label>
+                                <div class="col-sm-8">{{=form.custom.widget.supplier_invoice}}</div>                                 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Remarks</label>
+                                <div class="col-sm-8">                       
+                                    {{=form.custom.widget.remarks}}                                                                                 
+                                </div>        
+                            </div>    
+                        </div>                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Status</label>
+                                <div class="col-sm-8">{{=form.custom.widget.status_id}}</div>
+                            </div>                   
+                        </div>    
+                    </div>         
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div><label class="col-sm-4 control-label">D1 Reference</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.d1_reference}}</div>                                
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Currency</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.currency_id}}</div>                                
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Exchange Rate</label></div>                                
+                                <div class="col-sm-8">{{=form.custom.widget.exchange_rate}}</div>
+                                
+                            </div>
+                        </div>                        
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Landed Cost (QR)</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.landed_cost}}</div>                                
+                            </div>                            
+
+                        </div>
+
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Custom Duty Charge (QR)</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.custom_duty_charges}}</div>                                
+                            </div>
+                        </div>
+
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Selective Tax (QR)</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.selective_tax}}</div>                                
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div><label class="control-label">Other Charges (FC)</label></div>
+                                <div class="col-sm-8">{{=form.custom.widget.other_charges}}</div>
+                            </div>
+                        </div>
+
+
+                    </div>                        
+                    <hr>
+                    <div class="row">
+
+                        <div class="col-md-8">
+
+                        </div>                          
+                        
+                        <div class="col-md-4">   
+
+                                <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit">
+                                <input class="btn btn-success" type="button" value="proceed" id="btnproceed">
+                                <a class="btn btn-danger" id="btnAbort" role="button" href="{{=URL('inventory','account_grid')}}">abort</a>
+                                <a class="btn btn-info" id="btnhelp" role="button" target="_blank" href="{{=URL('procurement','help_request')}}">help?</a>                                    
+                            
+                        </div>
+                    </div>                          
+                    <input type="text" class="form-control" id="_added_discount_amount" name = "_added_discount_amount" hidden>
+                    {{=form.custom.end}}            
+            </div>
+            
+            <div id = "order_panel">
+                {{=LOAD('procurement','direct_purchase_receipt_transaction_form.load', ajax = True, target = "DPtbl")}}
+            </div>             
+        </div> 
+    </div>
+</div>
+ 
+
+         
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+$(document).ready(function() {
+   $('#delete').on('click', function(){
+      var container = $('#example-container').clone();
+    //   container.find('table').attr('id', 'example');
+
+      var box = bootbox.dialog({
+        show: false,        
+        message: container.html(),
+        // title: "DataTables in a Bootbox",
+        buttons: {
+          ok: {
+            label: "OK",
+            className: "btn-primary",
+            callback: function() {
+              console.log('OK Button');
+            }
+          },
+          cancel: {
+            label: "Cancel",
+            className: "btn-default"
+          }
+        }
+      });
+      
+      box.on("shown.bs.modal", function() {
+         $('#example').DataTable(); 
+      });
+      
+      box.modal('show'); 
+   });
+});
+</script>
+<script src="{{=URL('static','js/cascade.js')}}"></script>
+<script type="text/javascript">
+jQuery(document).ready(function($){
+    var data = [ {{for d in db(db.Department.status_id == 1).select(db.Department.ALL, orderby = db.Department.id):}}
+        // { text: 'Choose Department', value = 0 },
+        { text: '{{=d.dept_code}} - {{=d.dept_name}}', value:'{{=d.id}}',
+            children: [ {{for p in db((db.Supplier_Master.status_id == 1) & (db.Supplier_Master.dept_code_id == d.id)).select(db.Supplier_Master.ALL, orderby = db.Supplier_Master.id):}}
+                { text: '{{=p.supp_code}} - {{=p.supp_name}}, {{=p.supp_sub_code}}', value: '{{=p.id}}'}, {{pass}}
+            ],
+        }, {{pass}}
+    ];
+    $('#Direct_Purchase_Receipt_dept_code_id').cascadingSelect({
+        subSelects: ['#Direct_Purchase_Receipt_supplier_code_id'],
+        data: data 
+    });
+});
+</script>
+<script type="text/javascript">
+$(document).ready(function(){    
+
+    var str_ctr = 0
+
+    $('#btnsubmit').attr('disabled','disabled');
+    $('#btnhelp').attr('disabled','disabled');
+    $('#btnproceed').attr('disabled','disabled');
+    $("#order_panel").hide();
+    $("#Direct_Purchase_Receipt_supplier_code_id, #Direct_Purchase_Receipt_mode_of_shipment, #Direct_Purchase_Receipt_location_code_id, #Direct_Purchase_Receipt_trade_terms_id, #Direct_Purchase_Receipt_supplier_account_code, #Direct_Purchase_Receipt_currency_id, #Direct_Purchase_Receipt_status_id, #Direct_Purchase_Receipt_landed_cost,#Direct_Purchase_Receipt_purchase_order_no").change(function(){
+        if (($("#Direct_Purchase_Receipt_purchase_order_no").val() != "") && ($("#Direct_Purchase_Receipt_landed_cost").val() > 0) && $("#Direct_Purchase_Receipt_supplier_code_id").val() && $("#Direct_Purchase_Receipt_mode_of_shipment").val() && $("#Direct_Purchase_Receipt_location_code_id").val() &&
+        $("#Direct_Purchase_Receipt_trade_terms_id").val() && $("#Direct_Purchase_Receipt_supplier_account_code").val() && $("#Direct_Purchase_Receipt_currency_id").val() &&
+        $("#Direct_Purchase_Receipt_status_id").val()) {
+            $("#btnproceed").removeAttr('disabled');
+        } else {
+            $("#btnproceed").attr('disabled','disabled');
+        }
+    });
+
+    $("#Direct_Purchase_Receipt_currency_id").change(function(){
+        ajax('{{=URL('procurement','generate_exchange_rate')}}',['currency_id'])
+    });
+    $('#discount').change(function(){
+        ajax('{{=URL('discount_session')}}',['discount'])
+    });
+
+    $('#Direct_Purchase_Receipt_dept_code_id').change(function(){         
+        ajax('{{=URL('put_transaction_no')}}',['dept_code_id'], '_purchase_receipt_no');        
+    }); 
+
+    $('#Direct_Purchase_Receipt_supplier_code_id').change(function(){       
+        // ajax('{{=URL('generate_supplier_code_currency')}}', ['supplier_code_id'], '_supplier_code_currency'); 
+        ajax('{{=URL('generate_supplier_trade_terms')}}', ['supplier_code_id'], '_supplier_trade_terms');        
+    });
+
+    $('#Direct_Purchase_Receipt_supplier_account_code, #Direct_Purchase_Receipt_supplier_code_id').change(function(){
+        if (($("#Direct_Purchase_Receipt_supplier_account_code").val() != "") && ($("#Direct_Purchase_Receipt_supplier_code_id").val() != "")) {
+            ajax('{{=URL('procurement','generate_direct_supplier_code_id', args = request.args(0))}}', ['supplier_account_code','supplier_code_id']);
+        }         
+    })
+
+    $('#btnproceed').click(function(){
+        $('#order_panel').slideDown('slow');
+        ajax('{{=URL('procurement','procurement_session')}}', ['dept_code_id', 'location_code_id','supplier_code_id','exchange_rate','landed_cost']);
+        $('#btnhelp').removeAttr('disabled');
+        $("#item_code").focus();
+        $("#btnproceed").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_dept_code_id").attr('disabled','disabled');                
+        $("#Direct_Purchase_Receipt_location_code_id").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_supplier_reference_order").attr('disabled','disabled');        
+        $("#Direct_Purchase_Receipt_mode_of_shipment").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_supplier_code_id").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_status_id").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_remarks").attr('disabled','disabled');        
+        $("#Direct_Purchase_Receipt_trade_terms_id").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_purchase_order_no").attr('disabled','disabled');
+        $("#Direct_Purchase_Receipt_supplier_invoice").attr('disabled','disabled');        
+        $("#Direct_Purchase_Receipt_supplier_account_code").attr('disabled','disabled');
+        // $("#Direct_Purchase_Receipt_other_charges").attr('disabled','disabled');
+        // $("#Direct_Purchase_Receipt_custom_duty_charges").attr('disabled','disabled');
+        // $("#Direct_Purchase_Receipt_selective_tax").attr('disabled','disabled');        
+        // $("#Direct_Purchase_Receipt_landed_cost").attr('disabled','disabled');
+        // $("#Direct_Purchase_Receipt_exchange_rate").attr('disabled','disabled');
+        
+        
+        // $("#remarks").attr('disabled','disabled');     
+        // $("#btnproceed").attr('disabled','disabled');
+        return false;
+    });
+
+    $('#btnsubmit').click(function(){
+        $("#Direct_Purchase_Receipt_dept_code_id").removeAttr('disabled');                
+        $("#Direct_Purchase_Receipt_location_code_id").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_supplier_reference_order").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_estimated_time_of_arrival").removeAttr('disabled');        
+        $("#Direct_Purchase_Receipt_mode_of_shipment").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_supplier_code_id").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_status_id").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_remarks").removeAttr('disabled');        
+        $("#Direct_Purchase_Receipt_trade_terms_id").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_purchase_order_no").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_other_charges").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_custom_duty_charges").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_selective_tax").removeAttr('disabled');        
+        $("#Direct_Purchase_Receipt_landed_cost").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_exchange_rate").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_supplier_account_code").removeAttr('disabled');
+        $("#Direct_Purchase_Receipt_supplier_invoice").removeAttr('disabled');
+        $("#remarks").removeAttr('disabled');                           
+
+    });
+
+    $('#btnAbort').click(function(){
+        ajax('{{=URL('procurement','procurement_request_form_abort')}}', ['ticket_no_id']);
+    });    
+});
+
+</script>

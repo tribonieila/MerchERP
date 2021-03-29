@@ -1,0 +1,306 @@
+Tawar TeamViewer -> 1175865174 > tawar123
+netstat -ltnp | grep -w '3000'
+git fetch origin master
+git reset --hard origin/master
+
+systemctl enable mssql-server
+systemctl disable mssql-server
+
+https://adminlte.io/themes/AdminLTE/index.html
+https://freefrontend.com/css-menu/
+https://csshint.com/full-screen-navigation-menus/
+server: 128.1.2.2-P@ssw0rd
+# auth.login(next=redirect('http://10.128.4.21:3010/Merch_HR/'))
+users:
+admin   ad130227  
+hilario hv220706
+nour    nk230407
+zayre   zn170504 
+sherif  sa220605
+john    HQA7Jfjb 
+marwa   mb220505
+baiju   bv140508
+hakim   ah180305
+aji	    aa270307
+.   
+mimi    rq240808
+khaled  ke320606 
+amin    aa230409
+chally  cy220605
+sijo    sk170406
+wael    wg260406
+munzer  ma220606
+abul    aa240405
+jyothi  jm261114
+manoj	     mm180507 
+hernando	hj300803
+leonardo	lj180807
+joseph	jm130606
+dinesh	dv290512
+
+hesham	hm380606
+cristan	cb210707
+
+
+nm-connection-editor
+
+SALES USERS
+sujeevan	sk210812
+sudev       sv250509
+shijo       sc140508
+muhsin      mt210605
+abdul       ap290516
+nozmul      na280605
+muhammad    mh240806
+dilshad     da330711
+ahmed       ak260505
+apolonio    aj220803
+faisal      fp190604
+josephn     jn210607
+mohammad    ms190810
+chungath    cd250807
+thangavel   tv210911 
+harunur	    hr140706, 15-732
+benito	    bd200606
+ogie	    ai210702
+
+
+POS
+pos-salwa   salwa
+pos-tawar   tawar
+pos-darsalam darsalam 
+
+
+key accounts:
+athanikkal	ah211010 - FS
+liyakath	la120803 - NFS - 1002-TAWAR
+nimad	    nh130507 - NFS - 1006-SALWA
+jeevan	    jn211109 - FS
+hesham	    hm380606 - FS
+eid	        ea260310 - FS
+leonardo	lj180807
+jc	jg310408
+
+
+
+
+j.massoud@merch.com.qa
+n.khanfar@merch.com.qa
+b.varghese@merch.com.qa
+
+leave_days = 
+paid salary = ((basic income + housing allowances) * 12) / 365) * entitled days
+
+DEPT.HEAD 
+1 - ACCOUNTS, 1
+2 - ADMINISTRATION, 2
+3 - FMCG GENERAL SALES, 3
+4 - FMCG-SALES MANAGER, 3
+5 - FMCG-DISTRIBUTION MANAGER, 3
+6 - FMCG-BRAND MANAGER, 3
+7 - FMCG-ASSISTANT STOREKEEPER, 3
+8 - GENERAL PERFUMES, 5
+9 - IT DEPARTMENT, 4
+10- MANAGEMENT, 7
+11- RETAIL, 9
+12- VISUAL AND TECHNICAL SERVICES, 8
+13- WAREHOUSE-ASSISTANT STORE, 6 - PERFUME
+14- WAREHOUSE-STORES IN-CHARGE, 6 - FMCG
+
+
+
+TYPE OF LEAVE               =   R  = D  = H  = J  = A  = C  = JR
+1. Annual Leave             -   01 - 03 - 06 - 09 - 10 - 11 - 12
+2. Compassionate Leave      -   01 - 03 - 11 - 00 - 00 - 11   final appproval
+3. Sick Leave               -   01 - 03 - 11 - 09 - 10 - 11   final approval
+4. Business Leave           -   01 - 03 - 06 - 09 - 00 - 11 - 12
+5. Emergency Leave          -   01 - 03 - 06 - 09 - 00 - 11 - 12
+6. Maternity Leave          -   01 - 03 - 11 - 00 - 10 - 11   
+7. Day Off(Excess Hours)    -   01 - 03 - 11 - 00 - 00 - 11   final approval
+8. Resignation              -   01 - 03 - 06 - 09 - 10 - 11 - 12
+9. EOS/Termination          -   01 - 03 - 06 - 09 - 10 - 11 - 12
+10. Joining Date            
+#11. Annual Leave - In Cash  -   01 - 03 - 06 - 09 - 10 - 11 - 12
+
+LEAVE STATUS        =   ACTION REQUIRED                 =   DESCRIPTION
+1. requested        -   for department head approval    -   requested by department users
+2. rejected         -   for further notice              -   department head rejected
+3. approved         -   for hr approval                 -   department approved
+4. requested        -   for hr approval                 -   requested by department heads
+5. rejected         -   for further notice              -   hr rejected
+6. approved         -   for management approval         -   hr approved
+7. requested        -   for management approval         -   requested by managers
+8. rejected         -   for further notice              -   management rejected.
+9. approved         -   for hr confirmation             -   management approved
+10. on-process      -   for accounts settlement         -   account settlement
+11. approved        -   on vacation                     -   completed
+12. re-requested    -   for department head approval    -   requested returned
+13. re-rejected     -   department head rejected        -   dh rejected.
+14. re-approved     -   ret appr & hr Appro             -   for hr approval
+15. re-rejected     -   hr rejected                     -   hr rejected
+16. completed       -   completed                        -   hr approved and returned
+
+SALARY ADJUSTMENT STATUS  =   ACTION REQUIRED
+1. requested              -   for hr approval             - requested for adjustment
+2. rejected               -   hr or management rejected   - hr or mngt rejected
+3. pre-approved           -   for management approval     - hr approved
+4. approved               -   mngt approved.              - for hr memo.
+5. completed              -   completed                   - management approved and completed
+6. cancelled              -   cancelled                   - cancelled
+note: new employee auto entry
+
+EMPLOYEE STATUS
+1. Active
+2. In-Active
+3. Annual Leave      
+4. Compassionate Leave
+5. Sick Leave      
+6. Business Leave
+7. Emergency Leave
+8. Maternity Leave
+9. Day Off(Excess Hours)
+10. Resignation              
+11. EOS/Termination  
+
+employee_status_id
+GROUPS
+1. ROOT #department users
+2. ACCOUNTS #department head
+3. ACCOUNTS MANAGER #hr manager
+4. MANAGEMENT 
+5. INVENTORY BACK OFFICE
+6. INVENTORY SALES MANAGER
+7. INVENTORY STORE KEEPER
+8. INVENTORY POS
+9. SALES
+
+DEPARTMENT
+#   department
+1	ACCOUNTS
+2	ADMINISTRATION
+3	FMCG
+4	IT
+6	WAREHOUSE
+7	MANAGEMENT
+8	VISUALS AND TECHNICAL SERVICES
+5	GENERAL PEFUMES
+9	RETAIL
+
+SUB-DEPARTMENT
+#   d   sub-department
+1	1	ACCOUNTS
+2	2	ADMINISTRATION 
+3	3	FMCG GENERAL SALES
+4	3	FMCG - SALES MANAGER
+5	3	FMCG - DISTRIBUTION MANAGER
+6	3	FMCG - BRAND MANAGER
+7	3	FMCG - ASSISTANT STOREKEEPER
+8	5	GENERAL PERFUMES
+9	4	IT DEPARTMENT
+10	7	MANAGEMENT
+11	9	RETAILsales man
+12	8	VISUAL AND TECHNICAL SERVICES
+13	6	WAREHOUSE - ASSISTANT STOREKEEPER
+14	6	WAREHOUSE - STORES IN-CHARGE
+
+DATES:
+years, remainder = divmod(diff1.days, 365)
+months = remainder // 30
+
+avgyear = 365.2425        # pedants definition of a year length with leap years
+avgmonth = 365.2425/12.0  # even leap years have 12 months
+years, remainder = divmod(diff1.days, avgyear)
+years, months = int(years), int(remainder // avgmonth)
+
+PAID LEAVE COMPUTATION:
+paid_leave = working_days / 365 * paid_leave_per_year
+
+UPDATE [m3rch_hr_db].[dbo].[Employee_Master]
+SET [employee_status_id] = 10
+WHERE [id] = 125;
+IS NULL
+
+ip      : https://13.74.38.187/spog/welcome
+usrname : larry 
+passwor : larrypas123
+domain  : merch.com.qa
+databas : 
+
+ip      : 128.1.2.3
+usrname : Administrator
+passwor : MERCH-MV2018
+domain  : MERCH-MV
+databas : Merch@2018
+
+ip      : 128.1.2.4
+usrname : 
+passwor : 
+domain  : 
+databas : 
+
+ip      : 128.1.2.6
+usrname : Administrator
+passwor : P@ssw0rd
+domain  : Merch
+databas : 
+
+ip      : 10.128.4.21
+usrname : merchadmin
+passwor : Merch#P@ssw0rd
+domain  : MERCHVM1
+databas :
+
+ip      : 10.128.4.6
+usrname : Administrator
+passwor : merch4658666
+domain  : merch.com.qa
+
+@ECHO OFF
+SETLOCAL
+
+REM Get date in format YYYY-MM-DD (assumes the locale is the United States)
+FOR /F “tokens=1,2,3,4 delims=/ ” %%A IN (‘Date /T’) DO SET NowDate=%%D-%%B-%%C
+
+REM Build a list of databases to backup
+SET DBList=%SystemDrive%SQLDBList.txt
+SqlCmd -E -S MyServer -h-1 -W -Q “SET NoCount ON; SELECT Name FROM master.dbo.sysDatabases WHERE [Name] NOT IN (‘master’,’model’,’msdb’,’tempdb’)” > “%DBList%”
+
+REM Backup each database, prepending the date to the filename
+FOR /F “tokens=*” %%I IN (%DBList%) DO (
+ECHO Backing up database: %%I
+SqlCmd -E -S MyServer -Q “BACKUP DATABASE [%%I] TO Disk=’D:Backup%NowDate%_%%I.bak'”
+ECHO.
+)
+
+REM Clean up the temp file
+IF EXIST “%DBList%” DEL /F /Q “%DBList%”
+
+ENDLOCAL
+
+
+@echo off
+@echo Running SQLCMD. Please wait...
+sqlcmd -E -i C:\daily_backups\daily_backup.sql
+@echo end
+
+DECLARE @path VARCHAR(500)
+DECLARE @name VARCHAR(500)
+DECLARE @pathwithname VARCHAR(500)
+DECLARE @time DATETIME
+DECLARE @year VARCHAR(4)
+DECLARE @month VARCHAR(2)
+DECLARE @day VARCHAR(2)
+
+SET @path = 'C:\daily_backups\'
+
+SELECT @time   = GETDATE()
+SELECT @year   = (SELECT CONVERT(VARCHAR(4), DATEPART(yy, @time)))
+SELECT @month  = (SELECT CONVERT(VARCHAR(2), FORMAT(DATEPART(mm,@time),'00')))
+SELECT @day    = (SELECT CONVERT(VARCHAR(2), FORMAT(DATEPART(dd,@time),'00')))
+
+SELECT @name = 'm3rch_vansales_db' + '_' + @year + @month + @day
+SET @pathwithname = @path + @name + '.bak'
+
+BACKUP DATABASE Vansales_Prod TO DISK = @pathwithname WITH NOFORMAT, NOINIT, SKIP, REWIND, NOUNLOAD, STATS = 10
+
+'{:,}'.format(value)

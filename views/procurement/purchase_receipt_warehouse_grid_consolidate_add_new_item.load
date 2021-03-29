@@ -1,0 +1,72 @@
+<hr>
+{{=form2.custom.begin}}
+<table class="table">
+    <thead>
+        <tr class="active">
+            <th>Item Code</th>            
+            <th>Description</th>
+            <th>UOM</th>
+            <th>Prod. Date</th>
+            <th>Exp. Date</th>
+            <th>Quantity</th>
+            <th>Pieces</th>
+            <th>Category</th>
+            <th></th>                        
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{=form2.custom.widget.new_item_code}}</td>             
+            <td>{{=form2.custom.widget.item_description}} </td>
+            <td>{{=form2.custom.widget.uom}}</td>            
+            <td><input class="form-control" id="no_table_production_date" name="production_date" type="date"></td>
+            <td><input class="form-control" id="no_table_expiration_date" name="expiration_date" type="date"></td>
+            <td>{{=form2.custom.widget.quantity}}</td>
+            <td>{{=form2.custom.widget.pieces}}</td>
+            <td>{{=form2.custom.widget.category_id}}</td>
+            
+            <td><input class="btn btn-primary" type="submit" value="add" id="BtnAdd">   </td>            
+        </tr>
+    </tbody>
+</table>
+{{=form2.custom.end}}
+
+<div id = "_item_code_description"></div> 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+
+$(document).ready(function(){
+    $('#no_table_new_item_code').change(function(){
+        ajax('{{=URL('procurement','warehouse_add_new_item', args = request.args(0))}}', ['new_item_code'], '_item_code_description');     
+        return false;
+    });
+
+    $('.del').click(function(){
+        var _id2 = $(this).attr('data-2id');    
+        bootbox.confirm({
+            size: "small",
+            message: "Would you like to remove this record?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                
+                    ajax("{{=URL('procurement','consolidated_remove_new_item')}}" + '/'+ _id2);
+                    location.reload();
+                        
+                }
+
+            }
+        })
+    });    
+
+});
+</script>

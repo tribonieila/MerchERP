@@ -1,0 +1,34 @@
+<input class="btn btn-default" type="button" value="Sales Invoice" onclick="sync_sales_invoice()">
+<input class="btn btn-default" type="button" value="Sync Sales Return" onclick="sync_sales_return()">
+<input class="btn btn-default" type="button" value="Sync Stock Transfer" onclick="sync_stock_transfer()">
+<input class="btn btn-default" type="button" value="Sync Stock Corrections" onclick="sync_stock_corrections()">
+<input class="btn btn-default" type="button" value="Sync Stock Adjustment" onclick="sync_stock_adjustment()">
+<input class="btn btn-default" type="button" value="Sync Obsolescence of Stock" onclick="obsolescence_of_stock()">
+
+
+<script>
+    function sync_sales_invoice(){        
+        ajax("{{=URL('sili','put_sales_invoice_consolidation')}}")
+    }
+
+    function sync_sales_return(){
+        ajax("{{=URL('sili','put_sales_return_consolidation')}}");
+    }
+
+    function sync_stock_transfer(){       
+        ajax("{{=URL('sili','put_stock_transfer_consolidation')}}");
+    }
+
+    function sync_stock_corrections(){
+        
+        ajax("{{=URL('sili','put_stock_correction_consolidation')}}");
+    }
+
+    function sync_stock_adjustment(){        
+        ajax("{{=URL('sili','put_stock_adjustment_consolidation')}}");
+    }
+    
+    function obsolescence_of_stock(){        
+        ajax("{{=URL('sili','put_obsolescence_of_stock_consolidation')}}");
+    }
+</script>

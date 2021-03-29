@@ -1,0 +1,67 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">Master Chart of Account Group Code</span>
+        </div>
+        <div class="card-body tab-content">   
+            {{=form.custom.begin}}
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Prefix</label>
+                    <div class="col-sm-8">{{=form.custom.widget.prefix}}</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Prefix Name</label>
+                    <div class="col-sm-8">{{=form.custom.widget.prefix_name}}</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Serial</label>
+                    <div class="col-sm-8">{{=form.custom.widget.serial_key}}</div>
+                </div>    
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Prefix Key</label>
+                    <div class="col-sm-8">{{=form.custom.widget.prefix_key}}</div>
+                </div>    
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Chart Account Group Name</label>
+                    <div class="col-sm-8">{{=form.custom.widget.chart_account_main_group_id}}</div>
+                </div>    
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Account Sub-Group Name</label>
+                    <div class="col-sm-8">{{=form.custom.widget.account_group_name}}</div>
+                </div>    
+                <div class="form-group">
+                    <label class="col-sm-2 control-label"></label>
+                    <div class="col-sm-8">
+                        {{=form.custom.submit}}
+                        <input class="btn btn-warning" type="button" value="clear" onClick="onClear()"/>
+
+                    </div>
+                </div>                    
+            </div>
+            {{=form.custom.end}}
+            
+            {{=table}}
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $("#Master_Chart_Account_Prefix_Serial_chart_account_main_group_id").change(function(){
+            if ($("#Master_Chart_Account_Prefix_Serial_chart_account_main_group_id").val()) {
+                var e = document.getElementById("Master_Chart_Account_Prefix_Serial_chart_account_main_group_id");
+                var strUser = e.options[e.selectedIndex].text;                            
+            } else {            
+                var strUser = ""            
+            }
+            $("#Master_Chart_Account_Prefix_Serial_account_group_name").val(strUser)            
+        });
+    });
+    function onClear(){
+        console.log("Clear")
+        window.location.replace('{{=URL('sales','get_master_account_prefix_serial')}}'); 
+    }
+</script>

@@ -1,0 +1,125 @@
+{{extend 'layout.html'}}
+
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head"> 
+            <span class="card-title">Transaction Cleaner</span>
+        </div>
+        <div class="card-body tab-content">            
+            <div class="alert alert-warning" role="alert"><b>Warning!</b> Please be informed no sales man posting transactions...</div>
+            <div>
+              <ul class="nav nav-pills" role="tablist">
+                <li role="presentation"><a href="#transaction_cleaner" aria-controls="transaction_cleaner" role="tab" id="tab1" data-toggle="tab">Transaction Cleaner <span class="badge style-warning">{{=db(db.Sales_Order_Transaction_Temporary.process == True).count()}}</span></a></li>                
+                <!-- <li role="presentation"><a href="#stock_in_transit" aria-controls="stock_in_transit" role="tab" id="tab2" data-toggle="tab">Sales Order Cleaner <span class="badge style-warning">{{=db(db.Sales_Order_Transaction_Temporary.process == False).count()}}</span></a></li> -->
+                <li role="presentation"><a href="#return_in_transit" aria-controls="return_in_transit" role="tab" id="tab3" data-toggle="tab">Stock In Transit Cleaner</a></li>
+              </ul>
+              
+              <div class="tab-content"> 
+                
+                <div role="tabpanel" class="tab-pane active" id="transaction_cleaner">                
+                    <br>        
+                    {{if db(db.Sales_Order_Transaction_Temporary.process == 1).count() >= 1:}}
+                        <button type="button" class="btn btn-primary" onClick="onTransactionCleaner()" id="btnSI">Clear Transaction</button>
+                    {{else:}}
+                        <button type="button" class="btn btn-primary disabled" id="btnSI">Clear Transaction</button>
+                    {{pass}}                                        
+                </div>                   
+                <div role="tabpanel" class="tab-pane" id="stock_in_transit">                        
+                    <br>
+                    {{if db(db.Sales_Order_Transaction_Temporary.process == False).count() >= 1:}}
+                        <button type="button" class="btn btn-primary" onClick="onStockInTransit()" id="btnTrnx">Clear Stock In Transit</button>
+                    {{else:}}
+                        <button type="button" class="btn btn-primary disabled" id="btnTrnx">Clear Stock In Transit</button>
+                    {{pass}}
+                </div>                   
+                <div role="tabpanel" class="tab-pane" id="return_in_transit">                        
+                    <br>
+                    {{if db(db.Sales_Return_Transaction_Temporary).count() >= 1:}}
+                        <button type="button" class="btn btn-primary" onClick="onReturnInTransit()">Clear Stock In Transit</button>                        
+                    {{else:}}
+                        <button type="button" class="btn btn-primary disabled">Clear Stock In Transit</button>
+                    {{pass}}
+                </div>                   
+
+            </div>
+            </div>
+        </div>
+    </div>                
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onTransactionCleaner(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_transaction_clean')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+
+    function onStockInTransit(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_transit_clean')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+    function onReturnInTransit(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_stock_in_transit_cleaner')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+
+</script>

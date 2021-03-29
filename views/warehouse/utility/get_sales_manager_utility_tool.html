@@ -1,0 +1,94 @@
+{{extend 'layout.html'}}
+
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head"> 
+            <span class="card-title">Transaction Cleaner</span>
+        </div>
+        <div class="card-body tab-content">            
+            <div class="alert alert-warning" role="alert"><b>Warning!</b> Please be informed no sales man posting transactions...</div>
+            <div>             
+                <div class="tab-content"> 
+                    {{=form}}                                                        
+                </div>
+            </div>
+        </div>
+    </div>                
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onTransactionCleaner(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_transaction_clean')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+
+    function onStockInTransit(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_transit_clean')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+    function onReturnInTransit(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to clear the transaction(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_stock_in_transit_cleaner')}}")                                              
+                } else {                    
+                    toastr['error']('Transaction Canceled')
+                }
+
+            }
+        })                           
+    }    
+
+</script>

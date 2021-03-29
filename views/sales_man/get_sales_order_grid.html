@@ -1,0 +1,23 @@
+
+{{extend 'layout.html'}}
+<div class="col-md-12">
+  <div class="card card-underline">
+      <div class="card-head">
+        <span class="card-title">Sales Order Workflow </span>        
+    </div>
+    <div class="card-body tab-content">
+        {{=table}}
+        {{if db((db.Sales_Man.users_id == auth.user_id) & (db.Sales_Man.warehouse == False)).select().first(): }}
+          <a class="btn btn-primary" id="btnAdd" role="button" href="{{=URL('sales_man','post_sales_order_form', extension = False)}}">+ create sales order</a>
+        {{else:}}          
+          <a class="btn btn-primary" id="btnAdd" role="button" disabled>+ create sales order</a>
+        {{pass}}
+
+    </div>
+  </div>
+
+<script>
+$(document).ready(function(){
+    $(".table").DataTable();
+});
+</script>

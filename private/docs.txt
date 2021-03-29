@@ -1,0 +1,442 @@
+Version Control Definition
+Ver.1.0.1:  Initial Version
+    ' ' '-> Workflow version, requires auditing (developement)
+    ' '---> Module Version, requires auditing and approval (testing, development)
+    '-----> Module Version, requires memo (productions)
+
+'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
+
+1. Printing the Direct Purchase Receipt Request (as entered) user MANOJ. Resolved
+2. Rejected Sales Order - salesman should have the option to delete the item which is the reason of rejection. Resolved.
+3. Provide an administration report who are currently using the ERP System. Resolved
+4. Stock Card Movement, make a total summary of qty for normal stock and FOC stock. (for sales invoice and sales return only). Resolved.
+5. Send email Notification for JRM for every Purchase Requests that requires his approval. Resolved
+6. On the administrator workflow under PURCHASE REQUEST - you should display all the purchase request that had been approved by the manager and management until the Purchase Order is issued. Resolved.
+
+
+Inventory:
+
+- Ver.1.0.5 - 17/01/2021.
+    Issues:
+    - Design like the Master Stock Card Report wherein you will input the Item Code of the Item you want to view/edit. Resolved.
+    - Allow only editing the Wholesale Price, Retail Price and Van Sale Price. Resolved
+
+
+- Ver.1.0.5 - 19/11/2020, Utility.
+    Issues:
+    - Added Utility Menu. Resolved.
+    - Sales Invoice consolidation module added.
+    
+- Ver.1.0.4 - 30/8/2020, Stock Corrections.
+    Issues:
+    - Manoj:
+    -   When viewed by the requestor, put a GO BACK or ABORT button to enable him/her to leave  the page. = Resolved.
+    - MANOJ’s Workflow
+    -   Rejected Stock Correction by Jyothi is not going back to requestor manoj. = Resolved
+    -   Manoj should have the option to request again or cancel it permanently = Resolved
+    - jyothi:
+    -   Add new column to display the Grand Total of the Stock Corrections = Resolved
+    -   Total Amount of the first item is blank = Resolved
+
+- Ver.1.0.3 - 30/8/2020, Stock Adjustment.
+    Issues:
+    - Change the caption GRAND TOTAL W/T > Grand Total Without Selective Tax = Resolved.
+    - Add Account Code Column = Resolved.
+    - Change the caption Choose Location Code > Choose Location = Resolved.)
+    - Stock Adjustment Code need to be inputted and search from the master account file. Display both Adjustment Code and Name = Resolved
+    - For Stock Adjustment +, any item code  is not existing in the Stock File for the selected location should accept entry and during Saving Time it should automatically append a new record for the item with the selected location with zero values. The quantity will be added once the Stock Adjustment + is confirmed and completed. = Resolved. (After jyothi's approval the new item(not existing location) on selected location added as closing stock.)
+    - Unit Price is Average Cost+Selective Tax , same idea in Obsolescence Stock Invoice. = Resolved.
+    - When adding an item on the grid, the edited average cost is not reflecting on the grid. = Resolved.
+    - Selective Tax for Saleable and FOC should be displayed same idea in Obsolescence Stock Invoice = Resolved.
+    - When you click on ABORT button the above error comes. = Resolved. 
+    - There’s no back or close button when viewing the  workflow report of user – Jyothi and Manoj = Resolved    
+    - Add the selective tax information on the printing and put a separate grand total without selective tax. = Resolved
+    - Add the columns Transaction number, Account code on the workflow reports and master report grid = Resolved.
+    - Under Inventory > Transaction , change the caption Adjustmen +/- into Stock Adjustment = Resolved
+
+- Ver.1.0.2 - 26/8/2020, Obsolescence of stocks.
+    Issues:
+    - Workflow Reports – Should display all Obsolescence Stock that he approved regardless of status. = Resolved
+    - Should include the price and selective tax details same like the Invoice. = Resolved
+    - All Workflow Reports and Master Report of Obsolescence should be viewed on the grid in Descending Order for all the users. = Resolved
+    - Change the Print Counter > “Printed On” + <date/time> = Resolved
+    - When you click ABORT button, it’s going back to the Obsolescence Stock Master Report (see attached below) = Resolved
+    - The above error comes when you are inputting 2 or 3 digits on the Quantity of any item = Resolved, (Increase the decimal floating point "Price Cost, Total Amount")
+    - View and Approval not working again = Resolved, Caught during my modification
+    Updated:
+    - Jyothi's final approval, printing added.
+
+- Ver.1.0.1 - 25/8/2020, Initial version control    
+    
+
+Sales:
+    - Ver.1.0.1 - 25/8/2020, Initial version control
+
+- Ver.1.0.3 - 17/01/2021, Sales Return
+    Issues:
+    - Provide an option for the salesman to CANCEL a REJECTED Sales Return Request. Resolved.
+    - Create an option to input the barcode number of an item in addition to the Item Code. Resolved.
+    - Create a pop-up of the SALES RETURN Printing for Accounts Users, the same process when creating the SALES INVOICE. Resolved
+
+
+
+
+- Ver.1.0.2 - 6/12/2021, Sales Invoice
+    Issues:
+    - Price descripancy validation, average_cost amended. Resolved
+    - Sales Invoice printing added warehouse copy. Resolved
+    - Sales Invoice added footnote issued by, issued date, delivered by and date delivered. Resolved
+
+
+Procurement: - Ver.1.0.1 - 25/8/2020, Initial version control
+
+- Ver.1.0.16 - 10/12/2020, Purchase Request
+    Issues: Amin/Hernando
+    - Addeded contact person based on su pplier.
+
+- Ver.1.0.15 - 25/10/2020, Purchase Request
+    Issues: Amin
+    - Under Purchase Order tab, when you click “View Row” on the Action Button, the following Screen is displayed. Resolved
+    - The caption of the form should be “Purchase Order” and all the detailed of the Purchase Request and Purchase Order should be displayed. Resolved.
+    - Under D1 Register, why ETA is same as D1 Transaction date. ETA was inputted during Purchase Request Transaction. (It was inputed during purchase request transaction)
+    - Put an action button to re-print D1. Resolved. (Append in Workflow Report/D1 Register Menu)
+    Issues: Hakim
+    - The above error comes after login of Hakim. Resolved.
+    - Error under Warehouse Receipt Tab Workflow. Resolved.
+    - Under Purchase Order Tab, Action “View Row” will display the following page – caption should be Purchase Order not Warehouse Receipt. We did not yet generate the Warehouse Purchase Receipt this time. Resolved.
+    - Check  - after generating the Warehouse Purchase Receipt from the Purchase Order Tab, Warehouse Purchase Receipt is not appearing in the Warehouse Purchase Receipt. Resolved.
+
+- Ver.1.0.14 - 21/10/2020, Purchase Request
+    Issues:
+    - Supplier /Acct Code – display the code not the name. Resolved.
+    - Invoice Number is empty – empty Invoice Number is not allowed (Check on Manoj Data entry and validate from there. Resolved.
+    - Reject Button is not working (should go back to Manoj user and reverse back the Workflow Status for Manoj). Resolved.
+    - The above error comes when I click on the Generate Purchase Order action button. NOTE: I change the trade terms from CIF into EX-WORKS when I prepared the Purchase Request so no need for Insurance Proposal. Resolved.
+    - Rename Exit button to Close button. Resolved.
+- Ver.1.0.13 - 18/10/2020, Purchase Request
+    Issues:
+    - Amend  PROCEED > Generate WPR. Resolved.
+    - Amend RETURN > Abort. Resolved.
+    - Under View Warehouse Purchase Receipt – change the caption into PURCHASE ORDER FORM > WAREHOUSE PURCHASE RECEIPT. Resolved.
+    - Remove SUBMIT,RECEIPT and RETURN OPTION, instead put only CLOSE button. Resolved.
+    - User Manoj View Purchase Receipt Action – add CLOSE Button to go back to the Workflow grid. Resolved.
+    - Manoj Editing when inputting the Landed Cost Rate – validation is not working as per the message. (Internet Browser Version Issues)
+
+- Ver.1.0.12 - 14/10/2020, Purchase Request
+    Issues:
+    - Make sure only the Purchase Receipt “Submit” by Hakim will be visible to Accounts User for posting. Resolved.
+    - Put a “CLOSE” button when viewing the Purchase Receipt. Resolved
+    - Change the “SAVE” button to SAVE AS DRAFT. Resolved.
+    - Mode of Shipment , Trade Terms and Supplier Invoice should be Editable. Resolved.
+    - Unit Price should be editbale. Resolved.
+    - When opening the Purchase Receipt for editing, make an automatic validation of New Items, if new item(s) is found, 
+    put a message and DO NOT proceed for submission for user Jyothi. Resolved.
+
+- Ver.1.0.11 - 14/10/2020, Purchase Request
+    Issues:
+    - The above error comes when SAVE AS DRAFT was click after editing the date. Resolved
+    - The same error comes also when Viewing the Warehouse Purchase Receipt for the first time or when no entry was yet. Resolved    
+    - Remove the Edit and Browse button on the top right on the View Option of the Warehouse Purchase Receipt. Resolved
+    - Add CLOSE button to go back to the Workflow grid. Resolved
+    - Once submit button is click, block the editing from Hakim right away. Resolved
+    - Once the D1 was prepared and PO was received in the warehouse Action Required should show as 
+        “For Stock Checking” – hakim is still checking and preparing the Warehouse Purchase Receipt that time. 
+        This warehouse purchase receipt should not be visible to Accounts that time. Resolved
+
+- Ver.1.0.11 - 11/10/2020, Purchase Request
+    Issues:
+    - Give access to edit the Section field. Resolved.
+    - The above Purchase request was rejected then edited by Amin and requested again – but the items are not displayed on Wael Screen druing Approval process. You can view it correctly on Amin user. Resolved.
+    - Same problem above, items were not displayed during approval. This time, no editing was done on the purchase request. Is it maybe because of the section? Resolved. (issues with filtering user's group)
+
+- Ver.1.0.10 - 5/10/2020, Purchase Request
+    Issues:
+    - Under D1 Register – change “Register No.” > D1 Reference “Register Date” > D1 Txn Date. Resolved.
+    - Add the currency field <editable>. Resolved.
+    - Choose forwarderer > forwarder. Resolved.
+    - Add Refresh button under the Action Required Column to refresh the view of the page after creating D1. Resolved.
+    - Keep backup of the code of this page. Resolved.
+    - Change the “Generate Purchase Receipt > Proceed. Resolved.
+    - Put the transaction date of Purchase Request, Purchase Order and Warehouse Purchase Receipt. Resolved.
+    - Put the supplier code plus supplier name. Resolved.
+    - Qty should be 0 by default. Resolved. 
+    - Add Abort button. Resolved
+    - Remove the View and Browse Option from top right corner of the page. Resolved.
+
+- Ver.1.0.9 - 29/9/2020, Purchase Request
+    Issues:
+    - Change the Caption STOCK TRANSACTION FOR CONFIRMATION > “<USER NAME> Workflow”. Resolved.
+    - Issues on the grid (duplicate messages,etc). Resolved.
+    - John should have the Workflow Report Option. Resolved.
+    - John should have access all the Modules like Manoj (Inventory, Sales, Procurement). Resolved.
+    - Purchase History Screen – Better to change the “Browse “ option “CLOSE” to close the tab window of Purchase History. Resolved.
+    - Change the text Generage into Generate. Resolved
+    - The above error comes when generating Purchase Order. Resolved
+- Ver.1.0.8 - 28/9/2020, Purchase Request
+    Issues:
+    - Rejected Purchase Request for AMIN, should have the option to re-submit REQUEST or CANCEL. Resolved.
+    - Add ABORT button to go back to the grid. Resolved.
+    - Validation of the data type for File Upload should be done on PROCEED button and not on SUBMIT Button. Resolved. (during file upload validating, otherwise validate on server side.)
+    - The above error is coming when viewing the REJECTED and PRE-APPROVED PR. It was working earlier. Resolved. (perhaps during updating)
+    - Rejected Purchase Request should not show on Wael Workflow Grid – it should go under his Workflow Reports. Resolved.
+    - On the Proforma Upload – change the caption “file” > “View File”. Resolved.
+    - Opening the Proforma Invoice file is not working. Resolved (download file)
+
+- Ver.1.0.7 - 24/9/2020, Purchase Request
+    Issues:
+    - Please check and activate the uploading of Proforma Invoice Soft copies. Resolved
+    - Proforma Invoice Number Field is missing. Resolved.
+    - Put “ABORT” Button then go back to the Workflow Grid. Resolved.
+    - Put Provision to open the uploaded “Proforma Invoice”. Resolved.
+    - Open the Manager Remarks field. Resolved.
+    - Put a confirmation “YES or NO” if he want to Reject the PR. Resolved.
+
+- Ver.1.0.6 - 23/9/2020, Purchase Request
+    Issues:
+    - Category should be “Normal and FOC” only. Resolved
+    - Calculations for Net Amount is not correct when inputting Added Discount. Resolved
+    - After the 1st entry of Item – Net Amount is “0” NOTE: It will come only after the second entry of item. Resolved
+    - The above error comes if you are adding an item with the Category “P” or FOC. Resolved
+
+- Ver.1.0.5 - 9/9/2020, Direct Purchase Receipt
+    Issues:
+    - Added field landed_cost, price_cost_pcs, average_cost_pcs, wholesale_price_pcs,
+    retail_price_pcs, location_code_id, transaction_type,transaction_date and purchase_receipt_no. Resolved.
+    - Purchase Order No field validation not empty. Resolved.
+
+- Ver.1.0.4 - 7/9/2020, Direct Purchase Receipt
+    Issues:
+    - Printing after approval. Resolved
+    - Supplier Price in grid editable. Resolved.
+    - Rejected transaction in workflow report. Resolved.
+    - Exchange rate, Landed cost decimal to 4. Resolved.
+    - Global discount to amount. Resolved.
+    - Item's in stock file added if location not existed yet in stock file. Resolved. 
+
+- Ver.1.0.3 - 6/9/2020, Direct Purchase Receipt
+    Issues:
+    - Status default to onhold and for approval. = Resolved
+    - Most recent cost label change to supplier price. = Resolved.
+    - changing field order arrangent. = Resolved
+    - validation of landed cost != 0 and exchange rate. = Resolved
+    - discount by items = Resolved.
+    - category items excess removed. = Resolved.
+    - label for other changes, selective tax, custom duty charge and landed cost ammendment. =  Resolved.
+    - no negative entry for quantity and pieces. = Resolved.
+
+- Ver.1.0.2 - 6/9/2020, Direct Purchase Receipt
+    Issues:
+    - Status default to onhold and for approval. = Resolved
+    - Most recent cost label change to supplier price. = Resolved.
+    - changing field order arrangent. = Resolved
+    - validation of landed cost != 0 and exchange rate. = Resolved
+    - discount by items = Resolved.
+    - category items excess removed. = Resolved.
+    - label for other changes, selective tax, custom duty charge and landed cost ammendment. =  Resolved.
+    - no negative entry for quantity and pieces. = Resolved.
+
+Activities:
+
+2020-7-16 # price_cost_after_discount field added
+2020-8-20 # abraham add stock transactions in reports
+
+Todo's:
+HAKIM - sales_order_store_keeper_view # print redirect error
+MANOJ - stock_adjustment_add_new # transaction date only must show
+
+SALES TRANSACTION PRICE/COST DESCRIPTION		
+DETAILS	                PRICE LEVEL	DESCRIPTION
+PRICE COST	            PER PIECE	WHOLESALE PRICE / UOM VALUE
+SALE COST	            PER PIECE	WHOLESALE PRICE / UOM VALUE LESS (DISCOUNT % per item) 
+AVERAGE COST	        PER PIECE	AVERAGE COST / UOM VALUE
+WHOLESALE COST	        PER PIECE	WHOSALE PRICE / UOM VALUE
+RETAIL COST	            PER PIECE	RETAIL PRICE / UOM VALUE
+SELECTIVE TAX AMOUNT	OUTER	    TAKE IT FROM ITEM PRICE TABLE AS IT IS
+* Note: Decimal Discount (DISCOUNT ADDED) from Header should be deducted on the first item only		
+		
+PRICE COST IF FOC	    PER PIECE	AVERAGE COST / UOM VALUE
+
+
+
+Procurement         WH      ACCOUNTS
+PR = 1,3,19,20,11   17      18-25
+PO = 22-17-18-25-21 17-18
+
+Thing's to do:
+- create 1 grid in all transaction
+- create 1 function for all grid approval/rejection (all transaction)
+- create 1 function for all form approval/rejection (all transaction)
+
+Stock transfer - is the act of moving goods from one part of the distribution chain to another. 
+An internal purchase order is created for stock transfer between branches and warehouses.
+
+Sales Order - is a document generated by the seller upon receiving a purchase order from a buyer 
+specifying the details about the items along with quantity, price. It's  also use as a confirmation 
+document that is sent to the customers before delivery of items.
+
+Delivery Note - is a document that lists all the goods included in a delivery, and is often referred to as a dispatch note, 
+or goods receipt. The note is included in the shipment and lists the quantity of products included in the delivery, 
+it doesn't list any values like price of goods.
+
+Sales Return - is a merchandise that was returned to the seller by a customer. 
+
+Purchase Receipts - are made when you accept Items from your Supplier usually against a Purchase Order. 
+You can also accept Purchase Receipts directly without the need for a Purchase Order.
+
+Purchase Return - is a prime entry book or a daybook which is used to record purchase returns. 
+In other words, it is the journal which is used to record the goods which are returned to the suppliers.
+
+Stock Adjustment - enable you to increase or decrease the quantity of items you have "In Stock" for a tracked 
+inventory item, or revalue the item. 
+
+Stock Corrections - used to adjust the in-stock quantity for a product. This might be used to correct the 
+quantity of an item after a stock take or to write-off damaged items. When items are added or 
+removed the necessary accounting adjustments will be made automatically.
+
+Obsolescence of Stock -  is a term that refers to inventory that is at the end of its product life cycle. 
+This inventory has not been sold or used for a long period of time and is not expected to be sold in the future. 
+This type of inventory has to be written-down or written-off and can cause large losses for a company.
+
+Sale Cost - refers to the direct costs attributable to the production of the goods or supply of services by an entity.
+
+if _ip.selective_tax_price:            
+    if int(request.vars.category_id) == 3:
+        _selective_tax_foc = (float(_ip.selective_tax_price or 0) / int(_id.uom_value)) * int(_tq)
+    else:                
+        _selective_tax = (float(_ip.selective_tax_price or 0) / int(_id.uom_value)) * int(_tq)
+
+unit price = ((wholesale_price  / uom) * uom) + ((selective_tax / uom) * uom)
+@auth.requires_login()
+API BASIC CRUD
+Operation	    =    SQL	    =   HTTP	        =       RESTful WS	=   DDS	        =   MongoDB
+Create	        -    INSERT	    -   PUT/POST	    -       POST	    -   write	    -   Insert
+Read (Retrieve)	-    SELECT	    -   GET	            -       GET	        -   read/take	-   Find
+Update (Modify)	-    UPDATE	    -   PUT/POST/PATCH	-       PUT	        -   write	    -   Update
+Delete (Destroy)-	 DELETE	    -   DELETE	        -       DELETE	    -   dispose	    -   Delete
+
+
+
+total = quantity * wholesale price
+
+TOTAL AMOUNT = TOTAL AMOUNT + ((TOTAL AMOUNT * SELECTIVE TAX) / 100) 
+EX: 50 + (50 * 100) / 100
+
+DELIVERY NOTE HAKIM PRINT
+
+NO AMOUNT ONLY QUANTITY
+SALES INVOICE REPORT WITH AMOUNT
+ 
+NO REMARKS
+
+total amount = wholesale + (retail price * selective tax) / 100
+
+selective tax = retail price + selective tax / 100
+
+discount = grand total * discount / 100
+grand total = grand total - discount
+
+condition 
+if item selective = disabled discount
+
+
+IF CATEGORY IS P ALLOW DUPLICATE ITEMS
+
+# for item discount
+formula: 
+    net price = (unit price * (100 - discount)) / 100
+example:
+    unit price  =   130
+    discount    =   10 %
+    net price = ( 130 * (100 - 10)) / 100
+
+limit the items in printing, invoice and sales return only
+for k in db((db.Stock_Request_Transaction.stock_request_id == request.args(0)) & (db.Stock_Request_Transaction.delete == False)).select(db.Item_Master.ALL, db.Stock_Request_Transaction.ALL, db.Item_Prices.ALL, left = [db.Item_Master.on(db.Item_Master.id == db.Stock_Request_Transaction.item_code_id),db.Item_Prices.on(db.Item_Prices.item_code_id == db.Stock_Request_Transaction.item_code_id)]):
+
+status event
+1. sales return
+    - 4, request - sales/van sales
+    - 14, approved - sales manager    
+    - 12, approved - warehouse
+    - 13, returned - accounts
+    
+
+19 - wael 
+20 - john
+11 - user
+22 - back office
+17 - HAKIM
+18 - manoj 
+21 - juti
+
+
+
+isinstance(_id, list):
+
+sudo systemctl restart postgresql-10.service
+sudo systemctl stop postgresql.service
+sudo systemctl start postgresql.service
+sudo systemctl enable postgresql.service
+sudo systemctl status postgresql.service
+    {{if form.errors:}}    
+    <ul>
+        {{for fieldname in form.errors:}}
+            <li>{{=form.errors[fieldname]}}</li>
+        {{pass}}
+    </ul>
+    {{form.errors.clear()}}
+    {{pass}}
+    
+
+HR MANAGEMENT
+Main Menu
+- Core HR/HRIS
+    - Basic Information
+    - Address Details
+    - Account Details
+    - Employment Details
+    - Other Details
+- Payroll Management 
+    - Dashboard
+    - Run Payroll
+    - Employees
+    - Payroll History
+    - Benefits
+    - Forms
+    - Settings
+- Leave and Attendance Management
+    - Dashboard
+    - Application
+    - Approval
+    - Config
+    - Reports
+- Employee Self-Service
+- Reports
+
+ASSET MANAGEMENT
+Main Menu
+    - Dashboard
+    - IT Management    
+        - Dashboard
+        - Machines
+        - Software
+        - Hardware
+        - Reports
+    - Office Administration
+        - Dashboard
+        - x
+        - x
+        - x
+        - x
+- Reports
+
+ADMINISTRATION MANAGEMENT
+Main Menu
+    - Dashboard
+
+FLEET MANAGEMENT
+Main Menu
+    - Dashboard
+ 
+FINANCE MANAGEMENT
+Main Menu
+    - Dashboard

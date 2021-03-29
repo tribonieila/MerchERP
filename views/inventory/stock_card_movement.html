@@ -1,0 +1,49 @@
+{{extend 'layout.html'}}
+<div class="col-md-12"> 
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">Stock Card Movement</span>
+        </div>
+        <div class="card-body tab-content">
+          {{=form.custom.begin}}
+          <div class="form-horizontal" role="form">
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Item Code</label>
+              <div class="col-sm-8">{{=form.custom.widget.item_code_id}}</div>    
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Location Code</label>
+              <div class="col-sm-8">{{=form.custom.widget.location_code_id}}</div>    
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Start Date</label>
+              <div class="col-sm-8">{{=form.custom.widget.start_date}}</div>    
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">End Date</label>
+              <div class="col-sm-8">{{=form.custom.widget.end_date}}</div>    
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label"></label>
+              <div class="col-sm-8">{{=form.custom.submit}}</div>      
+            </div>
+            
+          </div>
+          {{=form.custom.end}}
+          <div class="alert alert-warning" role="alert">re-calculating in progress...</div>
+            
+            {{=i_table}}
+            
+            {{=table}}
+
+        </div>
+    </div>
+</div>
+
+<script>
+  $(document).ready(function(){
+    $('#tblSCM').DataTable(
+      {searching: false, lengthChange: false}
+    );
+  });
+</script>

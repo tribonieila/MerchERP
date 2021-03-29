@@ -1,0 +1,123 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+        <span class="card-title">Master Account</span>
+        </div>
+        <div class="card-body tab-content">
+            <div class="form-horizontal">
+                {{=form.custom.begin}}
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Sub Group</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_sub_group_id}}</div>
+                        </div>    
+                    </div>    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Code</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_code}}</div>
+                        </div>    
+                    </div>    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Name</label>
+                            <div class="col-sm-8">{{=form.custom.widget.account_name}}</div>
+                        </div>    
+                    </div>    
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Type</label>
+                            <div class="col-sm-8">{{=form.custom.widget.master_account_type_id}}</div>
+                        </div>    
+                    </div>    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Delete</label>
+                            <div class="col-sm-8">{{=form.custom.widget.delete}}</div>
+                        </div>    
+                    </div>    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Status</label>
+                            <div class="col-sm-8">{{=form.custom.widget.status}}</div>
+                        </div>    
+                    </div>    
+                </div>
+                <hr>
+                <div class="row">
+                    <table class="table">
+                        <tr class='bg-primary'>
+                            <td>Creadit Balance 1</td>
+                            <td>Creadit Balance 2</td>
+                            <td>Creadit Balance 3</td>
+                            <td>Creadit Balance 4</td>
+                            <td>Creadit Balance 5</td>
+                            <td>Creadit Balance 6</td>
+                            <td>Creadit Balance 9</td>
+                        </tr>
+                        <trd>
+                            <td>{{=form.custom.widget.credit_balance_1}}</td>
+                            <td>{{=form.custom.widget.credit_balance_2}}</td>
+                            <td>{{=form.custom.widget.credit_balance_3}}</td>
+                            <td>{{=form.custom.widget.credit_balance_4}}</td>
+                            <td>{{=form.custom.widget.credit_balance_5}}</td>
+                            <td>{{=form.custom.widget.credit_balance_6}}</td>
+                            <td>{{=form.custom.widget.credit_balance_9}}</td>
+                        </trd>
+                    </table>
+                    <table class="table">
+                        <tr class="bg-primary">
+                            <td>Opening Balance 1</td>
+                            <td>Opening Balance 2</td>
+                            <td>Opening Balance 3</td>
+                            <td>Opening Balance 4</td>
+                            <td>Opening Balance 5</td>
+                            <td>Opening Balance 6</td>
+                            <td>Opening Balance 9</td>
+                        </tr>
+                        <trd>
+                            <td>{{=form.custom.widget.opening_balance_1}}</td>
+                            <td>{{=form.custom.widget.opening_balance_2}}</td>
+                            <td>{{=form.custom.widget.opening_balance_3}}</td>
+                            <td>{{=form.custom.widget.opening_balance_4}}</td>
+                            <td>{{=form.custom.widget.opening_balance_5}}</td>
+                            <td>{{=form.custom.widget.opening_balance_6}}</td>
+                            <td>{{=form.custom.widget.opening_balance_9}}</td>
+                        </trd>
+                    </table>
+                </div>
+                {{=form.custom.submit}}
+                <input class="btn btn-warning" type="button" value="Clear" id="btnClear">
+                {{=form.custom.end}}
+
+            </div>
+            
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            {{=table}}
+        </div>
+    </div>
+    
+
+</div>
+<script>
+    $(document).ready(function(){
+        $("#tblMasterAccount").DataTable();
+        $("#btnClear").click(function(){            
+            window.location.replace("{{=URL('inventory','master_account')}}")
+        });
+    });
+</script>
+
+
+
+
+
+
+

@@ -1,0 +1,220 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">Direct Purchase Receipt Form</span>
+        </div>
+        <div class="card-body tab-content">                                            
+            <div class="form-horizontal">                                 
+                {{=form.custom.begin}}	                                    
+                <div class="row">                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Transaction No</label>
+                            <div class="col-sm-3"> <input type="text" class="form-control" value="{{=row.transaction_no}}" readonly ></div>                                            
+                            <label class="col-sm-2 control-label">Transaction Date</label>
+                            <div class="col-sm-3"> {{import datetime}}<input type="text" class="form-control" value="{{=row.transaction_date}}" readonly ></div>                                            
+                        </div>                    
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Receipt Date</label>
+                            <div class="col-sm-8">{{=form.custom.widget.purchase_receipt_date}}</div>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Department</label>
+                            <div class="col-sm-8">{{=form.custom.widget.dept_code_id}}</div>
+                        </div>            
+                    </div>                        
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Supplier Code</label>
+                            <div class="col-sm-8">{{=form.custom.widget.supplier_code_id}}</div>
+                        </div>      
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Location Source</label>
+                            <div class="col-sm-8">{{=form.custom.widget.location_code_id}}</div>
+                        </div>                                           
+                    </div>                        
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Order No</label>
+                            <div class="col-sm-8">{{=form.custom.widget.purchase_order_no}}</div>
+                        </div> 
+                    </div>                        
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Code</label>
+                            <div class="col-sm-8">{{=form.custom.widget.supplier_account_code}}</div>                                
+
+
+                        </div>
+                    </div>   
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Account Name</label>
+                            <div class="col-sm-8">                         
+                                {{=form.custom.widget.supplier_account_code_description}}                                
+                            </div>
+                            
+                        </div>
+                    </div>                              
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Trade Terms</label>
+                            <div class="col-sm-8">
+                                {{=form.custom.widget.trade_terms_id}}
+                            </div>
+                
+                        </div>                   
+                    </div>                        
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Supplier Proforma Invoice</label>
+                            <div class="col-sm-8">{{=form.custom.widget.supplier_reference_order}}</div>
+                        </div>                             
+                    </div>    
+                </div>       
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Mode of Shipment</label>
+                            <div class="col-sm-8">{{=form.custom.widget.mode_of_shipment}}</div>
+                        </div>             
+                
+                    </div>     
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Supplier Invoice No</label>
+                            <div class="col-sm-8">{{=form.custom.widget.supplier_invoice}}</div>                                 
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Remarks</label>
+                            <div class="col-sm-8">                       
+                                {{=form.custom.widget.remarks}}                                                                                 
+                            </div>        
+                        </div>    
+                    </div>                        
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Status</label>
+                            <div class="col-sm-8">{{=form.custom.widget.status_id}}</div>
+                        </div>                   
+                    </div>    
+                </div>         
+                <hr>
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Currency</label></div>
+                            <div class="col-sm-8">{{=form.custom.widget.currency_id}}</div>                                
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Exchange Rate</label></div>                                
+                            <div class="col-sm-8">{{=form.custom.widget.exchange_rate}}</div>
+                            
+                        </div>
+                    </div>                        
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Landed Cost (QR)</label></div>
+                            <div class="col-sm-8">{{=form.custom.widget.landed_cost}}</div>                                
+                        </div>                            
+
+                    </div>
+
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Custom Duty Charge (QR)</label></div>
+                            <div class="col-sm-8">{{=form.custom.widget.custom_duty_charges}}</div>                                
+                        </div>
+                    </div>
+
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Selective Tax (QR)</label></div>
+                            <div class="col-sm-8">{{=form.custom.widget.selective_tax}}</div>                                
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="form-group">
+                            <div><label class="control-label">Other Charges (FC)</label></div>
+                            <div class="col-sm-8">{{=form.custom.widget.other_charges}}</div>
+                        </div>
+                    </div>
+
+
+                </div>                    
+                <hr>
+                <div class="row">
+                    <div class="col-md-8">
+                    </div>                                             
+                    <div class="col-md-4">   
+                        {{ if auth.has_membership(role='ACCOUNTS MANAGER'):}}
+                            {{if row.status_id == 4:}}
+                                <input class="btn btn-success" type="button" value="approve and post" id="btnApproved">
+                                <input class="btn btn-danger" type="button" value="reject" id="btnReject">    
+                            {{else:}}
+                                <input class="btn btn-success" type="button" value="approve and post" id="btnApproved" disabled>
+                                <input class="btn btn-danger" type="button" value="reject" id="btnReject" disabled>
+                            {{pass}}
+                        {{else:}}
+                            {{if row.status_id != 21:}}
+                                <input class="btn btn-primary" type="button" value="submit" id="btnsubmit">
+                            {{else:}}
+                                <input class="btn btn-primary" type="button" value="submit" id="btnsubmit" disabled>
+                            {{pass}}
+                        {{pass}}
+                        
+                        
+                    </div>
+                </div>                          
+                {{=form.custom.end}}            
+            </div>
+            <div id = "order_panel">
+                {{=LOAD('procurement','get_direct_purchase_transaction_id.load', args = request.args(0), ajax = True, target = "DPtbl",extension=False)}}
+            </div>             
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $("#btnsubmit").attr('disabled','disabled');
+    $("#Direct_Purchase_Receipt_currency_id").change(function(){
+        ajax('{{=URL('procurement','generate_exchange_rate')}}',['currency_id']);
+    });
+    $("#btnsubmit").click(function(){
+        ajax("{{=URL('procurement','put_direct_purchase_id', args=request.args(0))}}",['trade_terms_id','mode_of_shipment','supplier_reference_order','supplier_invoice','status_id','purchase_receipt_date',
+    'exchange_rate','landed_cost','custom_duty_charges','selective_tax','other_charges','remarks'])
+        location.href = "{{=URL('inventory','account_grid')}}"
+    })
+    $("#btnApproved").click(function(){
+        ajax("{{=URL('procurement','put_direct_purchase_receipt_approved_id', args = request.args(0))}}", ['purchase_receipt_date'])
+        window.location.href="{{=URL('inventory','account_manager_workflow')}}"
+    });
+    $("#btnReject").click(function(){
+        ajax("{{=URL('procurement','put_direct_purchase_receipt_reject_id', args = request.args(0))}}")
+        window.location.href="{{=URL('inventory','account_manager_workflow')}}"
+    });
+});
+</script>
+

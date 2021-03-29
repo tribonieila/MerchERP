@@ -1,0 +1,65 @@
+{{extend 'layout.html'}}
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.css">
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">{{=_title}}</span>
+        </div>
+        <div class="card-body tab-content">            
+            {{=form.custom.begin}}                
+            <div class="row">
+                <label>Date Range</label>
+                  <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value="{{=request.now.date()}}"></div>
+                  <span>to</span>
+                  <div class="col">
+                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value="{{=request.now.date()}}"></div>                        
+                  </div>
+                  <div class="col">
+                    {{=form.custom.submit}}
+                  </div>
+            </div>
+            {{=form.custom.end}}
+            <br>                          
+
+            {{=table}}            
+        </div>
+    </div>
+</div>
+        
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+$(document).ready( function () {
+    $('.table').DataTable();
+    $('.revive').click(function(){
+            var _id = $(this).attr('data-id');
+            bootbox.confirm({ 
+                size: "small",
+                message: "Would you like to revive this record?",
+                buttons: {
+                    confirm: {
+                        label: "Yes",
+                        className: "btn-success"
+                    },
+                    cancel: {
+                        label: "No",
+                        className: "btn-danger"
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        console.log("Revive");
+                        window.location.replace('{{=URL('procurement','document_register_grid_process')}}' + '/' + _id);
+                        // ajax("{{=URL('sales','sales_order_transaction_temporary_delete')}}" + '/'+ _id);
+                            // document_register_grid_process
+                    } else {
+                        console.log("Cancel")
+                    }
+
+                }
+            })
+        });       
+});
+</script>
+
+
+

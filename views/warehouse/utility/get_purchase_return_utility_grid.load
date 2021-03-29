@@ -1,0 +1,35 @@
+{{=table}}
+{{if db((db.Purchase_Return.status_id == 15) & (db.Purchase_Return.processed == False)).select().first():}}
+    <button type="button" class="btn btn-primary" onClick="onPurchaseReturn()" id="btnDPR">+ Consolidate Purchase Return</button>
+{{else:}}
+    <button type="button" class="btn btn-primary disabled">+ Consolidate Purchase Return</button>
+{{pass}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onPurchaseReturn(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to consolidate the record(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                    
+                    ajax("{{=URL('utility','put_purchase_return_consolidation')}}")                                              
+                } else {                    
+                    toastr['error']('Consolidation Canceled')
+                }
+
+            }
+        })            
+        
+        
+    }
+</script>

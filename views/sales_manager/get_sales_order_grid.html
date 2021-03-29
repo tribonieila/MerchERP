@@ -1,0 +1,15 @@
+{{extend 'layout.html'}}
+
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">Sales Order Workflow Grid</span>
+        </div>
+        <div class="card-body tab-content">
+            {{=LOAD('sales_manager','get_sales_order_table.load',ajax='true',target='SOtbl')}}            
+        </div>
+    </div>    
+</div>            
+
+
+

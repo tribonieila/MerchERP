@@ -1,0 +1,199 @@
+{{extend 'layout.html'}}
+    <div class="col-md-12">
+        <div class="card card-underline">  
+            <div class="card-head">
+                <!-- <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                    <li class="active"><a href="#">+ PROCESS</a></li>
+                    <li class=""><a href="#" onclick=window.location="{{=URL('document_register_grid')}}";>BROWSE</a></li>
+                </ul> -->
+                <span class="card-title">D/1 REGISTER FORM</span>
+            </div>
+            <div class="card-body tab-content"> 
+                <div class="alert alert-warning" role="alert">
+                    <b>Reminder:</b> Please be advised to update the form manually at the moment. (including the computaion)
+                </div>
+                {{=table}}       
+                <hr>
+                {{import locale}}
+                {{=form.custom.begin}}    
+
+                <div class="form-horizontal">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">D1 Register</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="doc_reg_no" value="{{=_id.document_register_no}}" readonly>                                                             
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">D1 Transaction Date</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" value="{{=_id.document_register_date.strftime('%m/%d/%Y')}}" readonly>
+                                </div>
+                            </div>
+                        </div>                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">ETA</label>
+                                <div class="col-sm-8">
+                                    <input type="date" class="form-control" name='estimated_time_of_arrival' value="{{=_id.estimated_time_of_arrival.strftime('%Y-%m-%d')}}">
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Invoice No.</label>
+                                <div class="col-sm-8">{{=form.custom.widget.invoice_no}}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Invoice Date.</label>
+                                <div class="col-sm-8"><input type="date" class="form-control" name='invoice_date' value="{{=_id.invoice_date.strftime('%Y-%m-%d')}}"></div>
+                            </div>
+                        </div>                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Due Date</label>
+                                <div class="col-sm-8"><input type="date" class="form-control" name='due_date' value="{{=_id.due_date.strftime('%Y-%m-%d')}}"></div>
+                            </div>
+                        </div>                        
+                    </div>  
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Forwarder</label>
+                                <div class="col-sm-8">{{=form.custom.widget.forwarder_supplier_id}}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Bank</label>
+                                <div class="col-sm-8">{{=form.custom.widget.bank_master_id}}</div>
+                            </div>
+                        </div>                                              
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Mode of Shipment</label>
+                                <div class="col-sm-8">{{=form.custom.widget.mode_of_shipment}}</div>
+                            </div>
+                        </div>                              
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Location</label>
+                                <div class="col-sm-8">{{=form.custom.widget.location_code_id}}</div>
+                            </div>
+                        </div>        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Currency</label>
+                                <div class="col-sm-4">{{=form.custom.widget.currency_id}}</div>
+                                <label class="col-sm-2 control-label">Exchange Rate</label>
+                                <div class="col-sm-2">{{=form.custom.widget.exchange_rate}}</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Total Amount</label>
+                                <div class="col-sm-8">{{=form.custom.widget.invoice_amount}}</div>
+                            </div>
+                        </div>                                                                                                        
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Commodity</label>
+                                <div class="col-sm-8">{{=form.custom.widget.commodity}}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Freight Currency</label>
+                                <div class="col-sm-8">{{=form.custom.widget.freight_currency_id}}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Freight Amount</label>
+                                <div class="col-sm-8">{{=form.custom.widget.freight_amount}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Terms of Payment</label>
+                                <div class="col-sm-8">{{=form.custom.widget.payment_terms}}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Freight Percentage</label>
+                                <div class="col-sm-8">{{=form.custom.widget.freight_percentage}}</div>
+                            </div>
+                        </div>                        
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Total Amount QR</label>
+                                <div class="col-sm-8">{{=form.custom.widget.total_amount_in_qr}}</div>
+                            </div>
+                        </div>                        
+                    </div>                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Payment Category</label>
+                                <div class="col-sm-8">{{=form.custom.widget.payment_category_id}}</div>    
+                            </div>                        
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Payment Voucher</label>
+                                <div class="col-sm-8">{{=form.custom.widget.payment_voucher}}</div>    
+                            </div>                        
+                        </div>
+                        <div class="col-md-4">                              
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Paid</label>
+                                <div class="col-sm-8">{{=form.custom.widget.paid}}</span></div>
+                            </div>      
+                        </div>
+                    </div>                 
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">CIL #</label>
+                                <div class="col-sm-8">{{=form.custom.widget.cil_no}}</span></div>
+                            </div>      
+                        </div>
+                        <div class="col-md-4">  </div>
+                        <div class="col-md-4">                                    
+                            <label class="col-sm-4 control-label"></label>
+                            <div class="col-sm-8">                                    
+                                <input class="btn btn-primary" type="submit" value="submit" id='btnSubmit'/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{=form.custom.end}}
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    $(document).ready(function(){
+        // $('#Document_Register_invoice_amount, #Document_Register_total_amount_in_qr').prop('readonly', true);        
+    })
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>

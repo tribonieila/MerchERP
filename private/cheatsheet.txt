@@ -1,0 +1,81 @@
+sudo lsof -t -i:9001
+{{=datetime.date.today().strftime('%d-%b-%Y')}}
+
+MODULES REQUIRED:
+pip install num2words
+pip install arabic-reshaper
+pip install python-bidi
+pip install reportlab
+pip install inflect
+pip install Babel
+
+
+UPDATE table_name 
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+
+UPDATE [m3rch_inv_db].[dbo].[Stock_Type] SET [mnemonic] = 'N' WHERE [id] = 1
+DELETE FROM [m3rch_inv_db].[dbo].[Merch_Stock_Header]
+DBCC CHECKIDENT ('[Merch_Stock_Header]', RESEED, 0);
+print float(str(f)[:5])
+
+$('input[type=text]').attr('autocomplete','off');
+$('input[type=number]').attr('autocomplete','off');
+
+$('input[type="number"]').prop('readonly', true);
+$(':text').prop('readonly', true);
+$(':input').attr('readonly','readonly');
+$('#myFormID :input').attr('readonly','readonly');
+$('yourFormSelector input[type="text"]').prop('readonly', true);
+$('.classname').attr('readonly', 'readonly');
+$('.classname').prop('readonly', true);
+$('.form-control').prop('readonly', true);
+$('select.readonly option:not(:selected)').attr('disabled',true);
+$('select:not([readonly]) option').removeAttr('disabled');
+
+// trailing zero's
+    for n in db().select(orderby = db.Supplier_Master.id):    
+        _zero = 4
+        _serial = n.supp_sub_code[3:].ljust(_zero + len(n.supp_sub_code[3:]), '0')
+        print ':', _serial
+
+Using location.replace() will redirect you, but without saving the history of the previous page. This is better to use when a form is submitted.
+
+But when you want to keep your history you have to use location.href=//path.
+
+Examples:
+
+// Form with steps
+document.getElementById('#next').onclick = function() {
+   window.location.href='/step2' // Iteration of steps;
+}
+
+// Go to next step
+document.getElementById('#back').onclick = function() {
+   window.history.back();
+}
+
+// Finish
+document.getElementById('#finish').onclick = function() {
+   window.location.href = '/success';
+}
+
+// On success page
+window.onload = function() {
+    setTimeout(function() {
+       window.location.replace('/home'); // I can't go back to success page by pressing the back button
+    },3000);
+}
+
+if ( fup.files[0].type === 'application/pdf' ) {
+    console.log( 'It is validated!' )
+}
+
+window.open("https://www.w3schools.com");
+
+IP STATION
+Apt 17 - 128.1.2.18
+
+RELOAD
+$( "#here" ).load(window.location.href + " #here" );
+

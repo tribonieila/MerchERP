@@ -1,0 +1,36 @@
+{{=table}}
+{{if db((db.Purchase_Receipt.status_id == 21) & (db.Purchase_Receipt.processed == False)).select().first():}}
+    <button type="button" class="btn btn-primary" onClick="onPurchaseReceipt()" id="btnSR">+ Consolidate Purchase Receipt</button>
+{{else:}}
+    <button type="button" class="btn btn-primary disabled" onClick="onPurchaseReceipt()" id="btnSR">+ Consolidate Purchase Receipt</button>
+{{pass}}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+    function onPurchaseReceipt(){
+        bootbox.confirm({ 
+            size: "small",
+            message: "Are you sure you want to consolidate the record(s)?",
+            buttons: {
+                confirm: {
+                    label: "Yes",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "No",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                                        
+                    ajax("{{=URL('utility','put_purchase_receipt_consolidation')}}")
+                } else {                    
+                    toastr['error']('Consolidation Canceled')
+                }
+
+            }
+        })            
+        
+        
+    }
+</script>

@@ -1,0 +1,34 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">Financial Statement Group</span>
+        </div>
+        <div class="card-body tab-content">   
+            {{=form.custom.begin}}
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Financial Statement Group Name</label>
+                    <div class="col-sm-8">{{=form.custom.widget.financial_statement_group_name}}</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label"></label>
+                    <div class="col-sm-8">
+                        {{=form.custom.submit}}
+                        <input class="btn btn-warning" type="button" value="clear" onClick="onClear()"/>
+                    </div>
+                </div>                    
+            </div>
+            {{=form.custom.end}}
+            
+            {{=table}}
+        </div>
+    </div>
+</div>
+<script>
+    function onClear(){
+        console.log("Clear")
+        window.location.replace('{{=URL('sales_settings','get_financial_statement_group_grid')}}'); 
+
+    }
+</script>

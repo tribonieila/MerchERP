@@ -1,0 +1,47 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <!-- <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li><a href="#">VIEW</a></li>
+                <li class="active"><a href="#" onclick=window.location="{{=URL('inventory','account_grid')}}";>BROWSE</a></li>
+            </ul> -->
+            <span class="card-title">PURCHASE RECIEPT NEW ITEM</span>
+        </div>
+        <div class="card-body tab-content">                                            
+            {{=table}}
+        </div>
+    </div>
+</div>
+
+<!-- <script>
+    window.onload = function(){
+        bootbox.confirm({
+            size: "small",
+            message: "There are new items on this purchase receipt. Continue?",
+            buttons: {
+                confirm: {
+                    label: "Proceed",
+                    className: "btn-success"
+                },
+                cancel: {
+                    label: "Cancel",
+                    className: "btn-danger"
+                }
+            },
+            callback: function (result) {
+                if (result) {                                    
+                    ajax("{{=URL('procurement','skip_new_items', args = request.args(0))}}");
+                    location.replace("{{=URL('procurement','purchase_receipt_account_grid_view_validate', args = request.args(0))}}")
+                } else {
+                    ajax("{{=URL('procurement','skip_not_new_items', args = request.args(0))}}");
+                    location.replace("{{=URL('inventory','account_grid')}}")
+                    
+                }
+            }
+        })
+    }
+        
+    
+</script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>

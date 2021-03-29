@@ -1,0 +1,65 @@
+{{extend 'layout.html'}}
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.css">
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">{{=_title}}</span>
+        </div>
+        <div class="card-body tab-content">            
+            {{=form.custom.begin}}                
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">Category</label>                               
+                        <div class="col-sm-6">{{=form.custom.widget.category_id}}</div>
+                    </div>                        
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">                        
+                        <div class="col-sm-6">{{=form.custom.widget.supplier_code_id}}</div>
+                    </div>                        
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label class="col-sm-6 control-label">Date Range</label>
+                        <div class="col-sm-6"><input class="form-control" id="from_date" name="from_date" type="date" value="{{=request.now.date()}}"></div>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">                        
+                        <div class="col-sm-6"><input class="form-control" id="to_date" name="to_date" type="date" value="{{=request.now.date()}}"></div>
+                        <input class="btn btn-primary" type="button" value="submit" id="btnSubmit">
+                    </div>
+                </div>
+            </div>
+            {{=form.custom.end}}
+            <br>                          
+            <div id = "tblView"></div>            
+        </div>
+    </div>
+</div>  
+        
+
+<script>
+$(document).ready( function () {    
+    $("#no_table_supplier_code_id").hide();
+    $("#btnSubmit").click(function(){        
+        ajax("{{=URL('procurement','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id'], 'tblView')
+    });
+
+    $("#no_table_category_id").change(function(){   
+        if ($("#no_table_category_id").val() == 2) {
+            $("#no_table_supplier_code_id").show();
+        } else {
+            $("#no_table_supplier_code_id").hide();
+        }
+        // ajax("{{=URL('procurement','get_category_id')}}",['category_id'], 'sub_category_id')
+        
+    });
+});
+</script>
+
+
+
