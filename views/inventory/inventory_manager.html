@@ -1,4 +1,5 @@
 {{extend 'layout.html'}}
+
 <div id="app">  
     <div class="col-md-12">
         <div class="card card-underline">
@@ -59,11 +60,10 @@
 
 <script>
 $(document).ready(function(){
-    $('#stock_adjustment a').click(function (e) {
-        e.preventDefault()
-        $(this).tab('show')
-    })
-    
+  
+  $(".table").DataTable({
+            responsive: true
+        });
 
 })
 </script>

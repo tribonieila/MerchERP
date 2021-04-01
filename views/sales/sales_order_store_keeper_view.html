@@ -189,7 +189,7 @@ $(document).ready(function(){
     });
     $('#btnCreate').click(function(){        
         ajax('{{=URL('sales','sale_order_manager_delivery_note_approved_form', args = request.args(0))}}',['remarks','customer_good_receipt_no']);     
-        window.location.replace("{{=URL('inventory','str_kpr_grid')}}")   
+        // window.location.replace("{{=URL('inventory','str_kpr_grid')}}")
     });
     $('#btnCreateAndOnHold').click(function(){        
         ajax('{{=URL('sales','create_delivery_note_and_hold', args = request.args(0))}}',['remarks','customer_good_receipt_no']);        
@@ -215,8 +215,13 @@ $(document).ready(function(){
     }
 
     function redirect(){        
-        window.location.replace("{{=URL('default','index')}}")
+        window.location.replace("{{=URL('inventory','str_kpr_grid')}}")
     }
+
+    function warehouse_grid(){        
+        window.location.replace("{{=URL('inventory','str_kpr_grid')}}")
+    }
+
     function Cancel(){
         // console.log("Cancelled transaction...");
         // var _id = $(this).attr('data-id');

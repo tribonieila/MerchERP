@@ -678,15 +678,14 @@ def sales_order_form():
         _sales_m = _dept.user_id
         _query_dept = db.Department.id == int(_dept.department_id)
         _query_cstmr = db.Master_Account            
-        _default = 0
-        
-        _heads_up = ''
+        _default = 0        
+        _heads_up = 'Required max 20 items only.'
     elif auth.has_membership('ROOT') | auth.has_membership('ACCOUNTS'): # All in Master Accounts                
         _query_dept = db.Department.id > 0
         _query_cstmr = db.Master_Account            
         _defa_dept = 0
         _default = 0
-        _heads_up = ''
+        _heads_up = 'Required max 20 items only.'
     ticket_no_id = id_generator()
     # session.ticket_no_id = ticket_no_id
     _grand_total = session.discount = 0
@@ -695,8 +694,9 @@ def sales_order_form():
         Field('sales_order_date', 'date', default = request.now),
         Field('dept_code_id','reference Department', requires = IS_IN_DB(db(_query_dept), db.Department.id,'%(dept_code)s - %(dept_name)s', zero = 'Choose Department')),
         Field('stock_source_id','reference Location', default = 1, requires = IS_IN_DB(db(db.Location.location_group_code_id == 1), db.Location.id, '%(location_code)s - %(location_name)s', zero = 'Choose Location')),
-        Field('customer_code_id', 'string', length = 25),
-        # Field('customer_code_id','reference Master_Account', default = int(_default), requires = IS_IN_DB(db(_query_cstmr), db.Master_Account.id, '%(account_code)s, %(account_name)s', zero = 'Choose Customer')),            
+        # Field('customer_code_id', 'string', length = 25),
+        # Field('customer_code_id','reference Master_Account', default = int(_default), requires = IS_IN_DB(db(_query_cstmr), db.Master_Account.id, '%(account_code)s, %(account_name)s', zero = 'Choose Customer')),    
+        Field('customer_code_id','reference Master_Account', default=int(_default), ondelete = 'NO ACTION',label = 'Customer Code', requires = IS_IN_DB(db(_query_cstmr), db.Master_Account.id, '%(account_name)s, %(account_code)s', zero = 'Choose Customer')),            
         # Field('customer_code_id', widget = SQLFORM.widgets.autocomplete(request, db.Master_Account.master_account, id_field = db.Master_Account.id, limitby = (0,10), min_length = 2)),
         Field('customer_order_reference','string', length = 25),
         Field('delivery_due_date', 'date', default = request.now),
@@ -823,8 +823,9 @@ def discount_session():
 @auth.requires_login()
 def item_code_description():
     response.js = "$('#btnadd, #no_table_pieces, #discount').removeAttr('disabled')"
-    _icode = db(db.Item_Master.item_code == str(request.vars.item_code)).select().first()        
-    # _icode = db((db.Item_Master.item_code == request.vars.item_code.upper()) & (db.Item_Master.dept_code_id == session.dept_code_id)).select().first()    
+    # _icode = db(db.Item_Master.item_code == str(request.vars.item_code)).select().first()
+    _icode = db((db.Item_Master.item_code == request.vars.item_code.upper()) & (db.Item_Master.dept_code_id == session.dept_code_id)).select().first()
+    print ':', request.vars.item_code, session.dept_code_id
     
     if not _icode:
         # response.js = "$('#btnadd').attr('disabled','disabled')"        
@@ -1048,11 +1049,11 @@ def validate_sales_order_transaction(form):      # validate item if  saleable or
 
 @auth.requires_login()            
 def sales_order_transaction_temporary():       
-    _usr = db(db.Sales_Man.users_id == auth.user_id).select().first()
-    if _usr.van_sales == True:
-        _max_items = 20
-    else:
-        _max_items = 20    
+    # _usr = db(db.Sales_Man.users_id == auth.user_id).select().first()
+    # if _usr.van_sales == True:
+    #     _max_items = 20
+    # else:
+    _max_items = 20    
     form = SQLFORM.factory(
         Field('item_code', 'string', length = 25),
         Field('quantity','integer', default = 0),
@@ -3764,7 +3765,7 @@ def get_workflow_reports():
                 _query = db((db.Sales_Return.warehouse_id == auth.user_id) & (db.Sales_Return.sales_return_date >= request.vars.from_date) & (db.Sales_Return.sales_return_date <= request.vars.to_date)).select(orderby = ~db.Sales_Return.id)
             else:
                 title = 'Sales Return Workflow Report as of %s' % (request.now.date())                
-                _query = db((db.Sales_Return.warehouse_id == auth.user_id) & (db.Sales_Return.sales_return_date == request.vars.now)).select(orderby = ~db.Sales_Return.id)
+                _query = db((db.Sales_Return.warehouse_id == auth.user_id) & (db.Sales_Return.sales_return_date == request.now)).select(orderby = ~db.Sales_Return.id)
         elif auth.has_membership(role = 'INVENTORY SALES MANAGER'):
             if form.accepts(request):
                 title = 'Sales Return Workflow Report as of %s to %s' %(request.vars.from_date, request.vars.to_date)     
@@ -4744,6 +4745,7 @@ def sales_order_store_keeper_view():
     foot = TFOOT(TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(H4('TOTAL AMOUNT'), _align = 'right'),TD(H4(locale.format('%.2f',grand_total or 0, grouping = True)), _align = 'right'),TD()))
     table = TABLE(*[head, body, foot], _class='table', _id = 'tblsot')
     if _id.customer_code_id.master_account_type_id == 'C':
+        print 'C'
         _customer = db(db.Customer.customer_account_no == _id.customer_code_id.account_code).select().first()
         if _customer:
             if _customer.area_name_id:
@@ -4753,6 +4755,7 @@ def sales_order_store_keeper_view():
 
         _account_name = DIV(DIV(_id.customer_code_id.master_account),DIV('P.O.Box ',_customer.po_box_no),DIV(_customer.area_name, _area_name),DIV(_customer.country))
     else:
+        print 'NOT C'
         _account_name = _id.customer_code_id.master_account      
     return dict(form = form, table = table, _id = _id, _account_name = _account_name)
 
@@ -4975,7 +4978,8 @@ def sales_order_manager_view_rejected():
     else:        
         session.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' already been ' + str(_id.status_id.description.lower()) + ' by ' + str(_id.sales_order_approved_by.first_name)
     redirect(URL('inventory','mngr_req_grid'))
-    
+
+
 def sale_order_manager_delivery_note_approved_form():    
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
     if db(db.Delivery_Note.sales_order_no == int(_id.sales_order_no)).select().first():
@@ -4988,21 +4992,39 @@ def sale_order_manager_delivery_note_approved_form():
         elif (_id.status_id == 1) and (_id.delivery_note_approved_by != auth.user_id):
             # print '<8'
             session.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' is on hold by ' + str(_id.delivery_note_approved_by.first_name)
-            response.js = "jQuery(redirect())"
+            response.js = "warehouse_grid()"
         else:                    
             _val = get_delivery_note_validation(1)
             if _val != 1:        
                 _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now, remarks = 'Price Discrepancies.')
                 get_sales_order_trnx_redo()                          
-                response.js = "jQuery(redirect())"
-            else:
+                response.js = "warehouse_grid()"
+            elif get_item_code_id_validation():
+                x = 0
+                # print 'true'
+            else:          
+                # print 'false'
                 if _id.delivery_note_pending == True:                
                     _id.update_record(status_id = 8, delivery_note_pending = False, remarks = request.vars.remarks, customer_good_receipt_no = request.vars.customer_good_receipt_no)    
                 else:
                     get_generate_delivery_note_id()            
-                sync_to_delivery_note_db()            
-                session.flash = 'Sales order processed.'             
-                # response.js = "redirect()"
+                sync_to_delivery_note_db()                            
+                session.flash = 'Sales order processed.'           
+                response.js = "warehouse_grid()"
+                
+                
+
+def get_item_code_id_validation():    
+    _qty = 0    
+    for n in db(db.Sales_Order_Transaction.sales_order_no_id == request.args(0)).select(orderby = db.Sales_Order_Transaction.id):        
+        _id = db(db.Stock_File.item_code_id == n.item_code_id).select().first()        
+        # print n.item_code_id, n.quantity
+        _qty = int(_id.closing_stock) - int(n.quantity)        
+        if int(_qty) < 0:                                    
+            response.js = "alertify.alert('Stock File', 'Item code no. %s in stock file should not less than to zero in closing stock after creating delivery note. Please try again later.', function(){ alertify.success('Thanks!'); });" %(_id.item_code_id.item_code)                    
+            return True
+        else:
+            return False
 
 def create_delivery_note_and_hold():
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
@@ -5013,14 +5035,18 @@ def create_delivery_note_and_hold():
     elif (_id.status_id == 1) and (_id.delivery_note_approved_by != auth.user_id):
         # print '<8'
         session.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' is on hold by ' + str(_id.delivery_note_approved_by.first_name)
-        response.js = "jQuery(redirect())"
+        response.js = "warehouse_grid()"
     else:        
         _val = get_delivery_note_validation(1)
         if _val != 1:        
             _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now, remarks = 'Price Discrepancies.')
             get_sales_order_trnx_redo_id(int(_id.id))                          
-            response.js = "jQuery(redirect())"
-        else:
+            response.js = "warehouse_grid()"        
+        elif get_item_code_id_validation():
+            x = 0
+            # print 'True hold'
+        else:          
+            # print 'False hold'   
             get_generate_delivery_note_and_hold_id()                           
             session.flash = 'Delivery Note processed and hold.' 
             response.js = "jQuery(report())"
@@ -5038,12 +5064,10 @@ def get_sales_order_trnx_redo_id(x):
 
 def sale_order_manager_delivery_note_approved():    
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
-    if _id.status_id == 8:
-        # response.flash = 'ALREADY ORDERED'
+    if _id.status_id == 8:        
         response.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' already been ' + str(_id.status_id.description.lower()) + ' by ' + str(_id.delivery_note_approved_by.first_name)
         response.js = "$('#tblso').get(0).reload()"
-    elif (_id.status_id == 1) and (_id.delivery_note_approved_by != auth.user_id):
-        # print '<8'
+    elif (_id.status_id == 1) and (_id.delivery_note_approved_by != auth.user_id):        
         session.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' is on hold by ' + str(_id.delivery_note_approved_by.first_name) 
         response.js = "$('#tblso').get(0).reload()" 
     else:                

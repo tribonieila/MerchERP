@@ -1163,7 +1163,7 @@ def sales_return_accounts_header_footer_report(canvas, doc): # audited
             ['Customer Code',':',n.customer_code_id.account_code,':',_ar_customer_code,'','Transaction Type',':','Sales Return',':',_ar_transaction_type],
             [_id.customer_code_id.account_name,'', '','','','','Department',':',n.dept_code_id.dept_name,':',_ar_department],
             [_pobox,'','','', '','','Location', ':',n.location_code_id.location_name,':',_ar_location],       
-            [_area,'','','', '','','Sales Man',':',str(n.sales_man_id.employee_id.first_name.upper()) + ' ' + str(n.sales_man_id.employee_id.last_name.upper()),':',_ar_sales_man],
+            [_area,'','','', '','','Sales Man',':',str(n.sales_man_on_behalf.employee_id.first_name.upper()) + ' ' + str(n.sales_man_on_behalf.employee_id.last_name.upper()),':',_ar_sales_man],
             ['','','','','','','']]
 
     header = Table(_so, colWidths=[90,10,'*',10,80,10,90,10,90,10,80])#,rowHeights=(12))

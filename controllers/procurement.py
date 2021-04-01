@@ -190,6 +190,7 @@ def put_file_upload_id():
         db.Purchase_Receipt.archives.writable = False
         db.Purchase_Receipt.section_id.writable = False
         db.Purchase_Receipt.processed.writable = False
+        db.Purchase_Receipt.purchase_receipt_date.writable = False        
         _id = db(db.Purchase_Receipt.id == request.args(1)).select().first()
         form = SQLFORM(db.Purchase_Receipt, request.args(1), upload=URL('default','download'))
         title = 'Purchase Receipt'
@@ -225,6 +226,7 @@ def put_file_upload_id():
         db.Direct_Purchase_Receipt.remarks.writable = False
         db.Direct_Purchase_Receipt.date_posted.writable = False
         db.Direct_Purchase_Receipt.processed.writable = False
+        db.Direct_Purchase_Receipt.purchase_receipt_date.writable = False        
         _id = db(db.Direct_Purchase_Receipt.id == request.args(1)).select().first()
         title = 'Direct Purchase'
         form = SQLFORM(db.Direct_Purchase_Receipt, request.args(1), upload=URL('default','download'))
@@ -628,13 +630,6 @@ def _purchase_receipt_approved_(): # old process, removed auto direct purchased
 def purchase_receipt_rejected():       
     db(db.Purchase_Request.id == int(request.args(0))).update(status_id = 18, posted = False, submitted = False, draft = False)
     response.js = "$('#tblPR').get(0).reload()"
-
-def purchase_receipt_approved(): # jyothi's approved
-    _id = db((db.Purchase_Request.id == request.args(0)) & (db.Purchase_Request.partial == True)).select().first()
-    if _id:
-        print 'true and update'
-    else:
-        print 'false and insert'
 
 def purchase_receipt_approved(): # jyothi's approved
     _id = db(db.Purchase_Request.id == request.args(0)).select().first()    
@@ -1069,15 +1064,16 @@ def validate_direct_purchase_transaction_id(form):
             # response.js = "$('#btnadd').attr('disabled','disabled')"
             form.errors.item_code = 'Item code ' + str(request.vars.item_code) + ' already exist.'
         
-        if float(request.vars.most_recent_cost) <= 0:        
-            form.errors.most_recent_cost = 'Empty of zero, not allowed.'        
         else:
             # response.js = "$('#btnadd').removeAttr('disabled')"  
             if int(request.vars.category_id) == 3:
                 _pu = 0                
             else:
                 # _pu =  float(request.vars.average_cost.replace(',','')) / int(_im.uom_value)                
-                _pu = (float(request.vars.most_recent_cost.replace(',','')) / int(_im.uom_value))
+                if float(request.vars.most_recent_cost) <= 0:        
+                    form.errors.most_recent_cost = 'Empty of zero, not allowed.'        
+                else:
+                    _pu = (float(request.vars.most_recent_cost.replace(',','')) / int(_im.uom_value))
                     
         if _im.uom_value == 1:            
             form.vars.pieces = 0
@@ -4090,7 +4086,7 @@ def validate_direct_purchase_transaction(form): # form validation
         _sf = db((db.Stock_File.item_code_id == _id.id) & (db.Stock_File.location_code_id == session.location_code_id)).select().first()
     
         _pr = db(db.Item_Prices.item_code_id == _id.id).select().first()
-        _ex = db((db.Purchase_Request_Transaction_Temporary.ticket_no_id == session.ticket_no_id) & (db.Purchase_Request_Transaction_Temporary.item_code_id == _id.id) & (db.Purchase_Request_Transaction_Temporary.category_id == session.category_id)).select().first()
+        _ex = db((db.Purchase_Request_Transaction_Temporary.ticket_no_id == session.ticket_no_id) & (db.Purchase_Request_Transaction_Temporary.item_code_id == _id.id) & (db.Purchase_Request_Transaction_Temporary.category_id == request.vars.category_id)).select().first()
         _tp = int(request.vars.quantity) * int(_id.uom_value) + int(request.vars.pieces or 0)
         _pu = _pc = 0
 
@@ -4101,16 +4097,15 @@ def validate_direct_purchase_transaction(form): # form validation
             # response.js = "$('#btnadd').attr('disabled','disabled')"
             form.errors.item_code = 'Item code ' + str(request.vars.item_code) + ' already exist.'
                                
-        if float(request.vars.most_recent_cost) <= 0:        
-            form.errors.most_recent_cost = 'Empty of zero, not allowed.'
-
         else:
             # response.js = "$('#btnadd').removeAttr('disabled')"  
-            if int(session.category_id) == 3:
+            if int(request.vars.category_id) == 3:
                 _pu = 0                
             else:
-                # _pu =  float(request.vars.average_cost.replace(',','')) / int(_id.uom_value)                
-                _pu = (float(request.vars.most_recent_cost.replace(',','')) / int(_id.uom_value))
+                if float(request.vars.most_recent_cost) <= 0:        
+                    form.errors.most_recent_cost = 'Empty of zero, not allowed.'
+                else:
+                    _pu = (float(request.vars.most_recent_cost.replace(',','')) / int(_id.uom_value))
 
         if _id.uom_value == 1:            
             form.vars.pieces = 0
@@ -4471,7 +4466,8 @@ def put_purchase_request_submit_id():
         custom_duty_charges = request.vars.custom_duty_charges,
         selective_tax = request.vars.selective_tax,
         other_charges = request.vars.other_charges,
-        remarks=request.vars.remarks)        
+        remarks=request.vars.remarks,
+        d1_reference = request.vars.d1_reference)        
     session.flash = 'Purchase receipt submitted...'
     # redirect(URL('inventory','account_grid'))
 
@@ -4489,6 +4485,7 @@ def put_purchase_request_save_id():
         selective_tax = request.vars.selective_tax or 0,
         other_charges = request.vars.other_charges or 0,
         remarks=request.vars.remarks,
+        d1_reference=  request.vars.d1_reference,
         save_as_draft = True)
     for n in db((db.Purchase_Request_Transaction.purchase_request_no_id == request.args(0))  & (db.Purchase_Request_Transaction.delete_receipt == False) & (db.Purchase_Request_Transaction.delete_invoiced == False)).select():                
         _total_amount_invoiced += n.total_amount_invoiced   
@@ -5391,10 +5388,6 @@ def purchase_request_transaction_view():
     # db.Purchase_Request.status_id.writable = False
     db.Purchase_Request.mode_of_shipment.writable = False            
     _id = db(db.Purchase_Request.id == request.args(0)).select().first()
-    if _id.supplier_code_address == None:
-        _supplier_code_address = 'None'
-    else:
-        _supplier_code_address = _id.supplier_code_address.contact_person
     if _id.status_id == 22 or _id.status_id == 28 or _id.status_id == 18 or _id.status_id == 25:
         _title = 'Purchase Order Form'
     elif _id.status_id == 21:
@@ -5425,7 +5418,8 @@ def purchase_request_transaction_view():
         redirect(URL('inventory','get_back_off_workflow_grid'))
     elif form.errors:
         response.flash = 'FORM HAS ERRORS'                
-    return dict(form = form, _id = _id, _ex = _ex, row = _id, section_id = _section_id, title=_title, _supplier_code_address = _supplier_code_address)
+        print form.errors
+    return dict(form = form, _id = _id, _ex = _ex, row = _id, section_id = _section_id, title=_title)
 
 @auth.requires_login()
 def purchase_request_transaction_view_details():
@@ -6636,36 +6630,36 @@ def purchase_receipt_warehouse_grid_process():
     form = FORM(TABLE(*[head, body], _class='table table-hover', _id = 'tblPr'))
     if form.accepts(request, session):        
         # validate if purchase order or partial T/F
-        if db((db.Purchase_Request.id == _id.purchase_request_no_id) & (db.Purchase_Request.partial == True)).select().first():
-            db((db.Purchase_Request.id == _id.purchase_request_no_id) & (db.Purchase_Request.partial == True)).update(draft = False)
-            session.flash = 'Purchase Receipt Revive'
-            redirect(URL('inventory','str_kpr_grid'))      
-        else:            
-            # GENERATE PURCHASE RECEIPT CONSOLIDATION      
-            _tp = db((db.Transaction_Prefix.dept_code_id == session.dept_code_id) & (db.Transaction_Prefix.prefix_key == 'GRV')).select().first()
-            _skey = _tp.current_year_serial_key        
-            _skey += 1
-            _tp.update_record(current_year_serial_key = int(_skey), updated_on = request.now, updated_by = auth.user_id)
-            db(db.Purchase_Request.id == _id.purchase_request_no_id).update(
-                purchase_receipt_no_prefix_id = _tp.id, 
-                purchase_receipt_no = _skey,
-                purchase_receipt_approved_by = auth.user_id, 
-                purchase_receipt_date_approved = request.now, 
-                purchase_receipt_date = request.now,
-                draft = False, 
-                location_code_id = form.vars.location_code_id)
-            _pr = db(db.Purchase_Request.id == _id.purchase_request_no_id).select().first()
-            db(db.Purchase_Order.purchase_request_no == _pr.purchase_request_no).update(
-                purchase_receipt_no_prefix_id = _pr.purchase_receipt_no_prefix_id,
-                purchase_receipt_no = _pr.purchase_receipt_no,
-                purchase_receipt_approved_by = _pr.purchase_receipt_approved_by,
-                purchase_receipt_date_approved = _pr.purchase_receipt_date_approved,
-                purchase_receipt_date = _pr.purchase_receipt_date,
-                status_id = 18)
-            for n in db(db.Purchase_Request_Transaction.selected == True).select():
-                n.update_record(partial=False)       
-            session.flash = 'Generated Purchase Receipt No. ' + str(_skey)
-            redirect(URL('inventory','str_kpr_grid'))      
+        # if db((db.Purchase_Request.id == _id.purchase_request_no_id) & (db.Purchase_Request.partial == True)).select().first():
+        #     db((db.Purchase_Request.id == _id.purchase_request_no_id) & (db.Purchase_Request.partial == True)).update(draft = False)
+        #     session.flash = 'Purchase Receipt Revive'
+        #     redirect(URL('inventory','str_kpr_grid'))      
+        # else:            
+        # GENERATE PURCHASE RECEIPT      
+        _tp = db((db.Transaction_Prefix.dept_code_id == session.dept_code_id) & (db.Transaction_Prefix.prefix_key == 'GRV')).select().first()
+        _skey = _tp.current_year_serial_key        
+        _skey += 1
+        _tp.update_record(current_year_serial_key = int(_skey), updated_on = request.now, updated_by = auth.user_id)
+        db(db.Purchase_Request.id == _id.purchase_request_no_id).update(
+            purchase_receipt_no_prefix_id = _tp.id, 
+            purchase_receipt_no = _skey,
+            purchase_receipt_approved_by = auth.user_id, 
+            purchase_receipt_date_approved = request.now, 
+            purchase_receipt_date = request.now,
+            draft = False, 
+            location_code_id = form.vars.location_code_id)
+        _pr = db(db.Purchase_Request.id == _id.purchase_request_no_id).select().first()
+        db(db.Purchase_Order.purchase_request_no == _pr.purchase_request_no).update(
+            purchase_receipt_no_prefix_id = _pr.purchase_receipt_no_prefix_id,
+            purchase_receipt_no = _pr.purchase_receipt_no,
+            purchase_receipt_approved_by = _pr.purchase_receipt_approved_by,
+            purchase_receipt_date_approved = _pr.purchase_receipt_date_approved,
+            purchase_receipt_date = _pr.purchase_receipt_date,
+            status_id = 18)
+        for n in db(db.Purchase_Request_Transaction.selected == True).select():
+            n.update_record(partial=False)       
+        session.flash = 'Generated Purchase Receipt No. ' + str(_skey)
+        redirect(URL('inventory','str_kpr_grid'))      
     elif form.errors:
         response.flash = 'FORM HAS ERROR'     
     row = []
@@ -6952,10 +6946,10 @@ def get_document_register_grid():
         prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-warning btn-icon-toggle', _target='blank', _href=URL('procurement','document_register_report', args=n.id, extension=False))
         edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button ', _role='button', _class='btn btn-danger btn-icon-toggle',_target='blank', _href = URL('procurement','put_document_register_id', args = n.id))         
         revi_lnk = A(I(_class='fas fa-history'), _title='Revive Row', _type='button  ', _role='button', _class='btn btn-success btn-icon-toggle revive',callback = URL(args = n.id), **{'_data-id':(n.id)}) 
-        if n.d1_release == False: # if manoj status
-            rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle disabled')             
+        if n.d1_release == False: 
+            rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle', callback = URL('procurement','put_document_register_release_id', args = n.id, extension = False))             
         else:
-            rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle', callback = URL('procurement','put_document_register_release_id', args = n.id, extension = False)) 
+            rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle disabled')             
         btn_lnk = DIV(view_lnk, edit_lnk, prin_lnk, rele_lnk)    
         _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()
         _on = db(db.Purchase_Receipt.purchase_order_no == _po.purchase_order_no).select().first()
@@ -6976,11 +6970,15 @@ def get_document_register_grid():
     return dict(form = form, _title = _title, table = table)
 
 def put_document_register_release_id():
-    _id = db(db.Document_Register_Purchase_Order.document_register_no_id == request.args(0)).select().first()    
-    db(db.Purchase_Request.purchase_order_no == _id.purchase_order_no).update(status_id = 28)
-    db(db.Purchase_Order.purchase_order_no == _id.purchase_order_no).update(status_id = 28)
-    _id.update_record(d1_release = True)
-    response.js = "$('#d1Table' ).load(window.location.href + ' #d1Table' )"      
+    _id = db(db.Document_Register.id == request.args(0)).select().first()    
+    _po = db(db.Document_Register_Purchase_Order.document_register_no_id == request.args(0)).select().first()    
+    _po = db(db.Purchase_Request.purchase_order_no == _po.purchase_order_no).select().first()      
+    if (_po.status_id != 28):
+        response.js = "alertify.alert('D1 Release', '%s still on process for stock checking in warehouse. Please try again later.', function(){ alertify.success('Thanks!'); });" %(_po.purchase_order_no) # wait till hakim's end term
+    else:        
+        db(db.Purchase_Request.purchase_order_no == _po.purchase_order_no).update(status_id = 28, draft = True)    
+        _id.update_record(d1_release = True)
+        response.js = "$('#d1Table' ).load(window.location.href + ' #d1Table' )"      
 
 @auth.requires_login()
 def document_register_grid():
@@ -9180,7 +9178,7 @@ def purchase_request_reports():
     _row.append(['','','','','','Net Amount (QR)',':', locale.format('%.3F',_local_amount or 0, grouping = True)])
     _table = Table(_row, colWidths=[20,60,'*',30,35,55,65,90])
     _table.setStyle(TableStyle([
-        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         # ('LINEABOVE', (0,0), (-1,0), 0.25, colors.Color(0, 0, 0, 1)),        
         ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
         ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),

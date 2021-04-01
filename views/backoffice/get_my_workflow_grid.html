@@ -1,0 +1,23 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">{{=_title}}</span> 
+        </div>
+        <div class="card-body tab-content">                                
+            {{=table}}
+            {{=_btnAdd}}
+        </div>
+    </div> 
+</div>
+
+
+<script>
+$(document).ready(function(){
+    $(".table").DataTable();
+})
+
+function FuncStkReq(){
+    window.location.href = '{{=URL('backoffice','post_stock_request_form')}}';
+}
+</script>

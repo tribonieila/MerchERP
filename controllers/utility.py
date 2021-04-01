@@ -230,7 +230,7 @@ def put_purchase_receipt_consolidation(): # 1 audited
                     quantity = x.quantity_invoiced,
                     average_cost = x.average_cost,
                     price_cost = float(x.price_cost or 0) / int(x.uom),
-                    price_cost_no_tax = x.price_cost or 0
+                    price_cost_no_tax = x.price_cost or 0,
                     sale_cost = x.sale_cost,
                     sale_cost_notax_pcs = _sale_cost_notax_pcs,
                     discount = x.discount_percentage or 0,
@@ -727,7 +727,7 @@ def put_stock_adjustment_consolidation():    # audited minus = 6,plus = 7
                 location = n.location_code_id,
                 transaction_type = _transaction_type,
                 transaction_date = n.stock_adjustment_date,
-                account = _account,
+                account = n.stock_adjustment_code, #_account to n.stock_adjustment_code 4/1/2021
                 dept_code = n.dept_code_id,
                 total_amount = n.total_amount,
                 total_amount_after_discount = n.total_amount,

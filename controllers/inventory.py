@@ -1130,8 +1130,7 @@ def brndclss_add_form():
     pre = db(db.Prefix_Data.prefix_key == 'BRC').select().first()
     if pre:
         _skey = pre.serial_key
-        _skey += 1
-        
+        _skey += 1        
         _ckey = str(_skey).rjust(5, '0')
         ctr_val = pre.prefix + _ckey
         form = SQLFORM.factory(
@@ -1139,7 +1138,7 @@ def brndclss_add_form():
             Field('dept_code_id','reference Department', ondelete = 'NO ACTION', label = 'Dept Code',requires = IS_IN_DB(db, db.Department.id,'%(dept_code)s - %(dept_name)s', zero = 'Choose Department', error_message='Field should not be empty')),
             Field('brand_line_code_id','reference Brand_Line', label = 'Brand Line Code',requires = IS_IN_DB(db, db.Brand_Line.id, ' %(brand_line_name)s - %(brand_line_code)s', orderby = db.Brand_Line.brand_line_name,  zero= 'Choose Brand Line')),
             Field('brand_cls_name','string',length=50, requires = [IS_UPPER(), IS_NOT_IN_DB(db, 'Brand_Classification.brand_cls_name')]),
-            Field('old_brand_code','integer',length=10),
+            Field('old_brand_code','string',length=10),
             Field('status_id','reference Record_Status', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Record_Status.id,'%(status)s', zero = 'Choose status')))
         if form.process().accepted:
             response.flash = 'RECORD SAVE'
@@ -1711,6 +1710,16 @@ def get_supplier_master_id():
     _ctr = int(_id.item_serial_key) + 1    
     response.js = "$('#item_code').val('%s')" %(_ctr)
 
+
+@auth.requires_login()
+def push_item_code():
+    form = SQLFORM(db.Item_Master, request.args(0))
+    if form.process().accepted:
+        response.flash = 'Form save.'
+    elif form.errors:
+        response.flash = 'Form updated.'
+    return dict(form = form)
+    
 @auth.requires_login()
 def itm_add_form():
     itm = db(db.Division.id == request.args(0)).select().first()
@@ -1749,11 +1758,13 @@ def itm_add_form():
         Field('collection_code_id','reference Item_Collection', requires = IS_IN_DB(db, db.Item_Collection.id, '%(description)s', zero = 'Choose Collection')),
         Field('made_in_id','reference Made_In', requires = IS_IN_DB(db, db.Made_In.id, '%(description)s', zero = 'Choose Country')),
         Field('item_status_code_id','reference Status', default = 1, requires = IS_IN_DB(db, db.Status.id, '%(status)s', zero = 'Choose Status')))
-    if form.process().accepted:             
+    if form.process().accepted:
+        _id = db(db.Supplier_Master.id == int(request.vars.supplier_code_id)).select().first()    
+        _ctr = int(_id.item_serial_key) + 1    
         db.Item_Master.insert(
             division_id = form.vars.division_id, 
             dept_code_id = form.vars.dept_code_id, 
-            item_code = request.vars.item_code,
+            item_code = _ctr,
             item_description = form.vars.item_description,
             item_description_ar = form.vars.item_description_ar,
             supplier_item_ref = form.vars.supplier_item_ref,
@@ -1783,11 +1794,11 @@ def itm_add_form():
             collection_code_id = form.vars.collection_code_id, 
             made_in_id = form.vars.made_in_id,
             item_status_code_id = form.vars.item_status_code_id)
-        _id = db(db.Item_Master.item_code == request.vars.item_code).select().first()
+        _id = db(db.Item_Master.item_code == _ctr).select().first()
         db.Item_Prices.insert(item_code_id = _id.id)
         db.Stock_File.insert(item_code_id = _id.id, location_code_id = 1)
-        db(db.Supplier_Master.id == int(request.vars.supplier_code_id)).update(item_serial_key = request.vars.item_code)
-        response.flash = 'New Item Code '+str(request.vars.item_code)+' generated.'
+        db(db.Supplier_Master.id == int(request.vars.supplier_code_id)).update(item_serial_key = _ctr)
+        response.flash = 'New Item Code '+str(_ctr)+' generated.'
     elif form.errors:        
         response.flash = 'ENTRY HAS ERRORS ' + str(form.errors)
         db.Error_Log.insert(module = 'Item Master', error_description = form.errors)
@@ -7875,7 +7886,7 @@ def get_transaction_reports():
                 repo_lnk = A(I(_class='fas fa-print'),  _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
             btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk, repo_lnk)
             row.append(TR(
-                TD(ctr),
+                TD(ctr),    
                 TD(n.stock_request_date),                
                 TD(n.stock_transfer_no_id.prefix,n.stock_transfer_no),                
                 TD(n.stock_request_no_id.prefix, n.stock_request_no),
@@ -7889,11 +7900,17 @@ def get_transaction_reports():
         body = TBODY(*row)
         table = TABLE(*[head, body],_class='table')           
     elif int(request.args(0)) == 3: # all stock received transaction
-        _title = 'Stock Receipt Master Report Grid'
+        
         row = []
         ctr = 0    
         head = THEAD(TR(TH('#'),TH('Date'),TH('Stock Receipt No.'),TH('Stock Transfer No.'),TH('Stock Request No.'),TH('Stock Source'),TH('Stock Destination'),TH('Requested By'),TH('Amount'),TH('Status'),TH('Required Action'),TH('Actions'),_class='bg-primary'))    
-        for n in db().select(orderby = ~db.Stock_Receipt.id):
+        if form.accepts(request):
+            _title = 'Stock Receipt Master Report Grid as of %s to %s' %(request.vars.from_date, request.vars.to_date)
+            _query = db((db.Stock_Receipt.stock_receipt_date_approved >= request.vars.from_date) & (db.Stock_Receipt.stock_receipt_date_approved <= request.vars.to_date)).select()
+        else:
+            _title = 'Stock Receipt Master Report Grid as of %s' %(request.now.date())
+            _query = db(db.Stock_Receipt.stock_receipt_date_approved == request.now).select()
+        for n in _query:
             ctr += 1
             view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle',_href=URL('inventory','get_stock_receipt_id', args = n.id, extension = False))
             edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
@@ -10055,10 +10072,11 @@ def master_item_view():
 
 @auth.requires_login()
 def stock_card_movement():
+    _firs_month = date(date.today().year, 1, 1)
     form = SQLFORM.factory(
         Field('item_code_id', widget = SQLFORM.widgets.autocomplete(request, db.Item_Master.item_code, id_field = db.Item_Master.id, limitby = (0,10), min_length = 2)),
         Field('location_code_id', 'reference Location', requires = IS_IN_DB(db(db.Location.status_id == 1), db.Location.id, '%(location_code)s - %(location_name)s', zero = 'Choose Location Code')),
-        Field('start_date','date', default= request.now, requires = IS_DATE()),
+        Field('start_date','date', default= _firs_month, requires = IS_DATE()),
         Field('end_date','date', default = request.now, requires = IS_DATE()))
     if form.accepts(request):
         # response.flash = 'ok'
@@ -10134,11 +10152,12 @@ def stock_card_movement():
             if  _firs_month == datetime.datetime.strptime(str(request.vars.start_date), '%Y-%m-%d').date():
                 _prev_day = datetime.datetime.strptime(str(request.vars.end_date), '%Y-%m-%d').date()
                 _qty = _bal = _stk_file.opening_stock
-                print 'default: ', _stk_file.opening_stock, _stk_file.closing_stock, db(_query).select(_total_qty).first()[_total_qty], db(_qty_query).select(_total_qty).first()[_total_qty] 
+                # print 'default: ', _stk_file.opening_stock, _stk_file.closing_stock, db(_query).select(_total_qty).first()[_total_qty], db(_qty_query).select(_total_qty).first()[_total_qty] 
             else:          
-                _qty = _bal = db(_query).select(_total_qty).last()[_total_qty] # + int(_stk_file.closing_stock)
+                # _qty = _bal = db(_query).select(_total_qty).last()[_total_qty] # + int(_stk_file.closing_stock)
+                _qty = _bal =  int(_stk_file.opening_stock) - int(db(_qty_query).select(_total_qty).first()[_total_qty])
                 # print 'Input date: ', _stk_file.opening_stock, _stk_file.closing_stock , db(_query).select(_total_qty).first()[_total_qty], db(_qty_query).select(orderby = db.Merch_Stock_Transaction.id, _total_qty).last()[_total_qty] , _prev_day
-                print ':', db(_qty_query).select(_total_qty).last()[_total_qty]
+                # print ':', _bal, int(_stk_file.opening_stock), int(db(_qty_query).select(_total_qty).first()[_total_qty])
             head = THEAD(
                 TR(TD('Opening Stock Balance as of ', request.vars.start_date, ': ', B(card_view(_itm_code.id, _qty)),  _colspan='9'),TD(A(I(_class='fas fa-print'),_class='btn btn-icon-toggle', _target=' blank',_href=URL('inventory_reports','get_stock_card_movement_report', args = [request.vars.item_code_id, request.vars.location_code_id, request.vars.start_date, request.vars.end_date])),_class='text-right')),
                 TR(TH('#'),TH('Date'),TH('Type'),TH('Voucher No'),TH('Category'),TH('Qty In'),TH('Qty Out'),TH('Balance'),TH('Account Code'),TH('Account Name'),_class='style-accent-dark small-padding'))        
@@ -10480,7 +10499,7 @@ def stock_value_report():
 def get_stock_value_utility(): 
     form = SQLFORM.factory(
         Field('item_code_id', widget = SQLFORM.widgets.autocomplete(request, db.Item_Master.item_code, id_field = db.Item_Master.id, limitby = (0,10), min_length = 2)),
-        Field('location_code_id', 'reference Location', ondelete = 'NO ACTION',requires = IS_IN_DB(db, db.Location.id, '%(location_code)s - %(location_name)s', zero = 'Choose Location Code')))
+        Field('location_code_id', 'reference Location', ondelete = 'NO ACTION',requires = IS_IN_DB(db(db.Location.status_id == 1), db.Location.id, '%(location_code)s - %(location_name)s', zero = 'Choose Location Code')))
     if form.accepts(request): 
         if not request.vars.item_code_id:
             response.flash = 'Item code not found or empty.'
