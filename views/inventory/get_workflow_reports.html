@@ -9,10 +9,10 @@
             {{=form.custom.begin}}
             <div class="row">
                 <label>Date Range</label>
-                  <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value={{=request.now}}></div>
+                  <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value={{=request.now.date()}}></div>
                   <span>to</span>
                   <div class="col">
-                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value={{=request.now}}></div>                        
+                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value={{=request.now.date()}}></div>                        
                   </div>
                   <div class="col">
                     {{=form.custom.submit}}

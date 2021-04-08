@@ -527,7 +527,7 @@ def get_stock_transfer_utility_grid(): # 5
     head = THEAD(TR(TH('Date'),TH('Stock Transfer No.'),TH('Stock Request No.'),TH('Stock Source'),TH('Stock Destination'),TH('Status'),_class='style-accent'))    
     for n in db(db.Stock_Transfer.processed == False).select(orderby = ~db.Stock_Transfer.id):
         row.append(TR(
-            TD(n.stock_transfer_date_approved.date()),                            
+            TD(n.stock_transfer_date_approved),                            
             TD(n.stock_transfer_no_id.prefix,n.stock_transfer_no),                
             TD(n.stock_request_no_id.prefix, n.stock_request_no),
             TD(n.stock_source_id.location_code,' - ',n.stock_source_id.location_name),

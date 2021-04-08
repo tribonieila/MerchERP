@@ -7,7 +7,7 @@
                     <li><a href="#"onclick=window.location="{{=URL('itm_add_form')}}";>+ ADD NEW</a></li>
                     <li><a href="#"onclick=window.location="{{=URL('itm_add_batch_form')}}";>+ NEW BATCH</a></li>
                     <li class="active"><a href="#update">edit</a></li>
-                    <li><a href="#view">VIEW</a></li>
+                    <li><a href="#"onclick=window.location="{{=URL('get_item_master_grid')}}";>BROWSE</a></li>                    
                 </ul>            
                 
             </div>
@@ -29,7 +29,25 @@
                             </div>
                         </div>
                     </div>              
-                    {{=form.custom.end}}                     
+                    {{=form.custom.end}}       
+                    <br> 
+                    {{=form2.custom.begin}}
+                    <div class="form-horizontal">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="col-sm-4 control-label">Supplier Reference</label>
+                                <div class="col-sm-8">
+                                    {{=form2.custom.widget.supplier_reference}}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="col-sm-8">
+                                    {{=form2.custom.submit}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>              
+                    {{=form2.custom.end}}                                     
                 </div>
                 <div class="tab-pane" id="view">
                     <h1>view</h1>

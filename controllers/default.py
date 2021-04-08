@@ -347,7 +347,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
             _area_name = _cu.area_name_id.area_name
         else:
             _area_name = ''
-        _pobox = 'P.O. Box ' + str(_cu.po_box_no)
+        _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' + str(_cu.telephone_no)
         _area = str(_cu.area_name) + '\n' + str(_cu.country.upper())        
         # _area = str(_cu.area_name) + ', ' +str(_area_name)+ '\n' + str(_cu.country.upper())        
     else:        
@@ -367,7 +367,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
             ]    
     header = Table(_so, colWidths=[110,10,'*',10,'*',10,'*',10,'*',10,'*'])#,rowHeights=(12))
     header.setStyle(TableStyle([
-        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         ('SPAN',(0,0),(4,0)),
         ('SPAN',(6,0),(-1,0)),
         ('SPAN',(0,1),(-1,1)),        
@@ -660,7 +660,7 @@ def get_sales_order_header_footer(canvas, doc_invoice):     # audited
             _area_name = _cu.area_name_id.area_name
         else:
             _area_name = ''
-        _pobox = 'P.O. Box ' + str(_cu.po_box_no)
+        _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' + str(_cu.telephone_no)
         _area = str(_cu.area_name) + '\n' + str(_cu.country.upper())
     else:
         _pobox = _area = ''
@@ -1149,7 +1149,7 @@ def sales_return_accounts_header_footer_report(canvas, doc): # audited
             _area_name = _cu.area_name_id.area_name
         else:
             _area_name = ''
-        _pobox = 'P.O. Box ' + str(_cu.po_box_no)
+        _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' +str(_cu.telephone_no)
         _area = str(_cu.area_name) + ', ' + str(_area_name) + '\n' + str(_cu.country.upper())
     else:
         _pobox = _area = ''        

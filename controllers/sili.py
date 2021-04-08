@@ -125,6 +125,7 @@ def round_off():
     print locale.format('%.2f',noRound(_amount) or 0, grouping = True), float(str(f)[:4])
 
 def generate():        
+    
     # print 'year: ', request.now.strftime('%y')
     # invoice & return 2 - 4    
     import locale
@@ -142,9 +143,10 @@ def generate():
     #     _discount = ((float(_s.sale_cost) * int(_s.quantity)) - float(n.discount_added or 0)) / int(_s.quantity)
     #     _s.update_record(sale_cost = _discount)
 
-    # for n in db(db.Supplier_Master.dept_code_id == 3).select():
-    #     _str = str('18-') + str(n.supp_sub_code[3:])
-    #     _str2 = str('19-') + str(n.supp_sub_code[3:])
+    for n in db(db.Supplier_Master.dept_code_id == 5).select():
+        _str = str('18-') + str(n.supp_sub_code[3:])
+        _str2 = str('19-') + str(n.supp_sub_code[3:])
+        print _str, _str2
     #     n.update_record(supplier_purchase_account = _str, supplier_sales_account = _str2)
     
     # # # important
@@ -180,6 +182,17 @@ def generate():
     #             account_name = n.supp_name,
     #             master_account_type_id = 'S')
 
+    # for n in d2().select(orderby = d2.Employee_Employment_Details.id):
+    #     _id = db(db.Master_Account.account_code == n.account_code).select().first()
+    #     _name = str(n.employee_id.first_name) + ' ' + str(n.employee_id.last_name)
+    #     if not _id:            
+    #         db.Master_Account.insert(
+    #             account_code = n.account_code,
+    #             account_name = _name,
+    #             master_account_type_id = 'E',
+    #             master_account = _name                
+    #         )
+        
     return dict(table = 'table')
 
 def validate():

@@ -21,7 +21,7 @@ john    HQA7Jfjb
 marwa   mb220505
 baiju   bv140508
 hakim   ah180305
-aji	    aa270307
+
 .   
 mimi    rq240808
 khaled  ke320606 
@@ -47,6 +47,7 @@ nm-connection-editor
 SALES USERS
 sujeevan	sk210812
 sudev       sv250509
+prasanth	pn240804
 shijo       sc140508
 muhsin      mt210605
 abdul       ap290516
@@ -56,7 +57,6 @@ dilshad     da330711
 ahmed       ak260505
 apolonio    aj220803
 faisal      fp190604
-josephn     jn210607
 mohammad    ms190810
 chungath    cd250807
 thangavel   tv210911 
@@ -79,8 +79,10 @@ jeevan	    jn211109 - FS
 hesham	    hm380606 - FS
 eid	        ea260310 - FS
 leonardo	lj180807
-jc	jg310408
-
+jc	        jg310408
+joseph	    jm130606
+francia	    fi210706
+aji	        aa270307
 
 
 

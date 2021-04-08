@@ -271,6 +271,7 @@ def get_customer_documents_upload_id_():
 
 @auth.requires_login()
 def customer_add_edit_form():
+    db.Customer.transfer_switch.writable = False
     form = SQLFORM(db.Customer, request.args(0))
     if form.process().accepted:
         session.flash = 'RECORD UPDATED'
@@ -616,6 +617,11 @@ def get_back_office_users_grid():
 @auth.requires_login()
 def get_sales_manager_grid():
     grid = SQLFORM.grid(db.Sales_Manager_User)
+    return dict(grid = grid)
+
+@auth.requires_login()
+def get_user_department_grid():
+    grid = SQLFORM.grid(db.User_Department)
     return dict(grid = grid)
 
 @auth.requires_login()
@@ -3651,11 +3657,8 @@ def get_workflow_reports():
         head = THEAD(TR(TD('Date'),TD('Sales Invoice No.'),TD('Delivery Note No.'),TD('Sales Order No.'),TD('Department'),TD('Location Source'),TD('Customer'),TD('Requested By'),TD('Status'),TD('Required Action'),TD('Action'), _class='style-warning large-padding text-center'))
         if auth.has_membership(role = 'INVENTORY SALES MANAGER'):
             title = 'Sales Order Workflow Report'
-            # head = THEAD(TR(TH('Date'),TH('Sales Invoice No.'),TH('Delivery Note No.'),TH('Sales Order No.'),TH('Department'),TH('Location Source'),TH('Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
-    
             _query = db((db.Sales_Invoice.sales_order_approved_by == auth.user_id) & (db.Sales_Invoice.status_id == 7)).select(orderby = ~db.Sales_Invoice.id)
         elif auth.has_membership(role = 'SALES'):
-            # head = THEAD(TR(TH('Date'),TH('Sales Invoice No.'),TH('Delivery Note No.'),TH('Sales Order No.'),TH('Department'),TH('Location Source'),TH('Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
             if form.accepts(request):          
                 title = 'Sales Invoice Workflow Report as of %s to %s' %(request.vars.from_date, request.vars.to_date)                
                 _query = db((db.Sales_Invoice.sales_man_id == _usr.id) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date)).select(orderby = ~db.Sales_Invoice.id)
@@ -3663,7 +3666,6 @@ def get_workflow_reports():
                 title = 'Sales Invoice Workflow Report as of %s' %(request.now.date())
                 _query = db((db.Sales_Invoice.sales_man_id == _usr.id) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.sales_invoice_date_approved == request.now)).select(orderby = ~db.Sales_Invoice.id)
         elif auth.has_membership(role = 'ACCOUNTS') | auth.has_membership(role = 'ACCOUNTS MANAGER'):            
-            # head = THEAD(TR(TD('Date'),TD('Sales Invoice No.'),TD('Delivery Note No.'),TD('Sales Order No.'),TD('Department'),TD('Location Source'),TD('Amount'),TD('Requested By'),TD('Status'),TD('Required Action'),TD('Action'), _class='style-accent large-padding text-center'))            
             if form.accepts(request):
                 title = 'Sales Invoice Workflow Report as of %s to %s' %(request.vars.from_date, request.vars.to_date)
                 _query = db((db.Sales_Invoice.sales_invoice_approved_by == auth.user_id) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date)).select(orderby = ~db.Sales_Invoice.id)                
@@ -3677,6 +3679,12 @@ def get_workflow_reports():
             # title = 'Sales Invoice Master Report'
             head = THEAD(TR(TH('Date'),TH('Sales Invoice No.'),TH('Delivery Note No.'),TH('Sales Order No.'),TH('Department'),TH('Location Source'),TH('Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
             _query = db((db.Sales_Invoice.dept_code_id == 3) & (db.Sales_Invoice.status_id == 7)).select(orderby = ~db.Sales_Invoice.id)
+        elif auth.has_membership(role = 'INVENTORY BACK OFFICE'):
+            title = 'Sales Invoice Master Report'   
+            head = THEAD(TR(TH('Date'),TH('Sales Invoice No.'),TH('Delivery Note No.'),TH('Sales Order No.'),TH('Department'),TH('Location Source'),TH('Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
+            _query = db((db.Sales_Invoice.sales_man_id == _usr.id) & (db.Sales_Invoice.status_id == 7)).select(orderby = ~db.Sales_Invoice.id)
+
+
         # else:
         #     title = 'DELIVERY NOTE GRID'
         #     _query = db((db.Delivery_Note.dept_code_id == 3) & ((db.Delivery_Note.status_id == 7) | (db.Delivery_Note.status_id == 8))).select(orderby = ~db.Delivery_Note.id)

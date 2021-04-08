@@ -17,8 +17,7 @@
         <li><a href="#fourth2">Purchase Request <span class="badge style-primary">{{=db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.dept_code_id == _usr.department_id) & (db.Purchase_Request.section_id == _usr.section_id)).count()}}</span></a></li>
         <li><a href="#fifth2">Obsolescence of Stocks <span class="badge style-warning">{{=db((db.Obsolescence_Stocks.status_id == 4) & (db.Obsolescence_Stocks.dept_code_id == _usr.department_id)).count()}}</span></a></li>
         {{pass}}
-      </ul>
-      
+      </ul>      
       <span class="card-title">{{=auth.user.first_name.upper()}} {{=auth.user.last_name.upper()}} Workflow </span>
     </div>
     <div class="card-body tab-content">

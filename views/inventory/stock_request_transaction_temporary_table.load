@@ -31,6 +31,10 @@ opacity:1;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
 <script>
 $(document).ready(function(){
+    $('#no_table_item_code').focus();
+    $('input[type=text]').attr('autocomplete','off');
+    $('input[type=number]').attr('autocomplete','off');
+
     $(".unit_price, .total_amount, .grand_total").prop("readonly", true);
     var $tblrows = $("#tblSRT tbody tr");
 
@@ -106,6 +110,20 @@ $(document).ready(function(){
         $("#no_table_item_code").val(withoutSpaces);
             }, 1);
     });
+
+    $("#add").click(function(){
+        if (!document.getElementById("no_table_quantity").value)
+        {
+            nospaces(this);
+            document.getElementById("no_table_quanity").value = 0;
+        }  
+        if (!document.getElementById("no_table_pieces").value)
+        {
+            nospaces(this);
+            document.getElementById("no_table_pieces").value = 0;
+        }
+        
+    })
  
     $('#no_table_item_code, #no_table_quantity, #no_table_pieces').change(function(){
         $('#no_table_dept_code_id').removeAttr('disabled');

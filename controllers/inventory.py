@@ -255,7 +255,8 @@ def suplr_add_form():
             Field('currency_id', 'reference Currency', requires = IS_IN_DB(db, db.Currency.id,'%(mnemonic)s - %(description)s', zero = 'Choose Currency')),
             Field('purchase_budget', 'decimal(10,2)'),        
             Field('status_id','reference Record_Status', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Record_Status.id,'%(status)s', zero = 'Choose status')))
-        if form.process(formname = 'step 1', keepvalues = True).accepted:
+        if form.process(formname = 'step 1', keepvalues = True).accepted:            
+            _item_serial_key = str(form.vars.supp_sub_code[3:]) + str(form.vars.dept_code_id) + str('00000')    
             db.Supplier_Master.insert(
                 prefix_id = pre.id,
                 dept_code_id = form.vars.dept_code_id,
@@ -274,6 +275,7 @@ def suplr_add_form():
                 currency_id = form.vars.currency_id, 
                 fax_no = form.vars.fax_no,
                 email_adddress = form.vars.email_address,
+                item_serial_key = _item_serial_key,
                 status_id = form.vars.status_id)            
             pre.update_record(serial_key = _skey)
             response.flash = 'RECORD SAVE'
@@ -1541,12 +1543,40 @@ def itm_mas():
 
     form = SQLFORM.factory(
         Field('item_code_id', widget = SQLFORM.widgets.autocomplete(request, db.Item_Master.item_code, id_field = db.Item_Master.id, limitby = (0,10), min_length = 2)))
-    if form.accepts(request):   
+    if form.accepts(request):           
         if not request.vars.item_code_id:
             response.flash = 'Item code not found or empty.'
         else:
             redirect(URL('inventory','itm_edit_form', args = request.vars.item_code_id))
-    return dict(form = form)
+    form2 = SQLFORM.factory(
+        Field('supplier_reference', widget = SQLFORM.widgets.autocomplete(request, db.Item_Master.supplier_item_ref, id_field = db.Item_Master.id, limitby = (0,10), min_length = 2)))
+    if form2.accepts(request):           
+        if not request.vars.supplier_reference:
+            response.flash = 'Supplier Reference not found or empty.'
+        else:
+            redirect(URL('inventory','itm_edit_form', args = request.vars.supplier_reference))
+
+    return dict(form = form, form2= form2)
+
+def get_item_master_grid():
+    row = []
+    head = THEAD(TR(TD('#'),TD('Item Code'),TD('Description'),TD('Department'),TD('Supplier Reference'),TD('Supplier'),TD('Group Line'),TD('Brand Line'),TD('Int.Barcode'),TD('Loc.Barcode')),_class='style-accent')    
+    for n in db(db.Item_Master.item_status_code_id == 1).select():
+        _ip = db(db.Item_Prices.item_code_id == n.id).select().first()
+        row.append(TR(
+            TD(n.id),
+            TD(n.item_code),
+            TD(n.item_description),
+            TD(n.dept_code_id.dept_name),
+            TD(n.supplier_item_ref),
+            TD(n.supplier_code_id.supp_name),
+            TD(n.group_line_id.group_line_name),
+            TD(n.brand_line_code_id.brand_line_name),            
+            TD(n.int_barcode),
+            TD(n.loc_barcode)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body],_class='table')
+    return dict(table = table)
 
 @auth.requires_login()
 def itm_add_batch_form():
@@ -1811,11 +1841,8 @@ def put_item_code_id():
 @auth.requires_login()
 def itm_edit_form():
     # print 'edit: ', session.item_code, request.args(0)
-    # db.Item_Master.uom_value.writable = False
-    # db.Item_Master.uom_id.writable = False
-    db.Item_Master.division_id.writable = False
-    db.Item_Master.dept_code_id.writable = False
-    db.Item_Master.supplier_code_id.writable = False
+    db.Item_Master.uom_value.writable = False
+    db.Item_Master.uom_id.writable = False
     db.Item_Master.item_code.writable = False
     _fld = db(db.Item_Master.id == request.args(0)).select().first()
     form = SQLFORM(db.Item_Master, request.args(0), deletable = True)
@@ -3388,8 +3415,7 @@ def stock_request_transaction_temporary_table():
         Field('quantity', 'integer', default = 0),
         Field('pieces', 'integer', default = 0),
         Field('category_id', 'integer', default = 4))
-    if form.process(onvalidation = validate_item_code).accepted:
-        
+    if form.process(onvalidation = validate_item_code).accepted:        
         response.flash = ''
         # response.flash = 'ITEM CODE ' + str(form.vars.item_code) + ' ADDED'
         _id = db(db.Item_Master.item_code == request.vars.item_code.upper()).select().first()
@@ -3407,7 +3433,7 @@ def stock_request_transaction_temporary_table():
             category_id = form.vars.category_id,
             amount = form.vars.amount, 
             remarks = form.vars.remarks, 
-            ticket_no_id = session.ticket_no_id)                
+            ticket_no_id = session.ticket_no_id)             
         if db(db.Stock_Transaction_Temp.ticket_no_id == session.ticket_no_id).count() != 0:
             response.js = "$('#btnsubmit').removeAttr('disabled');"
         else:
@@ -3975,7 +4001,7 @@ def get_receipt_info(e = request.args(0)):
         if not _id.stock_receipt_date_approved:
             _date = 'None'
         else:
-            _date = _id.stock_receipt_date_approved.date()
+            _date = _id.stock_receipt_date_approved
         if not _id.stock_receipt_approved_by:
             _appr = 'None'
         else:        
@@ -5415,7 +5441,7 @@ def get_stock_adjustment_workflow_grid():
         _query = db(db.Stock_Adjustment.srn_status_id == 4).select(db.Stock_Adjustment.ALL, orderby = ~db.Stock_Adjustment.id)
     elif auth.has_membership(role = 'ROOT'): # ADMIN
         _query = db().select(db.Stock_Adjustment.ALL, orderby = ~db.Stock_Adjustment.id)
-    head = THEAD(TR(TH('Date'),TH('Transaction No'),TH('Department'),TH('Account Code'),TH('Location'),TH('Adjustment Type'),TH('Amount'),TH('Status'),TH('Action')),_class='bg-primary')
+    head = THEAD(TR(TH('Date'),TH('Transaction No'),TH('Department'),TH('Account Code'),TH('Location'),TH('Adjustment Type'),TH('Amount'),TH('Status'),TH('Remarks'),TH('Action')),_class='bg-primary')
     for n in _query:
         if auth.has_membership(role = 'ACCOUNTS')  | auth.has_membership(role = 'MANAGEMENT'): 
             if n.srn_status_id == 4:
@@ -5444,7 +5470,7 @@ def get_stock_adjustment_workflow_grid():
                 reje_lnk = A(I(_class='fas fa-user-times'), _title='Reject Row', _type='button ', _role='button', _class='btn btn-icon-toggle disabled', callback = URL('stock_adjustment_manager_details_reject', args = n.id, extension = False))                
                 prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
                 btn_lnk = DIV(view_lnk, appr_lnk, reje_lnk, prin_lnk)
-        row.append(TR(TD(n.transaction_date),TD(n.transaction_no),TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),TD(n.stock_adjustment_code),TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),TD(n.adjustment_type.description),TD(locale.format('%.2F',n.total_amount or 0, grouping = True)),TD(n.srn_status_id.description),TD(btn_lnk)))
+        row.append(TR(TD(n.transaction_date),TD(n.transaction_no),TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),TD(n.stock_adjustment_code),TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),TD(n.adjustment_type.description),TD(locale.format('%.2F',n.total_amount or 0, grouping = True)),TD(n.srn_status_id.description),TD(n.remarks),TD(btn_lnk)))
     body = TBODY(*row)
     table = TABLE(*[head, body], _class='table', _id='tblSAd')
     return dict(table = table)
@@ -5732,6 +5758,7 @@ def stock_adjustment_browse_details():
     db.Stock_Adjustment.approved_by.writable = False
     db.Stock_Adjustment.date_approved.writable = False    
     db.Stock_Adjustment.archive.writable = False
+    db.Stock_Adjustment.remarks.writable = False
     _stk_adj = db(db.Stock_Adjustment.id == request.args(0)).select().first()     
     if auth.has_membership(role = 'ACCOUNTS'):
         if _stk_adj.srn_status_id == 2:
@@ -5937,7 +5964,7 @@ def inventory_manager():
 
 # @auth.requires(lambda: auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('INVENTORY') | auth.has_membership('ROOT'))
 def stock_request_manager_grid():
-    _usr = db(db.User_Department.user_id == auth.user_id).select().first()    
+    _usr = db(db.User_Department.user_id == auth.user_id).select().first()
     row = []
     if not _usr:
         _query = (db.Stock_Request.srn_status_id == 4)
@@ -5948,7 +5975,6 @@ def stock_request_manager_grid():
     head = THEAD(TR(TH('Date'),TH('Stock Request No'),TH('Stock Source'),TH('Stock Destination'),TH('Requested By'),TH('Amount'),TH('Status'),TH('Required Action'),TH('Actions')), _class='bg-primary')
     for n in db(_query).select(orderby = db.Stock_Request.id):
         edit_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('mngr_req_details', args = n.id, extension = False))        
-
         if n.srn_status_id == 2:
             appr_lnk = A(I(_class='fas fa-user-check'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')            
             reje_lnk = A(I(_class='fas fa-user-times'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
@@ -6363,6 +6389,7 @@ def obsolescence_of_stocks_form():
         response.flash = 'Transaction no. ' + str(_transaction_no) + ' save.'        
     elif form.errors:
         response.flash = 'ENTRY HAS ERROR'        
+        db.Error_Log.insert(module = 'Obsolescence Stocks', error_description = form.errors)       
     return dict(form = form, ticket_no_id = ticket_no_id)
 
 def validate_obsolescence_stocks_transaction(form):
@@ -6478,6 +6505,7 @@ def obsolescence_stocks_transaction_temporary():
 
     elif form.errors:
         response.flash = 'FORM HAS ERROR'
+        db.Error_Log.insert(module = 'Obsolescence Stocks', error_description = form.errors)        
     ctr = 0
     row = []                
     grand_total = 0
@@ -7216,6 +7244,7 @@ def stock_corrections_add_new():
         response.flash = 'Transaction No. ' + str(form.vars.transaction_no) + ' generated.'
     elif form.errors:
         response.flash = 'FORM HAS ERRORS'
+        db.Error_Log.insert(module = 'Stock Corrections', error_description = form.errors)
     return dict(form = form, ticket_no_id = ticket_no_id)
 
 def validate_stock_corrections_transaction_temporary(form):
@@ -7286,6 +7315,7 @@ def stock_corrections_transaction_temporary():
     elif form.errors:
         # table = TABLE(*[TR(v) for k, v in form.errors.items()])
         response.flash = 'FORM HAS ERROR'
+        db.Error_Log.insert(module = 'Stock Corrections', error_description = form.errors)
     _btnUpdate = INPUT(_id='btnUpdate', _name='btnUpdate', _type= 'submit', _value='update', _class='btn btn-success', _disabled='true')           
     head = THEAD(TR(TH('#'),TH('Item Code'),TH('Item Description'),TH('UOM'),TH('Quantity'),TH('PCs'),TH('Unit Price'),TH('Total Amount'),TH('Action'), _class='bg-primary'))
     for i in db(db.Stock_Corrections_Transaction_Temporary.ticket_no_id == session.ticket_no_id).select(db.Stock_Corrections_Transaction_Temporary.ALL, db.Item_Master.ALL, orderby=db.Stock_Corrections_Transaction_Temporary.id ,left = db.Item_Master.on(db.Item_Master.item_code == db.Stock_Corrections_Transaction_Temporary.item_code)):         
@@ -7550,8 +7580,11 @@ def get_workflow_reports_id():
         footer = TFOOT(TR(TD(_tax, _colspan = '5'),TD('Total Amount: ',_align='right'),TD(locale.format('%.3F',_id.total_amount or 0, grouping = True), _align='right'),TD()))
         table += TABLE(*[head, body, footer], _class='table table-hover')
     elif int(request.args(0)) == 6:
-        
-        table = 6
+        _title = 'Stock Receipt'        
+        _id = db(db.Stock_Receipt.id == request.args(1)).select().first()
+        table = TABLE(
+            TR(TD('Stock Request No'),TD('Stock Request Date'),TD('Stock Transfer No'),TD('Stock Transfer Date'),TD('Stock Receipt No'),TD('Stock Receipt Date')),
+            TR(TD(_id.stock_request_no_id.prefix,_id.stock_request_no),TD(_id.stock_request_date),TD(_id.stock_transfer_no_id.prefix,_id.stock_transfer_no),TD(_id.stock_transfer_date_approved.date()),TD(_id.stock_receipt_no_id.prefix,_id.stock_receipt_no),TD(_id.stock_receipt_date_approved)), _class='table table-bordered')
     response.js = "alertify.alert().set({'startMaximized':true, 'title':'%s','message':'%s'}).show();" %(_title,table)
 
 def get_workflow_reports():
@@ -7570,6 +7603,12 @@ def get_workflow_reports():
         # _query = (db.Stock_Request.stock_receipt_approved_by == auth.user_id) | (db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.stock_destination_id != 1) & (db.Stock_Request.srn_status_id == 6)
         if auth.has_membership('SALES'):
             _query = db((db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.srn_status_id == 6)).select(orderby = db.Stock_Request.id)
+        elif auth.has_membership('INVENTORY POS'):
+            if form.accepts(request):
+                _title = 'Stock Request Workflow Reports as of %s to %s' %(request.vars.from_date, request.vars.to_date)
+                _query = db((db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.created_on >= request.vars.from_date) & (db.Stock_Request.created_on <= request.vars.to_date)).select()
+            else:                
+                _query = db((db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.created_on == request.vars.from_date)).select()
         elif auth.has_membership('INVENTORY SALES MANAGER'):
             _title = 'Stock Request Workflow Reports'
             _query = db(db.Stock_Request.stock_request_pre_approved_by == auth.user_id).select(orderby = db.Stock_Request.id)
@@ -7731,11 +7770,12 @@ def get_workflow_reports():
         body = TBODY(*row)
         table = TABLE(*[head, body], _class = 'table')#,**{'_data-search':'true','_data-classes':'table table-striped','_data-pagination':'true','_data-pagination-loop':'false'})
     elif int(request.args(0)) == int(5): # stock transfer
-        _title = 'Stock Transfer Voucher Workflow Reports'        
+        _title = 'Stock Transfer Voucher Workflow Reports as of %s' % (request.now.date())
         row = []
         ctr = 0    
         _usr = db(db.User_Location.user_id == auth.user_id).select().first()        
         if form.accepts(request):            
+            _title = 'Stock Transfer Voucher Workflow Reports as of %s to %s' % (request.vars.from_date, request.vars.to_date)
             _query = (db.Stock_Transfer.stock_transfer_dispatched_by == auth.user_id) & (db.Stock_Transfer.srn_status_id == 6) & (db.Stock_Transfer.stock_transfer_date_approved >= request.vars.from_date) & (db.Stock_Transfer.stock_transfer_date_approved <= request.vars.to_date)
         else:
             _query = (db.Stock_Transfer.stock_transfer_dispatched_by == auth.user_id) & (db.Stock_Transfer.srn_status_id == 6) & (db.Stock_Transfer.stock_transfer_date_approved == request.now)
@@ -7759,8 +7799,7 @@ def get_workflow_reports():
                 TD(btn_lnk)))    
         body = TBODY(*row)
         table = TABLE(*[head, body],_class='table')    
-    elif int(request.args(0)) == int(6): # stock receipt
-        
+    elif int(request.args(0)) == int(6): # stock receipt        
         row = []
         ctr = 0    
         if form.accepts(request):
@@ -7788,11 +7827,11 @@ def get_workflow_reports():
                 _stock_receipt = n.stock_receipt_no_id.prefix,n.stock_receipt_no
                 _stock_receipt = A(_stock_receipt, _class='text-success',_title='Stock Receipt', _type='button ', _role='button', **{'_data-toggle':'popover','_data-placement':'right','_data-html':'true','_data-content':get_receipt_info(n.id)})   
             
-            view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle',_href=URL('inventory','get_stock_receipt_id', args = n.id, extension = False))
+            view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle',callback=URL('inventory','get_workflow_reports_id', args = [request.args(0),n.id], extension = False))
             edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
             dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
             repo_lnk = A(I(_class='fas fa-print'),  _type='button  ', _role='button', _class='btn btn-icon-toggle disabled',_target='blank',_href=URL('inventory','stock_receipt_report', args = n.id, extension = False))
-            btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk, repo_lnk)
+            btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
 
             # btn_lnk = DIV(view_lnk, rec_lnk, repo_lnk, arch_lnk)
             row.append(TR(
@@ -7815,15 +7854,29 @@ def get_workflow_reports():
         table = 0    
     return dict(title = _title, table = table, form = form)
 
-def get_workflow_stock_id():
-    # print 'get_workflow_stock_id', request.args(0), request.args(1)
-    if int(request.args(1)) == 1:
-        print 'stock request', request.args(0), request.args(1)
-    elif int(request.args(1)) == 2:
-        print 'stock transfer', request.args(0), request.args(1)
-    elif int(request.args(1)) == 3:
-        print 'stock receipt', request.args(0), request.args(1)
-    return dict(form = form, title = title)
+def get_workflow_reports_id_():        
+    if int(request.args(0)) == 1:
+        _title = 'Stock Request'
+        print 'purchase request:', request.args(0), request.args(1)
+    elif int(request.args(0)) == 2:
+        _title = 'Stock Adjustment(+/-)'
+        print 'purchase request:', request.args(0), request.args(1)
+    elif int(request.args(0)) == 3:
+        _title = 'Stock Corrections'
+        print 'purchase request:', request.args(0), request.args(1)
+    elif int(request.args(0)) == 4:
+        _title = 'Obsolescene of Stocks'
+        print 'purchase request:', request.args(0), request.args(1)
+    elif int(request.args(0)) == 5:
+        _title = 'Stock Transfer'
+        print 'purchase request:', request.args(0), request.args(1)
+    elif int(request.args(0)) == 6:
+        _title = 'Stock Receipt'        
+        _id = db(db.Stock_Receipt.id == request.args(1)).select().first()
+        table = TABLE(
+            TR(TD('Stock Request No'),TD('Stock Request Date'),TD('Stock Transfer No'),TD('Stock Transfer Date'),TD('Stock Receipt No'),TD('Stock Receipt Date')),
+            TR(TD(),TD(),TD(),TD(),TD(),TD()), _class='table table-bordered')
+    response.js = "alertify.alert().set({'startMaximized':true, 'title':'%s','message':'%s'}).show();" %(_title, table)
 
 def get_workflow_stock_transaction():
     return dict(table = 'table')
@@ -10197,9 +10250,9 @@ def stock_card_movement():
 
                 if _type == 1:                    
                     
-                    if str(n.Merch_Stock_Transaction.category_id) == 'S':
+                    if str(n.Merch_Stock_Transaction.category_id) == 'S':   
                         _type = 'GR'
-                        _bal = n._extra[_total_qty]
+                        _bal -= n._extra[_total_qty] - n._extra[_total_qty]
                         _quantity_in = 0
                         _quantity_out = card_view(_itm_code.id, n._extra[_total_qty])
                         _balanced = card_view(_itm_code.id, _bal)
