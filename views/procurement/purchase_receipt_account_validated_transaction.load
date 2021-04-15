@@ -115,6 +115,7 @@ $(document).ready(function(){
     }
 
     function Calculate(){
+        
         var $tblrows = $("#POTtbl tbody tr");
 
         $tblrows.each(function(index){
@@ -148,21 +149,23 @@ $(document).ready(function(){
                 } else {
                     $("#btnDraft").removeAttr("disabled");
                 }
-                var xch = $("#Purchase_Request_exchange_rate").val();
-                var lnd = $("#Purchase_Request_landed_cost").val();
+                var xch = $("#Purchase_Warehouse_Receipt_exchange_rate").val();
+                var lnd = $("#Purchase_Warehouse_Receipt_landed_cost").val();
                 var foc = $("#grand_total").val();
                 var loc = $("#net_amount_qr").val();
                 var pur = $("#purchase_value").val();
-                var dis = $("#discount").val();                
-                
+                var dis = $("#added_discount").val();                                
                 if (!isNaN(sub)){
                     var _grand_total = 0;
                     var _net_amount = 0;
                     var local = 0;
                     $tblrow.find(".net_price").val(npr.toLocaleString());
-                    $tblrow.find(".total_amount").val(sub.toFixed(3));
+                    $tblrow.find(".total_amount").val(sub.toFixed(3));                    
+                    var tax= parseInt($(".total_amount").val().replace(/,/g,'')); 
                     $(".total_amount").each(function(){
                         var stval = parseFloat($(this).val());
+                        
+                        console.log(stval, tax);
                         _grand_total += isNaN(stval.toFixed(3)) ? 0 : stval;
                     });
 
@@ -185,10 +188,10 @@ $(document).ready(function(){
     });
 
     function onAddedDiscount(){
-        var _lan = $('#Purchase_Request_landed_cost').val();
+        var _lan = $('#Purchase_Warehouse_Receipt_landed_cost').val();
         var _cus = $('#no_table_custom_duty_charges').val();
-        var _oth = $('#Purchase_Request_other_charges').val();
-        var _exc = $('#Purchase_Request_exchange_rate').val();
+        var _oth = $('#Purchase_Warehouse_Receipt_other_charges').val();
+        var _exc = $('#Purchase_Warehouse_Receipt_exchange_rate').val();
         var grand_total = $('#grand_total').val();
         var _dis = $('#added_discount').val();            
         var _loc = $('#net_amount_qr').val();
@@ -206,19 +209,19 @@ $(document).ready(function(){
 </script>
 
 <script>
-    var xch = $("#Purchase_Request_exchange_rate").val();
-    var lnd = $("#Purchase_Request_landed_cost").val();
+    var xch = $("#Purchase_Warehouse_Receipt_exchange_rate").val();
+    var lnd = $("#Purchase_Warehouse_Receipt_landed_cost").val();
     var foc = $("#foreign_total_amount").val();
     var loc = $("#net_amount_qr").val();
     var pur = $("#purchase_value").val();
     var dis = $("#discount").val();
     var total = parseFloat(loc.replace(/,/g, ''));
-    $('#Purchase_Request_exchange_rate').change(function(){
-        if ($('#Purchase_Request_exchange_rate').val() > $('#Purchase_Request_landed_cost').val()) {
+    $('#Purchase_Warehouse_Receipt_exchange_rate').change(function(){
+        if ($('#Purchase_Warehouse_Receipt_exchange_rate').val() > $('#Purchase_Warehouse_Receipt_landed_cost').val()) {
             excAlert();
         } else {            
             var _for = $('#foreign_total_amount').val();
-            var _exc = $('#Purchase_Request_exchange_rate').val();
+            var _exc = $('#Purchase_Warehouse_Receipt_exchange_rate').val();
             var _res = parseFloat(_for.replace(/,/g, '')) * parseFloat(_exc.replace(/,/g, ''))
             $('.net_amount_qr').val(_res.toFixed(3));              }
         
@@ -228,10 +231,10 @@ $(document).ready(function(){
         recompute();
     });
 
-    $('#Purchase_Request_landed_cost').change(function(){
+    $('#Purchase_Warehouse_Receipt_landed_cost').change(function(){
         
-        var _landed_cost = $('#Purchase_Request_landed_cost').val()
-        var _exchan_rate = $('#Purchase_Request_exchange_rate').val()
+        var _landed_cost = $('#Purchase_Warehouse_Receipt_landed_cost').val()
+        var _exchan_rate = $('#Purchase_Warehouse_Receipt_exchange_rate').val()
         if (parseFloat(_landed_cost) < parseFloat(_exchan_rate)) {
             lanAlert();
             $(':button').prop('disabled', true); // Disable all the buttons
@@ -239,7 +242,7 @@ $(document).ready(function(){
             // $(':button').prop('disabled', true); // Disable all the buttons
             // $('#btnSave').removeAttr('disabled');
             var _for = $('#net_amount').val();
-            var _pur = $('#Purchase_Request_landed_cost').val();
+            var _pur = $('#Purchase_Warehouse_Receipt_landed_cost').val();
             var _res = parseFloat(_for.replace(/,/g, '')) * parseFloat(_pur.replace(/,/g, ''))
             $('#purchase_value').val(_res.toFixed(3));
         }

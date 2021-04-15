@@ -126,10 +126,10 @@
                           <div class="form-group">
                                 <label class="col-sm-4 control-label"></label>
                                 <div class="col-sm-8">
-                                    {{ if (_id.srn_status_id != 4): }}
-                                        <input class="btn btn-success" type="button" value="submit" disabled>     
+                                    {{ if (_id.srn_status_id == 4) or (_id.srn_status_id == 3): }}
+                                        <input class="btn btn-success" type="submit" id="btnSubmit" value="submit">                                                                                 
                                     {{ else: }}
-                                        <input class="btn btn-success" type="submit" id="btnSubmit" value="submit">                                         
+                                        <input class="btn btn-success" type="button" value="submit" disabled>                                             
                                     {{ pass }}
                                     <button class="btn btn-warning" type="button" onclick="onExit()">Exit</button>
                                 </div>                            

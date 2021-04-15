@@ -129,9 +129,9 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label class="col-sm-4 control-label">Full Order (Y/N)</label>
+                                <label class="col-sm-4 control-label">Payment Terms </label>
                                 <div class="col-sm-8">
-                                        {{=form.custom.widget.partial_order}}
+                                        {{=form.custom.widget.payment_terms}}
                                 </div>
                             </div>
 
@@ -156,7 +156,7 @@
     $(document).ready(function(){
         $('#btnSubmit').click(function() {
             ajax("{{=URL('procurement','post_document_register_id', args = request.args(0))}}", ['doc_reg_no','estimated_time_of_arrival','invoice_no',
-        'invoice_date','due_date','forwarder_supplier_id','invoice_amount','location_code_id','supplier_code_id','mode_of_shipment','commodity'])        
+        'invoice_date','due_date','forwarder_supplier_id','invoice_amount','location_code_id','supplier_code_id','mode_of_shipment','commodity','payment_terms'])        
         
         });
         

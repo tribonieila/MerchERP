@@ -79,7 +79,7 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Status</label>
                             <div class="col-sm-8">
-                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}                                
+                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'INVENTORY SALES MANAGER'): }}                                
                                     <input type="text" class="form-control" value="{{=_id.status_id.description}}" disabled>
                                 {{else:}}
                                     {{=form.custom.widget.status_id}}
@@ -103,10 +103,19 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label"></label>
                             <div class="col-sm-8">
-                                {{ if auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                {{ if auth.has_membership(role = 'INVENTORY SALES MANAGER'): }}
                                     {{ if _id.status_id != 16: }}
-                                        <input class="btn btn-primary" type="submit" value="approved" id="btnApproved">
-                                        <input class="btn btn-danger" type="submit" value="reject" id="btnrejected">                                                                                                                                   
+                                        <input class="btn btn-primary" type="button" value="approved" id="btnSMApproved" onclick="ajax('{{=URL('inventory','put_stock_corrections_approved_id', args = request.args(0))}}',['remarks'])">
+                                        <input class="btn btn-danger" type="button" value="reject" id="btnSMRejected" onclick="ajax('{{=URL('inventory','put_stock_corrections_rejected_id', args = request.args(0))}}',['remarks'])">
+                                    {{ else: }}
+                                        <input class="btn btn-primary" type="submit" value="approved" disabled>
+                                        <a class="btn btn-danger" id="btncancel" role="button" href="#" disabled>reject</a>
+                                    {{ pass }}                                         
+                                    <input class="btn btn-warning" type="button" value="return" onclick="window.location.href = '{{=URL('inventory','mngr_req_grid')}}'">
+                                {{ elif auth.has_membership(role = 'ACCOUNTS MANAGER'): }}
+                                    {{ if _id.status_id != 16: }}
+                                        <input class="btn btn-primary" type="button" value="approved" id="btnApproved" onclick="ajax('{{=URL('inventory','stock_corrections_accounts_view_approved', args = request.args(0))}}',['remarks'])">
+                                        <input class="btn btn-danger" type="button" value="reject" id="btnrejected" onclick="ajax('{{=URL('inventory','stock_corrections_accounts_view_rejected', args = request.args(0))}}',['remarks'])">
                                     {{ else: }}
                                         <input class="btn btn-primary" type="submit" value="approved" disabled>
                                         <a class="btn btn-danger" id="btncancel" role="button" href="#" disabled>reject</a>
@@ -135,22 +144,28 @@
             
             {{=form.custom.end}}            
             <hr>
-            {{=LOAD('inventory','stock_corrections_transaction_table.load', args = request.args(0), ajax = True, target = 'tblcor')}}
-            
+            {{ if auth.has_membership(role = 'INVENTORY SALES MANAGER') | auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'ROOT'): }}
+                {{=LOAD('inventory','get_stock_corrections_transaction.load', args = request.args(0))}}
+            {{ else: }}
+                {{=LOAD('inventory','stock_corrections_transaction_table.load', args = request.args(0), ajax = True, target = 'tblcor')}}
+            {{ pass }}
         </div>
     </div>
 </div>
 
 <script>
 $(document).ready(function(){
-    $('#btnApproved').click(function(){
-        ajax('{{=URL('inventory','stock_corrections_accounts_view_approved', args = request.args(0))}}')
+    $('#btnSMApproved').click(function(){        
+        window.location.replace("{{=URL('inventory','mngr_req_grid')}}")        
+    });
+    $('#btnSMRejected').click(function(){        
+        window.location.replace("{{=URL('inventory','mngr_req_grid')}}")        
+    });    
+
+    $('#btnApproved').click(function(){        
         window.location.replace("{{=URL('inventory','account_manager_workflow')}}")
-        // location.reload();
     });
     $('#btnrejected').click(function(){
-        ajax('{{=URL('inventory','stock_corrections_accounts_view_rejected', args = request.args(0))}}')
-        // location.reload();
         window.location.replace("{{=URL('inventory','account_manager_workflow')}}")
     });    
 });

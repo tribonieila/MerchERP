@@ -1629,6 +1629,31 @@ def sales_return_browse():
     table = TABLE(*[head, body], _class='table')
     return dict(table = table, title = title, form = form)
 
+@auth.requires_login()
+def get_pending_sales_return_grid():
+    _query = db((db.Sales_Return.status_id != 13) & (db.Sales_Return.status_id != 10)).select(orderby = ~db.Sales_Return.id)
+    head = THEAD(TR(TD('Date'),TD('Sales Return Request No.'),TD('Department'),TD('Customer'),TD('Location'),TD('Amount'),TD('Status'),TD('Requested by'),TD('Action Required'),TD('Action'),_class='style-warning large-padding text-center'))
+    for n in _query:  
+        view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle', callback=URL('sales','get_sales_return_id', args = n.id))
+        # view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle', _href=URL('sales','get_sales_return_id', args = n.id))
+        edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+        prin_lnk = A(I(_class='fas fa-print'), _type='button ', _target='_blank',_role='button', _class='btn btn-warning btn-icon-toggle', _href=URL('sales','sales_return_report_account_user', args = n.id))
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk, prin_lnk)
+        row.append(TR(
+            TD(n.sales_return_request_date),
+            TD(n.sales_return_request_prefix_id.prefix,n.sales_return_request_no),
+            TD(n.dept_code_id.dept_code,' - ',n.dept_code_id.dept_name),
+            TD(n.customer_code_id.account_name,', ',SPAN(n.customer_code_id.account_code,_class='text-muted')),
+            TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),
+            TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True), _align = 'right'),
+            TD(n.status_id.description),TD(n.sales_man_id.employee_id.first_name,' ', n.sales_man_id.employee_id.last_name),
+            TD(n.status_id.required_action),
+            TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(table = table)
+
 def get_sales_return_id_():
     return dict(_id = db(db.Sales_Return.id==request.args(0)).select().first())
 
@@ -4536,7 +4561,26 @@ def get_sales_return_id():
     if _id.remarks != "":
         table += TABLE(TR(TD(PRE('Remarks: ', _id.remarks,_class='text-danger'))))        
     else:
-        table += TABLE(TR(TD('Remarks: ')))
+        table += TABLE(TR(TD('Remarks: ')))    
+
+    if auth.has_membership(role = 'ACCOUNTS') | auth.has_membership(role = 'ACCOUNTS MANAGER'):
+        if _id.status_id == 12:
+            table += TABLE(
+                TR(TD('Approved By'),TD('Date Approved'),TD('Warehouse Approved By'),TD('Warehouse Approved Date')),
+                TR(TD(_id.sales_manager_id.first_name, ' ', _id.sales_manager_id.last_name),TD(_id.sales_manager_date),TD(_id.warehouse_id.first_name,' ', _id.warehouse_id.last_name),TD(_id.warehouse_date)),_class='table table-bordered')
+        elif _id.status_id == 14:
+            table += TABLE(
+                TR(TD('Approved By'),TD('Date Approved'),TD('Warehouse Approved By'),TD('Warehouse Approved Date')),
+                TR(TD(_id.sales_manager_id.first_name, ' ', _id.sales_manager_id.last_name),TD(_id.sales_manager_date),TD('None'),TD('None')),_class='table table-bordered')
+        elif _id.status_id == 4:
+            table += TABLE(
+                TR(TD('Approved By'),TD('Date Approved'),TD('Warehouse Approved By'),TD('Warehouse Approved Date')),
+                TR(TD('None'),TD('None'),TD('None'),TD('None')),_class='table table-bordered')
+        else:
+            table += TABLE(
+                TR(TD('Approved By'),TD('Date Approved'),TD('Warehouse Approved By'),TD('Warehouse Approved Date')),
+                TR(TD('None'),TD('None'),TD('None'),TD('None')),_class='table table-bordered')
+        
 
     if auth.has_membership(role = 'ROOT'):
         table += get_transaction_reference(_id.total_amount,_id.discount_added,_id.total_amount_after_discount,_id.total_selective_tax,_id.total_selective_tax_foc)
@@ -6038,30 +6082,38 @@ def sales_return_accounts_header_footer_report(canvas, doc):
     # Save the state of our canvas so we can draw on it
     canvas.saveState()
     _id = db(db.Sales_Return.id == request.args(0)).select().first()
-
+    _ma = db(db.Master_Account.id == _id.customer_code_id).select().first()
+    _cu = db(db.Customer.customer_account_no == str(_ma.account_code)).select().first()
+    if _cu:
+        if _cu.area_name_id:
+            _area_name = _cu.area_name_id.area_name
+        else:
+            _area_name = ''
+        _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' +str(_cu.telephone_no)
+        _area = str(_cu.area_name) + ', ' + str(_area_name) + '\n' + str(_cu.country.upper())
+    else:
+        _pobox = _area = ''    
     # Header 'Stock Request Report'
     for n in db(db.Sales_Return.id == request.args(0)).select():
         _customer = n.customer_code_id.account_name # + str('\n') + str(n.customer_code_id.area_name.upper()) + str('\n') + 'Unit No.: ' + str(n.customer_code_id.unit_no) + str('\n') + 'P.O. Box ' + str(n.customer_code_id.po_box_no) + '  Tel.No. ' + str(n.customer_code_id.telephone_no) + str('\n')+ str(n.customer_code_id.state.upper()) + ', ' + str(n.customer_code_id.country.upper())
         _so = [
-            ['SALES RETURN'],
-            [_ar_sales_return],
-            ['Sales Return No. ', ':',str(n.transaction_prefix_id.prefix)+str(n.sales_return_no),'','Sales Return Date ',':',n.sales_return_date.strftime('%d-%m-%Y')],
+            ['SALES RETURN'],            
+            ['Sales Return Request No. ', ':',str(n.sales_return_request_prefix_id.prefix)+str(n.sales_return_request_no),'','Sales Return Request Date ',':',n.sales_return_request_date.strftime('%d/%b/%Y')],
             ['Customer Code',':',n.customer_code_id.account_code,'','Transaction Type',':','Sales Return'],             
-            [_customer,'', '','','Department',':',n.dept_code_id.dept_name],
-            ['','','','','Location', ':',n.location_code_id.location_name],       
-            ['','','','','Sales Man',':',str(n.sales_man_id.employee_id.first_name) + ' ' + str(n.sales_man_id.employee_id.last_name)],            
-            ['','','','','','',''],
+            [_id.customer_code_id.account_name,'', '','','Department',':',n.dept_code_id.dept_name],
+            [_pobox,'','','','Location', ':',n.location_code_id.location_name],       
+            [_area,'','','','Sales Man',':',str(n.sales_man_id.employee_id.first_name) + ' ' + str(n.sales_man_id.employee_id.last_name)],                        
             ['','','','','','','']]
 
     header = Table(_so, colWidths=['*',20,'*',10,'*',20,'*'])#,rowHeights=(12))
     header.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
-        ('SPAN',(0,3),(2,-1)),
+        # ('SPAN',(0,3),(2,-1)),
         ('SPAN',(0,0),(6,0)),
         ('ALIGN',(0,0),(0,0),'CENTER'),        
         ('FONTNAME', (0, 0), (6, -1), 'Courier'),   
         ('FONTNAME', (0, 0), (0, 0), 'Courier-Bold', 12),
-        ('FONTSIZE',(0,0),(0,0),15),
+        ('FONTSIZE',(0,0),(0,0),12),
         ('FONTSIZE',(0,1),(6,1),8),                
         ('FONTSIZE',(0,2),(6,-1),8),                
         ('VALIGN',(0,0),(-1,-1),'TOP'),
@@ -6183,20 +6235,20 @@ def sales_return_report_account_user():
         _selective_tax = 'Total Selective Tax: '+ str(locale.format('%.2F',_id.total_selective_tax or 0, grouping = True))
         _selective_tax_foc = 'Total Selective Tax FOC: '+ str(locale.format('%.2F',_id.total_selective_tax_foc or 0, grouping = True))            
     (_whole, _frac) = (int(_grand_total), locale.format('%.2f',_grand_total or 0, grouping = True))
-    _amount_in_words = 'QR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS'
+    _amount_in_words = 'QAR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS'
 
     _st.append([_selective_tax,'','','','','','Total Amount','',':',locale.format('%.2F',_id.total_amount or 0, grouping = True)])
     _st.append([_selective_tax_foc,'','','','','','Discount %','',':',locale.format('%.2F',_id.discount_added or 0, grouping = True)])
     _st.append([_amount_in_words,'','','','','','Net Amount','',':',locale.format('%.2F',_id.total_amount_after_discount or 0, grouping = True)])
-    _st_tbl = Table(_st, colWidths=[20,60,'*',30,30,50,50,50,50,50])
+    _st_tbl = Table(_st, colWidths=[20,60,'*',30,30,50,50,50,50,50], repeatRows=1)
     _st_tbl.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
-        ('LINEABOVE', (0,0), (-1,0), 0.25, colors.Color(0, 0, 0, 1)),        
-        ('LINEBELOW', (0,0), (-1,0), 0.25, colors.Color(0, 0, 0, 1)),        
-        ('LINEABOVE', (0,-3), (-1,-3), 0.25, colors.Color(0, 0, 0, 1)),        
-        ('LINEABOVE', (0,-1), (-1,-1), 0.25, colors.Color(0, 0, 0, 1)),        
-        ('LINEBELOW', (0,-1), (-1,-1), 0.25, colors.Color(0, 0, 0, 1)),        
-        ('LINEBELOW', (0,1), (-1,-5), 0.5, colors.Color(0, 0, 0, 0.2)),
+        ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
+        ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),    
+        ('LINEABOVE', (0,-3), (-1,-3), 0.25, colors.black,None, (2,2)),        
+        ('LINEABOVE', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),        
+        ('LINEBELOW', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),        
+        # ('LINEBELOW', (0,1), (-1,-5), 0.5, colors.black,None, (2,2)),
         ('TOPPADDING',(0,-3),(-1,-1),5),
         ('BOTTOMPADDING',(0,-1),(-1,-1),5),
         ('TOPPADDING',(0,-2),(-1,-2),0),
@@ -6292,29 +6344,29 @@ def sales_return_report_account_user():
         ('BOTTOMPADDING',(0,0),(-1,-1),0)
         ]))
 
-    row.append(_st_tbl)
-    row.append(Spacer(1,.5*cm))
-    row.append(_others_table)
-    row.append(Spacer(1,.7*cm))
-    row.append(_signatory_table)
-    row.append(_c_tbl)
-    row.append(PageBreak())
+    # row.append(_st_tbl)
+    # row.append(Spacer(1,.5*cm))
+    # row.append(_others_table)
+    # row.append(Spacer(1,.7*cm))
+    # row.append(_signatory_table)
+    # row.append(_c_tbl)
+    # row.append(PageBreak())
 
     row.append(_st_tbl)
     row.append(Spacer(1,.5*cm))
     row.append(_others_table)
     row.append(Spacer(1,.7*cm))
-    row.append(_signatory_table)
-    row.append(_a_tbl)
+    # row.append(_signatory_table)
+    # row.append(_a_tbl)
     row.append(PageBreak())
 
-    row.append(_st_tbl)
-    row.append(Spacer(1,.5*cm))
-    row.append(_others_table)
-    row.append(Spacer(1,.7*cm))
-    row.append(_signatory_table)
-    row.append(_p_tbl)
-    row.append(PageBreak())
+    # row.append(_st_tbl)
+    # row.append(Spacer(1,.5*cm))
+    # row.append(_others_table)
+    # row.append(Spacer(1,.7*cm))
+    # row.append(_signatory_table)
+    # row.append(_p_tbl)
+    # row.append(PageBreak())
     
     doc.build(row, onFirstPage=sales_return_accounts_header_footer_report, onLaterPages = sales_return_accounts_header_footer_report, canvasmaker=PageNumCanvas)
     # doc.build(row, onFirstPage = sales_invoice_footer, onLaterPages = sales_invoice_footer)

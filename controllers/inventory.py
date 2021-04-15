@@ -2104,7 +2104,7 @@ def item_prices_edit():
     db.Item_Prices.opening_average_cost.writable = False
     db.Item_Prices.last_issued_date.writable = False
     db.Item_Prices.selective_tax_percentage.writable = False
-    db.Item_Prices.selective_tax_price.writable = False
+    # db.Item_Prices.selective_tax_price.writable = False
     db.Item_Prices.vat_percentage.writable = False
     db.Item_Prices.vat_price.writable = False
     db.Item_Prices.reorder_qty.writable = False
@@ -3992,6 +3992,7 @@ def get_transfer_info(e = request.args(0)):
         TR(TD('Approved by: '),TD(_appr))])
     table = str(XML(i, sanitize = False))
     return table
+    
 def get_receipt_info(e = request.args(0)):
     _id = db(db.Stock_Receipt.id == e).select().first()
     if not _id.stock_request_no_id:
@@ -4947,6 +4948,17 @@ def stock_request_rejected():
 
 @auth.requires(lambda: auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ROOT'))
 def mngr_req_grid():
+    _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first() 
+    if _usr.department_id != 3:
+        _department = 3
+    else:
+        _department = 3    
+    _stk_req = db((db.Stock_Request.srn_status_id == 4)).count()
+    _sls_ord = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.dept_code_id == _usr.department_id) & (db.Sales_Order.section_id == _usr.section_id) &(db.Sales_Order.cancelled == False)).count()
+    _sls_ret = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.dept_code_id == _usr.department_id) & (db.Sales_Return.section_id == _usr.section_id)).count()
+    _pur_req = db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.dept_code_id == _usr.department_id) & (db.Purchase_Request.section_id == _usr.section_id)).count()
+    _obs_stk = db((db.Obsolescence_Stocks.status_id == 4) & (db.Obsolescence_Stocks.dept_code_id == _usr.department_id)).count()
+    _stk_cor = db((db.Stock_Corrections.status_id == 4) & (db.Stock_Corrections.dept_code_id == _usr.department_id)).count()
     return dict()
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ROOT'))
@@ -6001,7 +6013,7 @@ def stock_request_manager_grid():
             # TD(n.srn_status_id.required_action),
             TD(btn_lnk)))
     body = TBODY(*row)
-    table = TABLE(*[head, body], _class = 'table', _id = 'tblsr')
+    table = TABLE(*[head, body], _class = 'table', _id = 'SRtbl')
     return dict(table = table)
 
 # @auth.requires(lambda: auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ROOT'))
@@ -6177,7 +6189,7 @@ def get_obsolescence_of_stocks_workflow_grid():
 
         row.append(TR(TD(n.obsolescence_stocks_date),TD(n.transaction_no),TD(n.dept_code_id.dept_name),TD(n.account_code_id.account_code,', ',n.account_code_id.account_name),TD(n.location_code_id.location_name),TD(locale.format('%.2F',n.total_amount or 0, grouping = True)),TD(n.status_id.description),TD(n.status_id.required_action),TD(btn_lnk)))
     body = TBODY(*row)
-    table = TABLE(*[head, body], _class = 'table', _id='tblOS', **{'_data-search':'true','_data-classes':'table table-striped','_data-pagination':'true','_data-pagination-loop':'false'})
+    table = TABLE(*[head, body], _class = 'table', _id='OStbl')
     return dict(table = table)
 
 def obsol_archived():
@@ -6952,15 +6964,17 @@ def get_stock_corrections_reports():
     table = TABLE(*[head, body],  _class='table', _id = 'tblcor')                
     return dict(table = table, title='Stock Corrections Master Report')    
 
-@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER')| auth.has_membership('ROOT'))
-def stock_corrections():
-    if auth.has_membership(role = 'INVENTORY STORE KEEPER') | auth.has_membership(role = 'ACCOUNTS') | auth.has_membership(role = 'MANAGEMENT'): # MANOJ                
-        _query = db((db.Stock_Corrections.status_id != 16)  & (db.Stock_Corrections.created_by == auth.user_id)).select(orderby = db.Stock_Corrections.id)
+@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER')| auth.has_membership('ROOT'))
+def stock_corrections():    
+    if auth.has_membership(role = 'INVENTORY STORE KEEPER') | auth.has_membership(role = 'ACCOUNTS'): # MANOJ                
+        _query = db((db.Stock_Corrections.status_id != 16)  & (db.Stock_Corrections.created_by == auth.user_id)).select()
+    elif auth.has_membership(role = 'INVENTORY SALES MANAGER'): # sales manager grid
+        _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first()
+        _query = db((db.Stock_Corrections.dept_code_id == _usr.department_id) & (db.Stock_Corrections.status_id == 4)).select()
     elif auth.has_membership(role = 'ACCOUNTS MANAGER'): # JYOTHI
-        # _query = db((db.Stock_Corrections.archive != True) & (db.Stock_Corrections.status_id == 4)).select(orderby = ~db.Stock_Corrections.id)
-        _query = db((db.Stock_Corrections.archive != True) & (db.Stock_Corrections.status_id == 4)).select()
-    elif auth.has_membership(role = 'ROOT'): # ADMIN
-        _query = db().select(orderby = ~db.Stock_Corrections.id)        
+        _query = db(db.Stock_Corrections.status_id == 27).select()
+    elif auth.has_membership(role = 'MANAGEMENT') | auth.has_membership(role = 'ROOT'):
+        _query = db((db.Stock_Corrections.status_id != 16) or (db.Stock_Corrections.status_id != 10)).select()        
     head = THEAD(TR(TH('Date'),TH('Transaction No.'),TH('Department'),TH('Location'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Action Required'),TH('Action')),_class='bg-primary')
     for n in _query:
         if auth.has_membership(role = 'ACCOUNTS')  | auth.has_membership(role = 'INVENTORY STORE KEEPER'):
@@ -6982,8 +6996,18 @@ def stock_corrections():
             #     prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href = URL('sales','stock_corrections_transaction_table_reports', args = n.id, extension = False))
             #     attc_lnk = A(I(_class='fas fa-paperclip'), _title='Upload File', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
             #     btn_lnk = DIV(view_lnk, prin_lnk, edit_lnk, dele_lnk, clea_lnk,  attc_lnk)
-        elif auth.has_membership(role = 'ACCOUNTS MANAGER'):
+        elif auth.has_membership(role = 'INVENTORY SALES MANAGER'):
             if n.status_id == 4:
+                view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
+                edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+                dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+                appr_lnk = A(I(_class='fas fa-user-check'), _title='Approved Row', _type='button ', _role='button', _class='btn btn-icon-toggle btn', callback = URL('inventory','stock_corrections_accounts_view_approved', args = n.id, extension = False))
+                reje_lnk = A(I(_class='fas fa-user-times'), _title='Reject Row', _type='button ', _role='button', _class='btn btn-icon-toggle btn', callback = URL('inventory','stock_corrections_accounts_view_rejected', args = n.id, extension = False))
+                clea_lnk = A(I(_class='fas fa-archive'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
+                prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
+                btn_lnk = DIV(view_lnk,edit_lnk,dele_lnk)
+        elif auth.has_membership(role = 'ACCOUNTS MANAGER'):
+            if n.status_id == 27:
                 view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
                 edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('insurance_proposal_edit', args = n.id))
                 dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))
@@ -6991,7 +7015,7 @@ def stock_corrections():
                 reje_lnk = A(I(_class='fas fa-user-times'), _title='Reject Row', _type='button ', _role='button', _class='btn btn-icon-toggle btn', callback = URL('inventory','stock_corrections_accounts_view_rejected', args = n.id, extension = False))
                 clea_lnk = A(I(_class='fas fa-archive'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
                 prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
-                btn_lnk = DIV(view_lnk, appr_lnk, reje_lnk)
+                btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
             # elif n.status_id == 16:
             #     view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
             #     edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('insurance_proposal_edit', args = n.id))
@@ -7001,11 +7025,11 @@ def stock_corrections():
             #     clea_lnk = A(I(_class='fas fa-archive'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
             #     prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-icon-toggle', _target='blank', _href = URL('sales','stock_corrections_transaction_table_reports', args = n.id, extension = False))
             #     btn_lnk = DIV(view_lnk, prin_lnk, edit_lnk, dele_lnk, appr_lnk, reje_lnk, clea_lnk)
-        # else:
-        #         view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
-        #         edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
-        #         dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
-        #         btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        else:
+                view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
+                edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+                dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+                btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
         # elif auth.has_membership(role = 'ROOT'):
         #     if n.status_id == 4:
         #         view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle', _href = URL('inventory','stock_corrections_accounts_view', args = n.id, extension = False))        
@@ -7036,7 +7060,7 @@ def stock_corrections():
             TD(n.status_id.required_action),            
             TD(btn_lnk)))
     body = TBODY(*row)    
-    table = TABLE(*[head, body],  _class='table', _id = 'tblcor')                
+    table = TABLE(*[head, body],  _class='table', _id = 'CORtbl')                
     return dict(table = table)    
 
 def get_stock_corrections_grid(): # warehouse workflow 
@@ -7102,6 +7126,9 @@ def stock_corrections_accounts_view():
     if auth.has_membership(role = 'ACCOUNTS MANAGER'):
         db.Stock_Corrections.status_id.writable = False            
         
+    elif auth.has_membership(role = 'INVENTORY SALES MANAGER'):
+        if _id.status_id != 16:
+            db.Stock_Corrections.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 27)| (db.Stock_Status.id == 10) | (db.Stock_Status.id == 4) | (db.Stock_Status.id == 3)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
     elif auth.has_membership(role = 'ACCOUNTS'):
         if _id.status_id != 16:
             db.Stock_Corrections.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 10) | (db.Stock_Status.id == 4) | (db.Stock_Status.id == 3)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
@@ -7126,6 +7153,19 @@ def stock_corrections_accounts_view():
 
 def stock_corrections_submit():
     db(db.Stock_Corrections.id == request.args(0)).update(remarks = request.vars.remarks)
+
+def put_stock_corrections_approved_id():
+    _id = db(db.Stock_Corrections.id == request.args(0)).select().first()
+    if _id.status_id == 27 or _id.status_id == 3:
+        session.flash = 'Transaction no. ' + str(_id.transaction_no) + ' already been ' + str(_id.status_id.description) + ' by ' + str(_id.sales_manager_id.first_name)
+    else:
+        _id.update_record(status_id = 27, sales_manager_id = auth.user_id, sales_manager_date = request.now, remarks = request.vars.remarks)            
+
+def put_stock_corrections_rejected_id():
+    if _id.status_id == 27 or _id.status_id == 3:
+        session.flash = 'Transaction no. ' + str(_id.transaction_no) + ' already been ' + str(_id.status_id.description) + ' by ' + str(_id.sales_manager_id.first_name)
+    else:
+        _id.update_record(status_id = 3, sales_manager_id = auth.user_id, sales_manager_date = request.now, remarks = request.vars.remarks)            
 
 def stock_corrections_accounts_view_approved():
     _id = db(db.Stock_Corrections.id == request.args(0)).select().first()
@@ -7389,6 +7429,11 @@ def stock_corrections_transaction_table():
                 edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
                 dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
                 _btnUpdate = INPUT(_id='btnUpdate', _name='btnUpdate', _type= 'submit', _value='update', _class='btn btn-success disabled')
+        elif auth.has_membership('INVENTORY SALES MANAGER'):
+            view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')        
+            edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+            dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
+            _btnUpdate = INPUT(_id='btnUpdate', _name='btnUpdate', _type= 'submit', _value='update', _class='btn btn-success disabled')
         elif auth.has_membership('ACCOUNTS MANAGER'): # JYOTHI
             if _id.status_id == 16:
                 view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')                        
@@ -7411,6 +7456,8 @@ def stock_corrections_transaction_table():
                 edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle edit', _href = URL('inventory','stock_corrections_transaction_table_edit', args = i.Stock_Corrections_Transaction.id, extension = False))
                 dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle delete',  callback = URL(args = i.Stock_Corrections_Transaction.id, extension = False), **{'_data-id':(i.Stock_Corrections_Transaction.id)})
                 _btnUpdate = INPUT(_id='btnUpdate', _name='btnUpdate', _type= 'submit', _value='update', _class='btn btn-success disabled')
+        else:
+            dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
         btn_lnk = DIV(dele_lnk)
         _qty = i.Stock_Corrections_Transaction.quantity / i.Stock_Corrections_Transaction.uom
         _pcs = i.Stock_Corrections_Transaction.quantity - i.Stock_Corrections_Transaction.quantity / i.Stock_Corrections_Transaction.uom * i.Stock_Corrections_Transaction.uom
@@ -7447,6 +7494,29 @@ def stock_corrections_transaction_table():
             
             response.js = "$('#tblcor').get(0).reload()"            
     return dict(table = table)    
+
+def get_stock_corrections_transaction():
+    _id = db(db.Stock_Corrections.id == request.args(0)).select().first()
+    row = []
+    ctr = 0
+    head = THEAD(TR(TH('#'),TH('Item Code'),TH('Item Description'),TH('UOM'),TH('Quantity'),TH('Unit Price'),TH('Total Amount'), _class='bg-primary'))
+    _query = db((db.Stock_Corrections_Transaction.stock_corrections_no_id == request.args(0)) & (db.Stock_Corrections_Transaction.delete == False)).select()
+    for n in _query:
+        ctr += 1
+        row.append(TR(
+            TD(ctr),
+            TD(n.item_code_id.item_code),
+            TD(n.item_code_id.item_description),
+            TD(n.uom),
+            TD(card_view(n.item_code_id, n.quantity)),
+            TD(locale.format('%.2F',n.average_cost or 0, grouping = True),_align = 'right'),
+            TD(locale.format('%.2F',n.total_amount or 0, grouping = True),_align = 'right')))
+    foot = TFOOT(TR(TD(),TD(),TD(),TD(),TD(),TD('Total Amount:',_align = 'right'),TD(locale.format('%.2F',_id.total_amount or 0, grouping = True),_align = 'right')))
+    body = BODY(*row)
+    table = TABLE(*[head, body, foot], _class='table')
+    return dict(table = table)
+
+
 
 def validate_stock_corrections_edit(form):
     _id = db(db.Stock_Corrections_Transaction.id == request.args(0)).select().first()
@@ -7585,6 +7655,9 @@ def get_workflow_reports_id():
         table = TABLE(
             TR(TD('Stock Request No'),TD('Stock Request Date'),TD('Stock Transfer No'),TD('Stock Transfer Date'),TD('Stock Receipt No'),TD('Stock Receipt Date')),
             TR(TD(_id.stock_request_no_id.prefix,_id.stock_request_no),TD(_id.stock_request_date),TD(_id.stock_transfer_no_id.prefix,_id.stock_transfer_no),TD(_id.stock_transfer_date_approved.date()),TD(_id.stock_receipt_no_id.prefix,_id.stock_receipt_no),TD(_id.stock_receipt_date_approved)), _class='table table-bordered')
+        table += TABLE(
+            TR(TD())
+        )
     response.js = "alertify.alert().set({'startMaximized':true, 'title':'%s','message':'%s'}).show();" %(_title,table)
 
 def get_workflow_reports():
@@ -7820,7 +7893,7 @@ def get_workflow_reports():
                 _stock_transfer = 'None'            
             else:
                 _stock_transfer = n.stock_transfer_no_id.prefix,n.stock_transfer_no
-                _stock_transfer = A(_stock_transfer, _class='text-primary',_title='Stock Transfer', _type='button ', _role='button', **{'_data-toggle':'popover','_data-placement':'right','_data-html':'true','_data-content':get_transfer_info(n.id)})   
+                _stock_transfer = A(_stock_transfer, _class='text-primary',_title='Stock Transfer', _type='button ', _role='button', **{'_data-toggle':'popover','_data-placement':'right','_data-html':'true','_data-content':get_transfer_info(n.id)})
             if n.stock_receipt_no_id == None:
                 _stock_receipt = 'None'        
             else:    
@@ -7998,7 +8071,11 @@ def get_back_off_workflow_grid():
     return dict()
 
 def get_pos_workflow_grid():
-    return dict()
+    _usr = db(db.User_Location.user_id == auth.user_id).select().first()
+    _stk_req = db(((db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.srn_status_id != 6)) | ((db.Stock_Request.stock_source_id == _usr.location_code_id) & (db.Stock_Request.srn_status_id != 6))).count()
+    _stk_trn = db((db.Stock_Request.created_by == auth.user_id) & ((db.Stock_Request.srn_status_id == 26) & (db.Stock_Request.stock_source_id == _usr.location_code_id))).count()
+    _stk_rcpt = db(((db.Stock_Request.created_by == auth.user_id) | (db.Stock_Request.srn_status_id == 5)) & ((db.Stock_Request.stock_destination_id == _usr.location_code_id) & (db.Stock_Request.srn_status_id == 5))).count()
+    return dict(_stk_req = _stk_req, _stk_trn = _stk_trn, _stk_rcpt = _stk_rcpt)
 
 def get_pos_stock_transfer_workflow_grid(): # location user == stock source
     row = []

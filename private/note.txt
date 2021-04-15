@@ -21,8 +21,6 @@ john    HQA7Jfjb
 marwa   mb220505
 baiju   bv140508
 hakim   ah180305
-
-.   
 mimi    rq240808
 khaled  ke320606 
 amin    aa230409
@@ -63,6 +61,9 @@ thangavel   tv210911
 harunur	    hr140706, 15-732
 benito	    bd200606
 ogie	    ai210702
+
+samer	sa400506
+
 
 
 POS

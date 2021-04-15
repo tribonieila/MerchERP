@@ -124,11 +124,28 @@ def round_off():
     f = 8.225    
     print locale.format('%.2f',noRound(_amount) or 0, grouping = True), float(str(f)[:4])
 
+def get_transaction_no_id():
+    import datetime
+    x = datetime.datetime.now()
+    _stk_no = str(x.strftime('%d%y%H%M'))    
+    return _stk_no
+
 def generate():        
     
     # print 'year: ', request.now.strftime('%y')
     # invoice & return 2 - 4    
+    print '-'
     import locale
+    for n in db().select(orderby = db.Purchase_Warehouse_Receipt_Transaction.id):
+        _id = db(db.Item_Master.id == n.item_code_id).select().first()
+        n.update_record(item_code = _id.item_code)
+    # for n in db(db.Purchase_Receipt.status_id == 21).select(orderby = db.Purchase_Receipt.id):
+    #     print '- ', n.id, get_transaction_no_id()
+    #     for x in db((db.Purchase_Receipt_Transaction.purchase_receipt_no_id == n.id) & (db.Purchase_Receipt_Transaction.delete == False)).select():
+    #         if int(x.quantity_received) != 0:
+    #             print '   >:', x.id, x.quantity_received  # insert
+    #         else:
+    #             print '   !:', x.id, x.quantity_received # do nothing
     # for x in db((db.Merch_Stock_Transaction.transaction_type == 2) & (db.Merch_Stock_Transaction.id >= 43000) & (db.Merch_Stock_Transaction.id <= 5000)).select(orderby = db.Merch_Stock_Transaction.id):
     #     _sale_cost = (float(x.price_cost or 0) - ((float(x.price_cost or 0) * float(x.discount or 0)) / 100)) / int(x.uom)
     #     x.update_record(sale_cost = _sale_cost)
@@ -143,10 +160,10 @@ def generate():
     #     _discount = ((float(_s.sale_cost) * int(_s.quantity)) - float(n.discount_added or 0)) / int(_s.quantity)
     #     _s.update_record(sale_cost = _discount)
 
-    for n in db(db.Supplier_Master.dept_code_id == 5).select():
-        _str = str('18-') + str(n.supp_sub_code[3:])
-        _str2 = str('19-') + str(n.supp_sub_code[3:])
-        print _str, _str2
+    # for n in db(db.Supplier_Master.dept_code_id == 5).select():
+    #     _str = str('18-') + str(n.supp_sub_code[3:])
+    #     _str2 = str('19-') + str(n.supp_sub_code[3:])
+    #     print _str, _str2
     #     n.update_record(supplier_purchase_account = _str, supplier_sales_account = _str2)
     
     # # # important
