@@ -3754,12 +3754,23 @@ def get_stock_request_transaction_table():
             remarks = form2.vars.remarks)
         _stk_src = db((db.Stock_File.item_code_id == _ic.id) & (db.Stock_File.location_code_id == session.stock_source_id)).select().first()
         _stk_des = db((db.Stock_File.item_code_id == _ic.id) & (db.Stock_File.location_code_id == session.stock_destination_id)).select().first()
-        _stk_src.stock_in_transit -= int(_qty)
-        _stk_des.stock_in_transit += int(_qty)
-        _stk_src.probational_balance = int(_stk_src.closing_stock) + int(_stk_src.stock_in_transit)
-        _stk_des.probational_balance = int(_stk_des.closing_stock) + int(_stk_des.stock_in_transit)
-        _stk_src.update_record()   
-        _stk_des.update_record()
+        if not _stk_des:
+            # destination  not exist
+            _stk_src.stock_in_transit -= int(_qty)
+            _stk_src.probational_balance = int(_stk_src.closing_stock) + int(_stk_src.stock_in_transit)
+            _stk_src.update_record()   
+            db.Stock_File.insert(item_code_id = _ic.id, location_code_id = session.stock_destination_id, opening_stock = 0, closing_stock = 0, stock_in_transit = _qty, probational_balance = _qty)
+            # _stk_des.stock_in_transit += int(_qty)
+            # _stk_des.probational_balance = int(_stk_des.closing_stock) + int(_stk_des.stock_in_transit)
+            # _stk_des.update_record()
+        else:
+            # destination exist
+            _stk_src.stock_in_transit -= int(_qty)
+            _stk_des.stock_in_transit += int(_qty)
+            _stk_src.probational_balance = int(_stk_src.closing_stock) + int(_stk_src.stock_in_transit)
+            _stk_des.probational_balance = int(_stk_des.closing_stock) + int(_stk_des.stock_in_transit)
+            _stk_src.update_record()   
+            _stk_des.update_record()        
         _id.update_record(total_amount = float(session.grand_total or 0))
         response.js = "$('#tblSRT').get(0).reload()"
     elif form2.errors:
@@ -6964,7 +6975,7 @@ def get_stock_corrections_reports():
     table = TABLE(*[head, body],  _class='table', _id = 'tblcor')                
     return dict(table = table, title='Stock Corrections Master Report')    
 
-@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER')| auth.has_membership('ROOT'))
+@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('MANAGEMENT') | auth.has_membership('ROOT'))
 def stock_corrections():    
     if auth.has_membership(role = 'INVENTORY STORE KEEPER') | auth.has_membership(role = 'ACCOUNTS'): # MANOJ                
         _query = db((db.Stock_Corrections.status_id != 16)  & (db.Stock_Corrections.created_by == auth.user_id)).select()

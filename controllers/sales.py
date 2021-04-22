@@ -4187,7 +4187,7 @@ def sales_order_manager_grid():
         head = THEAD(TR(TH('#'),TH('Date'),TH('Delivery Note No.'),TH('Sales Order No.'), TH('Department'),TH('Customer'),TH('Location Source'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
     elif auth.has_membership(role = 'MANAGEMENT') | auth.has_membership(role = 'ROOT'):
         _query = db((db.Sales_Order.status_id != 7) & (db.Sales_Order.status_id != 10)).select(orderby = ~db.Sales_Order.id)
-        head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Delivery Note No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
+        head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Delivery Note No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
     else:
         _query = db(db.Sales_Order).select(orderby = ~db.Sales_Order.id)
         head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Delivery Note No.'),TH('Sales Invoice No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
@@ -4291,7 +4291,7 @@ def sales_order_manager_grid():
                 TD(n.status_id.required_action),
                 TD(btn_lnk)))
     body = TBODY(*row)
-    table = TABLE(*[head, body], _class='table', _id='tblso')
+    table = TABLE(*[head, body], _class='table', _id='SOtbl')
     return dict(table = table)
 
 def get_sales_invoice_id(): 

@@ -19,6 +19,9 @@ DELETE FROM [m3rch_inv_db].[dbo].[Merch_Stock_Header]
 DBCC CHECKIDENT ('[Merch_Stock_Header]', RESEED, 0);
 print float(str(f)[:5])
 
+form.vars.transaction_no = str(x.strftime('%m%d%y%H%M'))
+_transaction_no = str(request.now.strftime('%y%d%H%M%S'))
+
 $('input[type=text]').attr('autocomplete','off');
 $('input[type=number]').attr('autocomplete','off');
 

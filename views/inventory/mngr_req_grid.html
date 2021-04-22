@@ -23,31 +23,29 @@
     </div>
     <div class="card-body tab-content">
       <div class="tab-pane" id="first2">
-        {{=LOAD('inventory','stock_request_manager_grid.load', ajax = True, target = 'SRtbl')}}        
+        {{=LOAD('inventory','stock_request_manager_grid.load')}}        
       </div>
       <div class="tab-pane active" id="second2">						
-        {{=LOAD('sales','sales_order_manager_grid.load', ajax = True, target = 'SOtbl')}}        
+        {{=LOAD('sales','sales_order_manager_grid.load')}}        
       </div>
       <div class="tab-pane" id="third2">						
-        {{=LOAD('sales','sales_return_grid.load', ajax = True, target = 'SRTtbl')}}        
+        {{=LOAD('sales','sales_return_grid.load')}}        
       </div>
       <div class="tab-pane" id="fourth2">						
-        {{=LOAD('procurement','purchase_request_grid.load', ajax = True, target = 'PRtbl')}}
+        {{=LOAD('procurement','purchase_request_grid.load')}}
       </div>
       <div class="tab-pane" id="fifth2">						
-        {{=LOAD('inventory','get_obsolescence_of_stocks_workflow_grid.load', ajax = True, target = 'OStbl')}}       
+        {{=LOAD('inventory','get_obsolescence_of_stocks_workflow_grid.load')}} 
       </div>    
       <div class="tab-pane" id="sixth2">						
-        {{=LOAD('inventory','stock_corrections.load', ajax = True, target = 'CORtbl')}}       
+        {{=LOAD('inventory','stock_corrections.load')}}       
       </div>         
     </div>
   </div>
 
 
 <script>
-  $(document).ready(function(){
-    $(".table").DataTable();
-  });
+
   function onRefresh(){
     location.reload();        
   }

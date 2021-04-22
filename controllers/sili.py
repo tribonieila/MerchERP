@@ -131,14 +131,13 @@ def get_transaction_no_id():
     return _stk_no
 
 def generate():        
-    
+    import datetime
     # print 'year: ', request.now.strftime('%y')
     # invoice & return 2 - 4    
     print '-'
-    import locale
-    for n in db().select(orderby = db.Purchase_Warehouse_Receipt_Transaction.id):
-        _id = db(db.Item_Master.id == n.item_code_id).select().first()
-        n.update_record(item_code = _id.item_code)
+    for n in db().select(db.Document_Register.ALL):
+        _id = db(db.Supplier_Master.id == n.supplier_code_id).select().first()
+        n.update_record(dept_code_id = _id.dept_code_id)
     # for n in db(db.Purchase_Receipt.status_id == 21).select(orderby = db.Purchase_Receipt.id):
     #     print '- ', n.id, get_transaction_no_id()
     #     for x in db((db.Purchase_Receipt_Transaction.purchase_receipt_no_id == n.id) & (db.Purchase_Receipt_Transaction.delete == False)).select():

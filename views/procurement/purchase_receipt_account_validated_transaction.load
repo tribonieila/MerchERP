@@ -160,13 +160,11 @@ $(document).ready(function(){
                     var _net_amount = 0;
                     var local = 0;
                     $tblrow.find(".net_price").val(npr.toLocaleString());
-                    $tblrow.find(".total_amount").val(sub.toFixed(3));                    
-                    var tax= parseInt($(".total_amount").val().replace(/,/g,'')); 
+                    $tblrow.find(".total_amount").val(sub).replace(/,/g,"");                    
+                    
                     $(".total_amount").each(function(){
-                        var stval = parseFloat($(this).val());
-                        
-                        console.log(stval, tax);
-                        _grand_total += isNaN(stval.toFixed(3)) ? 0 : stval;
+                        var stval = parseFloat($(this).val().replace(/,/g,""));                                               
+                        _grand_total += isNaN(stval) ? 0 : stval;
                     });
 
                     $(".grand_total").val(_grand_total.toLocaleString());
@@ -184,7 +182,7 @@ $(document).ready(function(){
         });
     }
     $("#added_discount").change(function(){        
-        onAddedDiscount();
+        Calculate();
     });
 
     function onAddedDiscount(){

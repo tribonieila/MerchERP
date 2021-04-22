@@ -20,9 +20,13 @@
                             {{=form.custom.widget.supplier_code_id}}
                             {{=form.custom.widget.due_date}}
                         </div>
+                        <div class="col-sm-6">
+                            {{=form.custom.widget.dept_code_id}}
+                        </div>
                     </div>                        
                 </div>
             </div>
+            <br>
             <div class="row">
                 <div class="col-md-5">
                     <div class="form-group">
@@ -47,17 +51,16 @@
 
 <script>
 $(document).ready( function () {    
-    $("#no_table_supplier_code_id").hide();
-    $("#no_table_due_date").hide();
+    $("#no_table_supplier_code_id, #no_table_due_date, #no_table_dept_code_id").hide();    
     $("#btnSubmit").click(function(){        
-        ajax("{{=URL('procurement','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','due_date'], 'tblView')
+        ajax("{{=URL('procurement','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'], 'tblView')
     });
 
     $("#no_table_category_id").change(function(){   
         if ($("#no_table_category_id").val() == 2) {
-            $("#no_table_supplier_code_id").show();
+            $("#no_table_supplier_code_id, #no_table_dept_code_id").show();
         } else {
-            $("#no_table_supplier_code_id").hide();
+            $("#no_table_supplier_code_id, #no_table_dept_code_id").hide();
         }
         if ($("#no_table_category_id").val() == 3) {
             $("#no_table_due_date").show();
