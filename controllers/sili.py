@@ -88,7 +88,7 @@ def get_python_script():
     fp = os.path.join(request.folder, 'static', 'external/ExportUtil.py')
     os.system('python ' + fp)
 
-def get_read_csv_file():
+def get_read_csv_file():    
     # print(request.now)
     # import pandas
     # df = pandas.read_csv('/home/larry/Workspace/web2py/applications/Merch_ERP/private/ma.csv',usecols=[0])
@@ -100,18 +100,26 @@ def get_read_csv_file():
     #     data = csv.reader(f)
     #     for row in data:
     #         print(row[0],row[1])
+    print '-'
     import csv
-    with open('/home/larry/Workspace/web2py/applications/Merch_ERP/private/ma.csv','rt')as f:
+    with open('/home/larry/Workspace/web2py/applications/Merch_ERP/private/brandclass.csv','rt')as f:
         data = csv.reader(f)
         for row in data:
-            _id = db(db.Master_Account.account_code == row[0]).select().first()
-            if _id:
-                print('update: ', row[0],row[1])                
-                _id.update_record(account_code = row[0], account_name = row[1])
-            else:
-                db.Master_Account.insert(account_code = row[0], account_name = row[1])
-                print('insert: ', row[0],row[1])                
-            # print(row[0],row[1])
+            _id = db(db.Brand_Classification.brand_cls_code == row[4]).select().first()
+            if not _id:                
+                # print 'insert: ', row[4]
+                db.Brand_Classification.insert(
+                    prefix_id = row[0],
+                    group_line_id = row[1],
+                    dept_code_id = row[2],
+                    brand_line_code_id = row[3],
+                    brand_cls_code = row[4],
+                    brand_cls_name = row[5],
+                    status_id = 1,
+                    created_on = request.now,
+                    created_by = 1,
+                    updated_on = request.now,
+                    updated_by = 1)
 import math
 def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
@@ -135,9 +143,9 @@ def generate():
     # print 'year: ', request.now.strftime('%y')
     # invoice & return 2 - 4    
     print '-'
-    for n in db().select(db.Document_Register.ALL):
-        _id = db(db.Supplier_Master.id == n.supplier_code_id).select().first()
-        n.update_record(dept_code_id = _id.dept_code_id)
+    # for n in db().select(db.Document_Register.ALL):
+    #     _id = db(db.Supplier_Master.id == n.supplier_code_id).select().first()
+    #     n.update_record(dept_code_id = _id.dept_code_id)
     # for n in db(db.Purchase_Receipt.status_id == 21).select(orderby = db.Purchase_Receipt.id):
     #     print '- ', n.id, get_transaction_no_id()
     #     for x in db((db.Purchase_Receipt_Transaction.purchase_receipt_no_id == n.id) & (db.Purchase_Receipt_Transaction.delete == False)).select():
@@ -208,8 +216,21 @@ def generate():
     #             master_account_type_id = 'E',
     #             master_account = _name                
     #         )
-        
-    return dict(table = 'table')
+    # for n in db(db.Master_Account.master_account_type_id == 'E').select():
+    #     _id = db(db.Employee_Master.account_code == n.account_code).select().first()
+    #     if not _id:
+    #         _em = d2(d2.Employee_Employment_Details.account_code == n.account_code).select().first()
+    #         # print ':', n.account_code, _em.employee_id.first_name, _em.employee_id.last_name, _em.account_code, _em.employee_no
+    #         db.Employee_Master.insert(
+    #             title = _em.employee_id.title,
+    #             first_name = _em.employee_id.first_name,
+    #             middle_name = _em.employee_id.middle_name,
+    #             last_name = _em.employee_id.last_name,
+    #             account_code = _em.account_code,
+    #             created_by = 1)
+    # db.Document_Register.supplier_code_id.requires = IS_IN_DB()
+    table = SQLFORM.grid(db.Document_Register)
+    return dict(table = table)
 
 def validate():
     print '---'

@@ -3776,7 +3776,6 @@ def get_workflow_reports():
         body = TBODY(*row)
         table = TABLE(*[head, body], _class='table', _id='tblSO')                        
     elif int(request.args(0)) == int(2): # sales return     
-
         title = 'Sales Return Workflow Report as of %s' % (request.now.date())#(now.strftime('%x'))
         row = []
         head = THEAD(TR(TD('Date'),TD('Sales Return No.'),TD('Sales Return Request No.'),TD('Department'),TD('Customer'),TD('Location'),TD('Amount'),TD('Status'),TD('Action Required'),TD('Action'),_class='style-warning large-padding text-center'))
@@ -3802,10 +3801,10 @@ def get_workflow_reports():
         elif auth.has_membership(role = 'INVENTORY SALES MANAGER'):
             if form.accepts(request):
                 title = 'Sales Return Workflow Report as of %s to %s' %(request.vars.from_date, request.vars.to_date)     
-                _query = db((db.Sales_Return.sales_manager_id == auth.user_id) & (db.Sales_Return.sales_return_date >= request.vars.from_date) & (db.Sales_Return.sales_return_date <= request.vars.to_date)).select(orderby = ~db.Sales_Return.id)
+                _query = db((db.Sales_Return.sales_manager_id == auth.user_id) & (db.Sales_Return.sales_manager_date >= request.vars.from_date) & (db.Sales_Return.sales_manager_date <= request.vars.to_date)).select(orderby = ~db.Sales_Return.id)
             else:
                 title = 'Sales Return Workflow Report as of %s' % (request.now.date())
-                _query = db((db.Sales_Return.sales_manager_id == auth.user_id) & (db.Sales_Return.sales_return_date == request.now)).select(orderby = ~db.Sales_Return.id)
+                _query = db((db.Sales_Return.sales_manager_id == auth.user_id) & (db.Sales_Return.sales_manager_date == request.now)).select(orderby = ~db.Sales_Return.id)
         elif auth.has_membership(role = 'SALES'):
             if form.accepts(request):
                 title = 'Sales Return Workflow Report as of %s to %s' %(request.vars.from_date, request.vars.to_date)     
@@ -5389,8 +5388,7 @@ def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
                 # session.flash = 'Sales Invoice No. ' + str(_id.sales_invoice_no) + ' generated.'      
                 session.flash = 'Sales Invoice generated.'      
                 response.js = 'jQuery(report(), AccountRedirect())'        
-
-        
+       
 def sales_order_cancel_id():
     _id = db(db.Sales_Order.id == request.args(0)).select().first() 
     _dn = db(db.Delivery_Note.sales_order_no == _id.sales_order_no).update(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)    

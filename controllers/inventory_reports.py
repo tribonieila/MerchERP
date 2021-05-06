@@ -1,4 +1,3 @@
-
 ##########          R E P O R T S           ##########
 
 from reportlab.platypus import *
@@ -629,7 +628,7 @@ def stock_transaction_report():
         _stock_on_hand = card(i.Stock_Request_Transaction.item_code_id, _stock, i.Stock_Request_Transaction.uom)
         stk_trn.append([ctr,
         Paragraph(i.Stock_Request_Transaction.item_code_id.item_code, style=_style),        
-        str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+str(i.Item_Master.item_description.upper())+str('\n')+str(i.Stock_Request_Transaction.remarks)+str('\n')+str('SOH: ')+str(_stock_on_hand),        
+        str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+str(i.Item_Master.item_description.upper()),        
         i.Item_Master.uom_id,
         # i.Item_Master.uom_id.mnemonic,
         i.Stock_Request_Transaction.category_id.mnemonic,
@@ -738,21 +737,18 @@ def get_stock_transfer_report_id():    # final report
     _grand_total = 0    
     ctr = 0
     _total = 0           
-    for s in db(db.Stock_Transfer.id == request.args(0)).select():        
-        stk_req_no = [
-            ['STOCK TRANSFER VOUCHER'],               
-            ['Stock Transfer No',':', str(s.stock_transfer_no_id.prefix)+str(s.stock_transfer_no),'', 'Stock Transaction Date',':',str(s.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
-            ['Stock Request No',':',str(s.stock_request_no_id.prefix)+str(s.stock_request_no),'', 'Stock Request Date',':',str(s.stock_request_date_approved.strftime('%d/%b/%Y'))],
-            ['Stock Transfer From',':',s.stock_source_id.location_name,'','Stock Transfer To',':',s.stock_destination_id.location_name],
-            ['Department',':',s.dept_code_id.dept_name,'','','','']]        
+    stk_req_no = [
+        ['STOCK TRANSFER VOUCHER'],               
+        ['Stock Transfer No',':', str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no),'', 'Stock Transfer Date',':',str(_id.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Request No',':',str(_id.stock_request_no_id.prefix)+str(_id.stock_request_no),'', 'Stock Request Date',':',str(_id.stock_request_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Transfer From',':',_id.stock_source_id.location_name,'','Stock Transfer To',':',_id.stock_destination_id.location_name],
+        ['Department',':',_id.dept_code_id.dept_name,'','','','']]        
     stk_tbl = Table(stk_req_no, colWidths=['*',20,'*',10,'*',20,'*'])
     stk_tbl.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         ('SPAN',(0,0),(6,0)),
         ('ALIGN', (0,0), (0,0), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    
-        # ('FONTNAME', (0, 0), (0, 0), 'Courier-Bold', 12), 
-        # ('FONTSIZE',(0,0),(0,0),15),
         ('TOPPADDING',(0,0),(0,0),5),        
         ('BOTTOMPADDING',(0,0),(0,0),12),                             
         ('TOPPADDING',(0,1),(-1,-1),0),
@@ -762,14 +758,12 @@ def get_stock_transfer_report_id():    # final report
     ctr = _grand_total= 0
     stk_trn = [['#', 'Item Code', 'Item Description','Unit','Cat.', 'UOM','Qty.','Price','Total']]
     for i in db((db.Stock_Transfer_Transaction.stock_transfer_no_id == request.args(0)) & (db.Stock_Transfer_Transaction.delete == False)).select(db.Stock_Transfer_Transaction.ALL, db.Item_Master.ALL, left = db.Item_Master.on(db.Item_Master.id == db.Stock_Transfer_Transaction.item_code_id)):
-        # for l in db((db.Stock_File.item_code_id == i.Stock_Request_Transaction.item_code_id) & (db.Stock_File.location_code_id == i.Stock_Request.stock_destination_id)).select(db.Stock_File.closing_stock, db.Stock_File.location_code_id, groupby = db.Stock_File.location_code_id | db.Stock_File.closing_stock):
         _soh = db((db.Stock_File.item_code_id == i.Stock_Transfer_Transaction.item_code_id) & (db.Stock_File.location_code_id == _id.stock_destination_id)).select().first()
         if not _soh:
             _stock = 0
         else:
             _stock = _soh.closing_stock
         ctr += 1
-        # _total = i.Stock_Request_Transaction.quantity * i.Stock_Request_Transaction.price_cost
         _grand_total += i.Stock_Transfer_Transaction.total_amount        
         _stock_on_hand = card(i.Stock_Transfer_Transaction.item_code_id, _stock, i.Stock_Transfer_Transaction.uom)
         if i.Item_Master.uom_id == None:
@@ -778,8 +772,7 @@ def get_stock_transfer_report_id():    # final report
             _uom = i.Item_Master.uom_id.mnemonic
         stk_trn.append([ctr,
         Paragraph(i.Stock_Transfer_Transaction.item_code_id.item_code, style=_courier),        
-        str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+
-        str(i.Item_Master.item_description.upper())+str('\n')+str(i.Stock_Transfer_Transaction.remarks)+str('\n')+str('SOH: ')+str(_stock_on_hand),        
+        str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+str(i.Item_Master.item_description.upper()),        
         _uom,
         # i.Item_Master.uom_id.mnemonic,
         i.Stock_Transfer_Transaction.category_id.mnemonic,
@@ -789,7 +782,7 @@ def get_stock_transfer_report_id():    # final report
         # _stock_on_hand,
         locale.format('%.2F',i.Stock_Transfer_Transaction.total_amount or 0, grouping = True)])
     (_whole, _frac) = (int(_grand_total), locale.format('%.2f',_grand_total or 0, grouping = True))
-    stk_trn.append(['QR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS','', '','', '','','Total Amount',':',locale.format('%.2F',_grand_total or 0, grouping = True)])
+    stk_trn.append(['QAR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS','', '','', '','','Total Amount',':',locale.format('%.2F',_grand_total or 0, grouping = True)])
     trn_tbl = Table(stk_trn, colWidths = [25,70,'*',30,30,30,50,50,50], repeatRows=1)
     trn_tbl.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
@@ -800,9 +793,7 @@ def get_stock_transfer_report_id():    # final report
         ('VALIGN',(0,1),(-1,-1),'TOP'),
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('FONTNAME',(0,0),(-1,-1), 'Courier'),
-        ('FONTNAME', (6, -1), (-1, -1), 'Courier-Bold'),   
-        ('TOPPADDING',(0,-1),(-1,-1),15),  
-        ]))
+        ('FONTNAME', (6, -1), (-1, -1), 'Courier-Bold')]))
     
     signatory = [
         [str(_id.stock_transfer_approved_by.first_name.upper() + ' ' + _id.stock_transfer_approved_by.last_name.upper()),'','','',''],

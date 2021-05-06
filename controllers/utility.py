@@ -69,9 +69,17 @@ def put_stock_in_transit_clean(i):
         for x in db((db.Sales_Order_Transaction.item_code_id == i) & (db.Sales_Order_Transaction.sales_order_no_id == n.id) & (db.Sales_Order_Transaction.delete == False)).select(orderby = db.Sales_Order_Transaction.id):            
             _stk_fil = db((db.Stock_File.item_code_id == i) & (db.Stock_File.location_code_id == 1)).select().first()
             _qty = int(_stk_fil.stock_in_transit or 0) - int(x.quantity or 0)
-            _stk_fil.update_record(stock_in_transit = _qty)                        
+            _stk_fil.update_record(stock_in_transit = _qty)
     db((db.Sales_Order_Transaction_Temporary.process == 0) & (db.Sales_Order_Transaction_Temporary.item_code_id == i)).delete()
-    
+
+    for n in db((db.Stock_Request.srn_status_id != 6) & (db.Stock_Request.srn_status_id != 10)).select(orderby = db.Stock_Request.id):
+        _qty = 0
+        for x in db((db.Stock_Request_Transaction.item_code_id == 1) & (db.Stock_Request_Transaction.stock_request_id == n.id) & (db.Stock_Request_Transaction.delete == False)).select():
+            _stk_fil = db((db.Stock_File.item_code_id == i) & (db.Stock_File.location_code_id == 1)).select().first()
+            _qty = int(_stk_fil.stock_in_transit or 0) - int(x.quantity or 0)
+            _stk_fil.update_record(stock_in_transit = _qty)
+    db(db.Stock_Transaction_Temp.item_code_id == i).delete()
+
     _bal = 0
     for n in db((db.Stock_File.item_code_id == i) & (db.Stock_File.location_code_id == 1)).select(orderby = db.Stock_File.id):
         _bal = int(n.closing_stock) + int(n.stock_in_transit)

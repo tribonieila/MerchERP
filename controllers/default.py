@@ -10,10 +10,15 @@ def testing():
     return locals()
 
 def get_index():
+    import datetime
     print '---'
-    count = db.Sales_Order.transaction_prefix_id.count()
-    for n in db(db.Sales_Order.status_id == 4).select(db.Sales_Order.sales_order_date, count,orderby = db.Sales_Order.sales_order_date, groupby = db.Sales_Order.sales_order_date):        
-        print n.Sales_Order.sales_order_date, n[count]
+    _total = 0
+    count = db.Sales_Invoice.sales_invoice_no_prefix_id.count()    
+    for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_invoice_date_approved,  count,orderby =  db.Sales_Invoice.sales_invoice_date_approved, groupby = db.Sales_Invoice.sales_invoice_date_approved):
+        weeks = int(n.Sales_Invoice.sales_invoice_date_approved.strftime('%U'))
+        # for row in 
+        # for x in db(db.Sales_Invoice.status_id == 7).select(weeks,  count,orderby =  weeks, groupby = weeks):
+        print weeks, n[count]
 
 @auth.requires_login()
 # @auth.requires_membership('ROOT')
@@ -110,7 +115,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # pdfmetrics.registerFont(TTFont('Arabic', '../fonts/ae_Arab.ttf'))
-pdfmetrics.registerFont(TTFont('Arabic', '/home/larry/Workspace/web2py/applications/Merch_ERP/static/fonts/ae_Arab.ttf'))
+# pdfmetrics.registerFont(TTFont('Arabic', '../fonts/KacstOffice.ttf'))
+# pdfmetrics.registerFont(TTFont('Arabic', '/home/larry/Workspace/web2py/applications/Merch_ERP/static/fonts/ae_Arab.ttf'))
+pdfmetrics.registerFont(TTFont('Arabic', '/home/larry/Workspace/web2py/applications/Merch_ERP/static/fonts/KacstOffice.ttf'))
 # pdfmetrics.registerFont(TTFont('Arabic', '/home/larry/Workspace/web2py/applications/mtc_inv/static/fonts/ae_Arab.ttf'))
 # pdfmetrics.registerFont(TTFont('Arabic', '/Users/user/Desktop/Workspace/web2py/applications/mtc_inv/static/fonts/ae_Arab.ttf'))
 # pdfmetrics.registerFont(TTFont('Arabic', '/usr/share/fonts/truetype/fonts-arabeyes/ae_Arab.ttf'))
@@ -150,22 +157,23 @@ _ar_sales_return_date = u'تاريخ إرجاع البيع'
 _ar_remarks = u'ملاحظات'
 _ar_item_code = u'رمز الصنف'
 _ar_item_description = u'وصف الصنف'
-_ar_uom = u'ام'
+_ar_uom = u'الوحدة' #u'ام'
 _ar_category = u'الفئة'
 _ar_qty = u'الكمية'
 _ar_unit_price = u'سعر الوحده'
-_ar_discount = u'خصم'
-_ar_net_price = u'السعر الصافي'
+_ar_discount = u'الخصم' #u'خصم'
+_ar_net_price = u'السعر الصافي' #u'السعر الصافي'
 _ar_amount = u'كمية'
 _ar_invoice_no = u'رقم الفاتورة'
 _ar_customer_code = u'كود العميل'
 _ar_invoice_date = u'تاريخ الفاتورة'
 _ar_transaction_type = u'نوع المعاملة'
-_ar_department = u'قسم'
+_ar_department = u'القسم' #u'قسم'
 _ar_location = u'موقعك'
 _ar_sales_man = u'مندوب مبيعات'
-_ar_total_amount = u'المبلغ الإجمالي'
-_ar_net_amount = u'كمية الشبكة'
+_ar_total = u'المجموع'
+_ar_total_amount = u'المجموع' #u'المبلغ الإجمالي'
+_ar_net_amount = u'المبلغ الصافي' #u'كمية الشبكة'
 
 _ar_total_selective_task = u'إجمالي الضريبة الانتقائية'
 _ar_total_selective_task_foc = u'إجمالي الضريبة الانتقائية الضريبية'
@@ -201,6 +209,7 @@ _ar_department = arabic_reshaper.reshape(_ar_department)
 _ar_location = arabic_reshaper.reshape(_ar_location)
 _ar_sales_man = arabic_reshaper.reshape(_ar_sales_man)
 _ar_sales_invoice = arabic_reshaper.reshape(_ar_sales_invoice) # join characters
+_ar_total = arabic_reshaper.reshape(_ar_total)
 _ar_total_selective_task = arabic_reshaper.reshape(_ar_total_selective_task)
 _ar_total_selective_task_foc = arabic_reshaper.reshape(_ar_total_selective_task_foc)
 
@@ -238,8 +247,11 @@ _ar_transaction_type = Paragraph(get_display(_ar_transaction_type),item_style)
 _ar_department = Paragraph(get_display(_ar_department),item_style)
 _ar_location = Paragraph(get_display(_ar_location),item_style)
 _ar_sales_man = Paragraph(get_display(_ar_sales_man),item_style)
+
+_ar_total = Paragraph(get_display(_ar_total),item_style)
 _ar_total_selective_task = Paragraph(get_display(_ar_total_selective_task),item_style)
 _ar_total_selective_task_foc = Paragraph(get_display(_ar_total_selective_task_foc),item_style)
+
 _ar_total_amount = Paragraph(get_display(_ar_total_amount),item_style)
 _ar_net_amount = Paragraph(get_display(_ar_net_amount),item_style)
 _ar_sales_return_no = Paragraph(get_display(_ar_sales_return_no),item_style)
@@ -445,7 +457,7 @@ def get_workflow_sales_invoice_reports_id():
 
     ctr = 0
     _st = [['#','Item Code','Item Description','UOM','Cat','Qty','Unit Price','Discount %','Net Price','Total'],
-    ['',_ar_item_code,_ar_item_description,_ar_uom,_ar_category,_ar_qty,_ar_unit_price,_ar_discount,_ar_net_price,_ar_amount]]        
+    ['',_ar_item_code,_ar_item_description,_ar_uom,_ar_category,_ar_qty,_ar_unit_price,_ar_discount,_ar_net_price,_ar_total]]        
     _grand_total = 0
     _total_amount = 0        
     _total_excise_tax = _selective_tax_sum = _selective_tax_foc_sum = 0    
@@ -514,9 +526,9 @@ def get_workflow_sales_invoice_reports_id():
     _st.append([_amount_in_words,'','','','','','','Net Amount :',_ar_net_amount,locale.format('%.2F',_total_amount_after_discount or 0, grouping = True)])
 
     
-    _st_tbl = Table(_st, colWidths=[20,60,180,25,25,50,50,45,50,50],repeatRows=1)
+    _st_tbl = Table(_st, colWidths=[20,60,160,35,25,50,50,45,50,50],repeatRows=1)
     _st_tbl.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         # ('SPAN',(2,4),(5,4)),
         ('BOTTOMPADDING',(0,0),(-1,0),0),
         ('TOPPADDING',(0,1),(-1,1),0),
@@ -751,7 +763,7 @@ def get_sales_order_id(): # print direct to printer
     ctr = 0
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
     _st = [['#','Item Code','Item Description','UOM','Cat','Qty','Unit Price','Discount','Net Price','Total'],
-    ['',_ar_item_code,_ar_item_description,_ar_uom,_ar_category,_ar_qty,_ar_unit_price,_ar_discount,_ar_net_price,_ar_amount]]        
+    ['',_ar_item_code,_ar_item_description,_ar_uom,_ar_category,_ar_qty,_ar_unit_price,_ar_discount,_ar_net_price,_ar_total]]        
     _total_amount = 0
     _total_amount_after_discount = 0        
     _total_excise_tax = _selective_tax_sum = _selective_tax_foc_sum = 0    
@@ -811,7 +823,7 @@ def get_sales_order_id(): # print direct to printer
     _st.append([_amount_in_words,'','','','','','','Net Amount :',_ar_net_amount,locale.format('%.2F',_total_amount_after_discount or 0, grouping = True)])
 
     
-    _st_tbl = Table(_st, colWidths=[20,60,180,25,25,50,50,45,50,50],repeatRows=1)
+    _st_tbl = Table(_st, colWidths=[20,60,160,35,25,50,50,45,50,50],repeatRows=1)
     _st_tbl.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         # ('SPAN',(2,4),(5,4)),

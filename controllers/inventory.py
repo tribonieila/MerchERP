@@ -871,7 +871,7 @@ def groupline_add_form():
         ctr_val = pre.prefix + _ckey
         form = SQLFORM.factory(        
             Field('group_line_name', 'string', length=50, requires=[IS_UPPER(), IS_NOT_IN_DB(db, 'GroupLine.group_line_name')]),
-            Field('supplier_id', 'reference Supplier_Master', requires = IS_EMPTY_OR(IS_IN_DB(db, db.Supplier_Master.id, '%(supp_code)s - %(supp_name)s, %(supp_sub_code)s', zero =  'Choose Supplier'))),
+            Field('supplier_id', 'reference Supplier_Master', requires = IS_EMPTY_OR(IS_IN_DB(db, db.Supplier_Master.id, '%(supp_name)s, %(supp_sub_code)s', zero =  'Choose Supplier'))),
             Field('status_id', 'reference Record_Status', label = 'Status', default = 1, requires = IS_IN_DB(db, db.Record_Status.id,'%(status)s', zero = 'Choose status')))
         if form.process().accepted:
             response.flash = 'RECORD SAVE'
@@ -2985,7 +2985,6 @@ def abort_entry():
         _d.probational_balance = int(_d.closing_stock) + int(_d.stock_in_transit)
         _s.update_record()
         _d.update_record()
-
         db(db.Stock_Transaction_Temp.ticket_no_id == request.vars.ticket_no_id).delete()         
     session.flash = 'ABORT'
     
@@ -3777,6 +3776,19 @@ def get_stock_request_transaction_table():
         response.flash = 'Form has error.'
     return dict(table = table, form=form2)
 
+def put_stock_request_cancel_id():
+    _id = db(db.Stock_Request.id == request.args(0)).select().first()
+    if int(_id.srn_status_id == 10):
+        session.flash = 'Stock Request No. ' + str(_id.stock_request_no) + ' already been cancelled.'
+    else:
+        _id.update_record(srn_status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)
+        for n in db((db.Stock_Request_Transaction.stock_request_id == _id.id) & (db.Stock_Request_Transaction.delete == False)).select():
+            _s = db((db.Stock_File.item_code_id == n.item_code_id) & (db.Stock_File.location_code_id == _id.stock_source_id)).select().first()
+            _s.stock_in_transit += n.quantity
+            _s.probational_balance = int(_s.closing_stock) - int(_s.stock_in_transit)
+            _s.update_record()
+        session.flash = 'Transaction cancelled.'  
+
 def validate_updated_item_code(form2):    
     _id = db(db.Item_Master.item_code == request.vars.item_code.upper()).select().first()
     if not _id:
@@ -4232,6 +4244,8 @@ def get_stock_request_workflow_grid():
         _query = ((db.Stock_Request.created_by == auth.user_id) | (db.Stock_Request.stock_source_id == _usr.location_code_id)) & (db.Stock_Request.srn_status_id != 6)
     elif auth.has_membership(role = 'SALES'): # part of fmcg department sales
         _query = (db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.srn_status_id != 6) 
+    elif auth.has_membership(role = 'INVENTORY BACK OFFICE'): # part of fmcg department sales
+        _query = (db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.srn_status_id != 6) & (db.Stock_Request.srn_status_id != 10)
     else:
         _query = (db.Stock_Request.created_by == auth.user_id) & (db.Stock_Request.srn_status_id != 6)
     thead = THEAD(TR(TH('Date'),TH('Stock Requet No.'),TH('Stock Transfer No'),TH('Stock Receipt No'),TH('Stock Source'),TH('Stock Destination'),TH('Amount'),TH('Status'),TH('Required Action'),TH('Actions'), _class='bg-primary'))        
@@ -4370,7 +4384,7 @@ def put_stock_receipt_id():
     session.flash = _flash
     response.js = "$('#tblSR').get(0).reload(), PrintReceipt(%s)" %(request.args(0))
     
-    
+
 
 @auth.requires(lambda: auth.has_membership('SALES') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership(role = 'ACCOUNTS')  | auth.has_membership(role = 'MANAGEMENT') |auth.has_membership(role = 'ACCOUNTS MANAGER')| auth.has_membership('ROOT'))
 def get_stock_request_grid():
@@ -8079,7 +8093,8 @@ def get_transaction_reports():
 # ---- Stock Receipt     -----
 
 def get_back_off_workflow_grid():
-    return dict()
+    _purchase_order = db((db.Purchase_Request.created_by == auth.user.id) & ((db.Purchase_Request.status_id == 22) | (db.Purchase_Request.status_id == 28) | (db.Purchase_Request.status_id == 18) | (db.Purchase_Request.status_id == 25))).count()
+    return dict(_purchase_order = _purchase_order)
 
 def get_pos_workflow_grid():
     _usr = db(db.User_Location.user_id == auth.user_id).select().first()
@@ -8881,7 +8896,7 @@ def get_stock_transfer_process():
                 _stk_in_transit = int(_stk_des.stock_in_transit) - int(n.quantity) # 1 stock in transit destination
                 # _pos_stock = int(_stk_des.pos_stock) + int(n.quantity)
                 _clo_stk = int(_stk_des.closing_stock) + int(n.quantity) # 2 closing stocks in destination
-                _damaged_stock = int(_stk_des.damaged_stock_qty) + int(n.quantity) # 3 damaged stocks in destination
+                _damaged_stock = int(_stk_des.damaged_stock_qty or 0) + int(n.quantity) # 3 damaged stocks in destination
                 _pro_bal = int(_stk_des.closing_stock) + int(_stk_in_transit) # for damaged provisional stocks
                 _nor_bal = int(_clo_stk) + int(_stk_in_transit) # for normal stocks
 
@@ -8898,7 +8913,7 @@ def get_stock_transfer_process():
                 _stk_src.update_record(closing_stock = _clo_stk_in_trn, probational_balance = _pro_bal,stock_in_transit = _stk_in_trn_src,last_transfer_qty = n.quantity, last_transfer_date = request.now)  
         sync_stock_transfer_id()                
         session.flash = 'Stock Transfer No. ' + str(_skey) + ' generated.'
-        redirect(URL('inventory','account_grid'))
+        response.js = 'PrintAccountStockTransfer()'                
 
 def sync_pos_stock_receipt_id():        
     _id = db(db.Stock_Request.id == request.args(0)).select().first()
@@ -9607,21 +9622,18 @@ def stock_transfer_report():
     _grand_total = 0    
     ctr = 0
     _total = 0           
-    for s in db(db.Stock_Request.id == request.args(0)).select(db.Stock_Request.ALL, db.Transaction_Prefix.ALL, left = db.Transaction_Prefix.on(db.Transaction_Prefix.id == db.Stock_Request.stock_request_no_id)):        
-        stk_req_no = [
-            ['STOCK TRANSFER VOUCHER'],               
-            ['Stock Transfer No',':', str(s.Stock_Request.stock_transfer_no_id.prefix)+str(s.Stock_Request.stock_transfer_no),'', 'Stock Transaction Date',':',str(s.Stock_Request.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
-            ['Stock Request No',':',str(s.Stock_Request.stock_request_no_id.prefix)+str(s.Stock_Request.stock_request_no),'', 'Stock Request Date',':',str(s.Stock_Request.stock_request_date_approved.strftime('%d/%b/%Y'))],
-            ['Stock Transfer From',':',s.Stock_Request.stock_source_id.location_name,'','Stock Transfer To',':',s.Stock_Request.stock_destination_id.location_name],
-            ['Department',':',s.Stock_Request.dept_code_id.dept_name,'','','','']]        
+    stk_req_no = [
+        ['STOCK TRANSFER VOUCHER'],               
+        ['Stock Transfer No',':', str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no),'', 'Stock Transfer Date',':',str(_id.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Request No',':',str(_id.stock_request_no_id.prefix)+str(_id.stock_request_no),'', 'Stock Request Date',':',str(_id.stock_request_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Transfer From',':',_id.stock_source_id.location_name,'','Stock Transfer To',':',_id.stock_destination_id.location_name],
+        ['Department',':',_id.dept_code_id.dept_name,'','','','']]              
     stk_tbl = Table(stk_req_no, colWidths=['*',20,'*',10,'*',20,'*'])
     stk_tbl.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         ('SPAN',(0,0),(6,0)),
         ('ALIGN', (0,0), (0,0), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    
-        ('FONTNAME', (0, 0), (0, 0), 'Courier-Bold', 12), 
-        ('FONTSIZE',(0,0),(0,0),15),
         ('TOPPADDING',(0,0),(0,0),5),        
         ('BOTTOMPADDING',(0,0),(0,0),12),                             
         ('TOPPADDING',(0,1),(-1,-1),0),
@@ -9646,15 +9658,16 @@ def stock_transfer_report():
         else:
             _uom = i.Item_Master.uom_id.mnemonic
         stk_trn.append([ctr,
-        Paragraph(i.Stock_Request_Transaction.item_code_id.item_code, style=_style),        
+        i.Stock_Request_Transaction.item_code_id.item_code,        
         str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+
-        str(i.Item_Master.item_description.upper())+str('\n')+str(i.Stock_Request_Transaction.remarks)+str('\n')+str('SOH: ')+str(_stock_on_hand),        
+        str(i.Item_Master.item_description.upper()),        
         _uom,
         # i.Item_Master.uom_id.mnemonic,
         i.Stock_Request_Transaction.category_id.mnemonic,
         i.Stock_Request_Transaction.uom,
         card(i.Item_Master.id, i.Stock_Request_Transaction.quantity, i.Stock_Request_Transaction.uom),        
-        i.Stock_Request_Transaction.unit_price,
+        locale.format('%.3F',i.Stock_Request_Transaction.unit_price or 0, grouping = True),
+        # i.Stock_Request_Transaction.unit_price,
         # _stock_on_hand,
         locale.format('%.2F',i.Stock_Request_Transaction.total_amount or 0, grouping = True)])
     (_whole, _frac) = (int(_grand_total), locale.format('%.2f',_grand_total or 0, grouping = True))
@@ -9669,9 +9682,7 @@ def stock_transfer_report():
         ('VALIGN',(0,1),(-1,-1),'TOP'),
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('FONTNAME',(0,0),(-1,-1), 'Courier'),
-        ('FONTNAME', (6, -1), (-1, -1), 'Courier-Bold'),   
-        ('TOPPADDING',(0,-1),(-1,-1),15),  
-        ]))
+        ('FONTNAME', (6, -1), (-1, -1), 'Courier-Bold')]))
 
     _pc = db(db.Stock_Request_Transaction_Report_Counter.stock_transfer_no_id == request.args(0)).select().first()
     if not _pc:
@@ -9684,16 +9695,19 @@ def stock_transfer_report():
 
     _trn = db(db.Stock_Request.id == request.args(0)).select().first()
     signatory = [
-        [str(_trn.stock_transfer_approved_by.first_name.upper() + ' ' + _trn.stock_transfer_approved_by.last_name.upper()),'',''],
-        ['Issued by','Receive by', 'Delivered by'],
-        ['','','Printed by: ' + str(auth.user.first_name.upper()) + ' ' + str(auth.user.last_name.upper()) + ' ' + str(strftime("%X"))]]
+        [str(_id.stock_transfer_approved_by.first_name.upper() + ' ' + _id.stock_transfer_approved_by.last_name.upper()),'','','',''],
+        ['Issued by','','Receive by','','Delivered by']]
 
-    signatory_table = Table(signatory, colWidths='*')
+
+    signatory_table = Table(signatory, colWidths=['*',20,'*',20,'*'])
     signatory_table.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('ALIGN',(0,0),(-1,-1),'CENTER'),      
+        ('LINEBELOW', (0,0), (0,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (2,0), (2,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (4,0), (4,0), 0.25, colors.black,None   , (2,2)),
     ]))
     _printer = [['PRINT COUNT: ' + str(_ctr)]]
     _warehouse = [['- - WAREHOUSE COPY - -']]
@@ -9717,8 +9731,7 @@ def stock_transfer_report():
     # stock_transaction_table()
     row.append(Spacer(1,.7*cm))    
     row.append(Spacer(1,.7*cm))
-    row.append(_w_tbl)
-    row.append(_c_tbl)
+    row.append(_w_tbl)    
     row.append(Spacer(1,2*cm))
     row.append(signatory_table)
     row.append(PageBreak())
@@ -9729,8 +9742,7 @@ def stock_transfer_report():
     # stock_transaction_table()
     row.append(Spacer(1,.7*cm))    
     row.append(Spacer(1,.7*cm))
-    row.append(_a_tbl)
-    row.append(_c_tbl)    
+    row.append(_a_tbl)    
     row.append(Spacer(1,2*cm))
     row.append(signatory_table)
     row.append(PageBreak())
@@ -9742,7 +9754,6 @@ def stock_transfer_report():
     row.append(Spacer(1,.7*cm))    
     row.append(Spacer(1,.7*cm))
     row.append(_p_tbl)
-    row.append(_c_tbl)    
     row.append(Spacer(1,2*cm))
     row.append(signatory_table)
     row.append(PageBreak())
@@ -10217,7 +10228,7 @@ def stock_card_movement():
     form = SQLFORM.factory(
         Field('item_code_id', widget = SQLFORM.widgets.autocomplete(request, db.Item_Master.item_code, id_field = db.Item_Master.id, limitby = (0,10), min_length = 2)),
         Field('location_code_id', 'reference Location', requires = IS_IN_DB(db(db.Location.status_id == 1), db.Location.id, '%(location_code)s - %(location_name)s', zero = 'Choose Location Code')),
-        Field('start_date','date', default= _firs_month, requires = IS_DATE()),
+        Field('start_date','date', default= _firs_month),
         Field('end_date','date', default = request.now, requires = IS_DATE()))
     if form.accepts(request):
         # response.flash = 'ok'
@@ -10276,12 +10287,12 @@ def stock_card_movement():
             _total_qty = db.Merch_Stock_Transaction.quantity.sum().coalesce_zero()
             _query = db.Merch_Stock_Transaction.item_code == _itm_code.item_code
             _query &= db.Merch_Stock_Transaction.location == request.vars.location_code_id
-            _query &= db.Merch_Stock_Transaction.transaction_date >= request.vars.start_date
+            _query &= db.Merch_Stock_Transaction.transaction_date >= _firs_month
             _query &= db.Merch_Stock_Transaction.transaction_date <= request.vars.end_date
             _query &= db.Merch_Stock_Transaction.delete == False
             
             _firs_month = date(date.today().year, 1, 1)
-            _prev_day = datetime.datetime.strptime(str(request.vars.start_date), '%Y-%m-%d').date() 
+            _prev_day = datetime.datetime.strptime(str(_firs_month), '%Y-%m-%d').date() 
             _prev_day = (_prev_day - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
             _qty_query = db.Merch_Stock_Transaction.item_code == _itm_code.item_code
@@ -10290,7 +10301,7 @@ def stock_card_movement():
             _qty_query &= db.Merch_Stock_Transaction.transaction_date <= _prev_day
             _qty_query &= db.Merch_Stock_Transaction.delete == False
 
-            if  _firs_month == datetime.datetime.strptime(str(request.vars.start_date), '%Y-%m-%d').date():
+            if  _firs_month == datetime.datetime.strptime(str(_firs_month), '%Y-%m-%d').date():
                 _prev_day = datetime.datetime.strptime(str(request.vars.end_date), '%Y-%m-%d').date()
                 _qty = _bal = _stk_file.opening_stock
                 # print 'default: ', _stk_file.opening_stock, _stk_file.closing_stock, db(_query).select(_total_qty).first()[_total_qty], db(_qty_query).select(_total_qty).first()[_total_qty] 
@@ -10300,7 +10311,7 @@ def stock_card_movement():
                 # print 'Input date: ', _stk_file.opening_stock, _stk_file.closing_stock , db(_query).select(_total_qty).first()[_total_qty], db(_qty_query).select(orderby = db.Merch_Stock_Transaction.id, _total_qty).last()[_total_qty] , _prev_day
                 # print ':', _bal, int(_stk_file.opening_stock), int(db(_qty_query).select(_total_qty).first()[_total_qty])
             head = THEAD(
-                TR(TD('Opening Stock Balance as of ', request.vars.start_date, ': ', B(card_view(_itm_code.id, _qty)),  _colspan='9'),TD(A(I(_class='fas fa-print'),_class='btn btn-icon-toggle', _target=' blank',_href=URL('inventory_reports','get_stock_card_movement_report', args = [request.vars.item_code_id, request.vars.location_code_id, request.vars.start_date, request.vars.end_date])),_class='text-right')),
+                TR(TD('Opening Stock Balance as of ', _firs_month, ': ', B(card_view(_itm_code.id, _qty)),  _colspan='9'),TD(A(I(_class='fas fa-print'),_class='btn btn-icon-toggle', _target=' blank',_href=URL('inventory_reports','get_stock_card_movement_report', args = [request.vars.item_code_id, request.vars.location_code_id, request.vars.start_date, request.vars.end_date])),_class='text-right')),
                 TR(TH('#'),TH('Date'),TH('Type'),TH('Voucher No'),TH('Category'),TH('Qty In'),TH('Qty Out'),TH('Balance'),TH('Account Code'),TH('Account Name'),_class='style-accent-dark small-padding'))        
             for n in db(_query).select(
                 _total_qty, 
@@ -10316,7 +10327,7 @@ def stock_card_movement():
                 db.Merch_Stock_Transaction.transaction_date | 
                 db.Merch_Stock_Transaction.category_id | 
                 db.Merch_Stock_Transaction.location,
-                orderby = db.Merch_Stock_Transaction.transaction_date , 
+                orderby = db.Merch_Stock_Transaction.transaction_date | db.Merch_Stock_Transaction.voucher_no, 
                 left = db.Merch_Stock_Header.on(db.Merch_Stock_Header.id == db.Merch_Stock_Transaction.merch_stock_header_id)):
 
                 # _bal += n._extra[_total_qty]
@@ -10384,16 +10395,22 @@ def stock_card_movement():
                         _damage_summary += n._extra[_total_qty]                
                 elif _type == 5:
                     _type = 'STV'
-                    if n.Merch_Stock_Transaction.location == 1:
+                    if n.Merch_Stock_Transaction.location == int(request.vars.location_code_id):
                         _bal -= n._extra[_total_qty]
-                        _quantity_in = card_view(_itm_code.id, n._extra[_total_qty])
-                        _quantity_out = 0
+                        _quantity_in = 0
+                        _quantity_out = card_view(_itm_code.id, n._extra[_total_qty])
                         _balanced = card_view(_itm_code.id, _bal)
                     else:
-                        _bal += n._extra[_total_qty]
-                        _quantity_in = card_view(_itm_code.id, n._extra[_total_qty])
-                        _quantity_out = 0
-                        _balanced = card_view(_itm_code.id, _bal)
+                        if n.Merch_Stock_Transaction.stock_destination == int(request.vars.location_code_id):
+                            _bal += n._extra[_total_qty]
+                            _quantity_in = card_view(_itm_code.id, n._extra[_total_qty])
+                            _quantity_out = 0
+                            _balanced = card_view(_itm_code.id, _bal)
+                        else:
+                            _bal -= n._extra[_total_qty]
+                            _quantity_in = 0
+                            _quantity_out = card_view(_itm_code.id, n._extra[_total_qty])
+                            _balanced = card_view(_itm_code.id, _bal)
                 elif _type == 6:
                     _type = 'ADJ'
                     _bal += n._extra[_total_qty]
@@ -10420,7 +10437,7 @@ def stock_card_movement():
                         _balanced = card_view(_itm_code.id, _bal)
                 elif _type == 9:
                     _type = 'OBS'
-                    _bal -= n._extra[_total_qty]
+                    _bal -= n._extra[_total_qty] - n._extra[_total_qty]
                     _quantity_in = 0
                     _quantity_out = card_view(_itm_code.id, n._extra[_total_qty])
                     _balanced = card_view(_itm_code.id, _bal)

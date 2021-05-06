@@ -96,12 +96,12 @@
 
     yAxis: {
         title: {
-            text: 'Daily Transactions'
+            text: 'Weekly Transactions'
         }
     },
 
     xAxis: {
-        categories: [{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_invoice_date_approved, groupby = db.Sales_Invoice.sales_invoice_date_approved):}}"{{=n.sales_invoice_date_approved}}",{{pass}}]
+        categories: [{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_invoice_date_approved, groupby = db.Sales_Invoice.sales_invoice_date_approved):}}"{{=n.sales_invoice_date_approved.strftime('%V')}}",{{pass}}]
     },
 
     legend: {
@@ -111,14 +111,14 @@
     },
 
     series: [{
-        name: 'Sales Order',
-        data:  
-            [{{ctr = db.Sales_Invoice.sales_order_date_approved.count()}}{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_order_date_approved, ctr, orderby = db.Sales_Invoice.sales_order_date_approved, groupby = db.Sales_Invoice.sales_order_date_approved):}}{{=n[ctr]}}, {{pass}}]
-    }, {
-        name: 'Delivery Note',
-        data: 
-            [{{dlvr = db.Sales_Invoice.delivery_note_date_approved.count()}}{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.delivery_note_date_approved, ctr, orderby = db.Sales_Invoice.delivery_note_date_approved, groupby = db.Sales_Invoice.delivery_note_date_approved):}}{{=n[ctr]}}, {{pass}}]            
-    }, {
+    //     name: 'Sales Order',
+    //     data:  
+    //         [{{ctr = db.Sales_Invoice.sales_order_date_approved.count()}}{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_order_date_approved, ctr, orderby = db.Sales_Invoice.sales_order_date_approved, groupby = db.Sales_Invoice.sales_order_date_approved):}}{{=n[ctr]}}, {{pass}}]
+    // }, {
+    //     name: 'Delivery Note',
+    //     data: 
+    //         [{{dlvr = db.Sales_Invoice.delivery_note_date_approved.count()}}{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.delivery_note_date_approved, ctr, orderby = db.Sales_Invoice.delivery_note_date_approved, groupby = db.Sales_Invoice.delivery_note_date_approved):}}{{=n[ctr]}}, {{pass}}]            
+    // }, {
         name: 'Sales Invoice',
         data: 
             [{{ctr = db.Sales_Invoice.sales_invoice_date_approved.count()}}{{for n in db(db.Sales_Invoice.status_id == 7).select(db.Sales_Invoice.sales_invoice_date_approved, ctr, orderby = db.Sales_Invoice.sales_invoice_date_approved, groupby = db.Sales_Invoice.sales_invoice_date_approved):}}{{=n[ctr]}}, {{pass}}]        

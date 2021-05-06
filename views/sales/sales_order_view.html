@@ -114,10 +114,14 @@
                             <div class="col-sm-8">                                
                                 {{ if (_id.status_id == 1) or (_id.status_id == 7) or (_id.status_id == 8) or (_id.status_id == 9) or (_id.status_id == 10): }}
                                     <input class="btn btn-primary" type="submit" value="submit" disabled>                              
+                                    <input class="btn btn-warning" type="button" value="return" id="btnReturn">
+                                    <label><input type="checkbox" id="btnCancel" disabled> Cancel Sales Order?</label>
                                 {{ else: }}
                                     <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit">
-                                {{ pass }}
                                     <input class="btn btn-warning" type="button" value="return" id="btnReturn">
+                                    <label><input type="checkbox" id="btnCancel"> Cancel Sales Order?</label>
+                                {{ pass }}
+                                    
                                 {{=form.custom.end}}
                             </div>
                         </div>

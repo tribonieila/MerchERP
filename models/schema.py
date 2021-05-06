@@ -260,7 +260,7 @@ db.define_table('Supplier_Bank_Details',
 
 db.define_table('GroupLine',
     Field('prefix_id','reference Prefix_Data', ondelete = 'NO ACTION', writable = False),
-    Field('supplier_id', 'reference Supplier_Master', ondelete = 'NO ACTION',requires = IS_IN_DB(db, db.Supplier_Master.id, '%(supp_code)s - %(supp_name)s, %(supp_sub_code)s', zero =  'Choose Supplier')),
+    Field('supplier_id', 'reference Supplier_Master', ondelete = 'NO ACTION',requires = IS_IN_DB(db, db.Supplier_Master.id, '%(supp_name)s, %(supp_sub_code)s', zero =  'Choose Supplier')),
     Field('group_line_code','string',length=8, writable = False),
     Field('group_line_name', 'string', length=50, requires=[IS_UPPER(), IS_NOT_IN_DB(db, 'GroupLine.group_line_name')]),
     Field('transfer_switch','boolean',default=False),
@@ -2253,6 +2253,7 @@ db.define_table('Purchase_Receipt_Transaction',
     Field('vat_percentage','decimal(10,2)', default = 0, label = 'Vat Percentage'), 
     Field('old_average_cost','decimal(20,6)', default = 0), # get the old average cost
     Field('old_landed_cost','decimal(20,6)', default = 0), # get the old landed cost
+    Field('landed_cost','decimal(20,6)', default = 0), # current landed cost
     Field('production_date', 'date'),
     Field('expiration_date', 'date'),    
     Field('selected','boolean', default = False), 
@@ -2376,7 +2377,7 @@ db.define_table('Direct_Purchase_Receipt_Transaction',
     Field('selective_tax','decimal(20,6)', default = 0, label = 'Selective Tax'),
     Field('selective_tax_foc','decimal(20,6)', default = 0, label = 'Selective Tax'),
     Field('vat_percentage','decimal(10,2)', default = 0, label = 'Vat Percentage'), 
-    Field('landed_cost','decimal(20,6)', default = 0),    
+    Field('landed_cost','decimal(20,6)', default = 0), # current landed cost       
     Field('price_cost_pcs', 'decimal(20,6)', default = 0), # per pcs.
     Field('average_cost_pcs','decimal(20,6)', default = 0), # per pcs.   
     Field('wholesale_price_pcs', 'decimal(20,6)', default = 0), # per pcs.
@@ -2385,6 +2386,8 @@ db.define_table('Direct_Purchase_Receipt_Transaction',
     Field('transaction_type','integer', default = 1),
     Field('transaction_date', 'datetime', default=request.now, writable = False),
     Field('supplier_reference_order','string', length = 25),
+    Field('old_average_cost','decimal(20,6)', default = 0), # get the old average cost
+    Field('old_landed_cost','decimal(20,6)', default = 0), # get the old landed cost    
     Field('delete', 'boolean', default = False),  
     Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
     Field('created_by', 'reference auth_user', ondelete = 'NO ACTION',default = auth.user_id, writable = False, readable = False, represent = lambda row: row.first_name.upper() + ' ' + row.last_name.upper()),
@@ -2501,7 +2504,8 @@ db.define_table('Payment_Category_Group',
     Field('updated_on', 'datetime', writable = False, readable = False),
     Field('updated_by', db.auth_user, ondelete = 'NO ACTION', writable = False, readable = False))
 
-db.define_table('Document_Register',           
+db.define_table('Document_Register',     
+    Field('purchase_order_no', 'integer', writable = False), # reference from purchase order
     Field('document_register_no', 'string', length = 50,writable = False),
     Field('document_register_date', 'date',writable = False),    
     Field('supplier_code_id', 'reference Supplier_Master',ondelete = 'NO ACTION', label = 'Supplier Code', requires = IS_IN_DB(db, db.Supplier_Master.id,'%(supp_code)s - %(supp_name)s, %(supp_sub_code)s', zero = 'Choose Supplier Code')),
@@ -2680,6 +2684,9 @@ db.define_table('Purchase_Warehouse_Receipt_Transaction',
     Field('quantity_received_by', 'reference auth_user', ondelete = 'NO ACTION', writable = False, readable = False),
     Field('quantity_invoiced_by', 'reference auth_user', ondelete = 'NO ACTION', writable = False, readable = False),
     Field('invoiced','boolean',default=False),
+    Field('old_average_cost','decimal(20,6)', default = 0), # get the old average cost
+    Field('old_landed_cost','decimal(20,6)', default = 0), # get the old landed cost
+    Field('landed_cost','decimal(20,6)', default = 0), # current landed cost
     Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
     Field('created_by', 'reference auth_user', ondelete = 'NO ACTION',default = auth.user_id, writable = False, readable = False, represent = lambda row: row.first_name.upper() + ' ' + row.last_name.upper()),
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
