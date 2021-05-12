@@ -9,9 +9,6 @@
                 <span class="card-title">D/1 REGISTER FORM</span>
             </div>
             <div class="card-body tab-content"> 
-                <div class="alert alert-warning" role="alert">
-                    <b>Reminder:</b> Please be advised to update the form manually at the moment. (including the computaion)
-                </div>
                 {{=table}}       
                 <hr>
                 {{import locale}}
@@ -191,9 +188,18 @@
     </div>
 
 
-<script>
+<script>    
     $(document).ready(function(){
-        // $('#Document_Register_invoice_amount, #Document_Register_total_amount_in_qr').prop('readonly', true);        
+        $("#Document_Register_currency_id, #Document_Register_exchange_rate, #Document_Register_invoice_amount").change(function(){                    
+            ajax("{{=URL('procurement','get_d1_currency_id')}}",['currency_id'])                        
+        })        
     })
+    Calculate();
+    function Calculate(){
+        var _xr = $("#Document_Register_exchange_rate").val();
+        var _ta = $("#Document_Register_invoice_amount").val();
+        var _qr = parseFloat(_xr) * parseFloat(_ta);
+        $("#Document_Register_total_amount_in_qr").val(_qr);        
+    }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>

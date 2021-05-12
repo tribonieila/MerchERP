@@ -6809,7 +6809,7 @@ def get_document_register_report():
         Field('dept_code_id','reference Department', label = 'Dept Code',requires = IS_IN_DB(db, db.Department.id,'%(dept_code)s - %(dept_name)s', zero = 'Choose Department')),
         Field('from_date','date', default = request.now.date()),
         Field('to_date', 'date', default = request.now.date()))
-    if form.accepts(request):                        
+    if form.accepts(request):                              
         _query = db((db.Document_Register.document_register_date >= request.vars.from_date) & (db.Document_Register.document_register_date <= request.vars.to_date)).select(orderby = db.Document_Register.id)
         row = []
         head = THEAD(
@@ -6840,7 +6840,7 @@ def get_document_register_report_id():
         head = THEAD(
             TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(A(I(_class='fas fa-print'),_target='_blank', _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('#')),_align='right')),
             # TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(A(I(_class='fas fa-print'),_target='_blank', _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('procurement','get_document_register_report_print_id', args = [request.vars.from_date,request.vars.to_date])),_align='right')),
-            TR(TD('Date'),TD('Register No'),TD('Purchase Order'),TD('Supplier Name'),TD('CIL No'),TD('Order No'),TD('Bank'),TD('Currency'),TD('Amount Invoiced'),TD('Amount QAR'),TD('Due Date'),_class='bg-primary'))
+            TR(TD('Date'),TD('Register No'),TD('Purchase Order'),TD('Supplier Name'),TD('CIL No'),TD('Order No'),TD('Bank'),TD('Currency'),TD('Amount Invoiced'),TD('Amount QAR'),TD('Due Date'),_class='bg-primary'))              
         _query = db((db.Document_Register.cil_no != None) & (db.Document_Register.paid == False) & (db.Document_Register.document_register_date >= request.vars.from_date) & (db.Document_Register.document_register_date <= request.vars.to_date)).select(orderby = db.Document_Register.id | db.Document_Register.bank_master_id)
         for n in _query:
             _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()        
@@ -6865,6 +6865,20 @@ def get_document_register_report_id():
                 TD(n.currency_id.mnemonic, ' ', locale.format('%.3F',n.invoice_amount or 0, grouping = True),_align='right'),
                 TD('QAR ', locale.format('%.3F',n.total_amount_in_qr or 0, grouping = True),_align='right'),
                 TD(n.due_date)))
+        _query2 = db((db.Other_Payment_Schedule.cil_number != None) & (db.Other_Payment_Schedule.paid == False) & (db.Other_Payment_Schedule.payment_date >= request.vars.from_date) & (db.Other_Payment_Schedule.payment_date <= request.vars.to_date)).select(orderby = db.Other_Payment_Schedule.id)
+        for x in _query2:
+            row.append(TR(               
+                TD(x.payment_date),
+                TD(x.serial_no),
+                TD(),
+                TD(x.supplier_name),
+                TD(x.cil_number),
+                TD(x.order_no),
+                TD(x.bank_name),
+                TD(x.currency),
+                TD(x.currency, ' ', locale.format('%.3F',x.foreign_currency_amount or 0, grouping = True),_align='right'),
+                TD('QAR ', locale.format('%.3F',x.local_currency_amount or 0, grouping = True),_align='right'),
+                TD(x.due_date)))
         body = TBODY(*row)
         table = TABLE(*[head, body], _class='table')
         return XML(DIV(table))                
@@ -7003,26 +7017,24 @@ def get_document_register_grid():
         _id = db(db.Document_Register_Purchase_Order.document_register_no_id == n.id).select().first()    
         # _pr = db(db.Purchase_Request.purchase_order_no == _id.purchase_order_no).select().first()
         view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle disabled', _href = URL('#', args = n.id, extension = False))        
-        prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-warning btn-icon-toggle', _target='blank', _href=URL('procurement','document_register_report', args=n.id, extension=False))
+        prin_lnk = A(I(_class='fas fa-print'), _type='button ', _role='button', _class='btn btn-warning btn-icon-toggle', _target=' blank', _href=URL('procurement','document_register_report', args=n.id, extension=False))
         edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button ', _role='button', _class='btn btn-danger btn-icon-toggle',_target='blank', _href = URL('procurement','put_document_register_id', args = n.id))         
         revi_lnk = A(I(_class='fas fa-history'), _title='Revive Row', _type='button  ', _role='button', _class='btn btn-success btn-icon-toggle revive',callback = URL(args = n.id), **{'_data-id':(n.id)}) 
         if n.d1_release == False: 
             rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle', callback = URL('procurement','put_document_register_release_id', args = n.id, extension = False))             
         else:
             rele_lnk = A(I(_class='fas fa-user-lock'), _title='Release D1 Registry', _type='button ', _role='button', _class='btn btn-success btn-icon-toggle disabled')             
-        btn_lnk = DIV(view_lnk, edit_lnk, prin_lnk, rele_lnk)    
-        _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()
-        # _on = db(db.Purchase_Receipt.purchase_order_no == _po.purchase_order_no).select().first()
-        # if not _on: 
-        #     _order_account = 'None'
-        # else:
-        #     _order_account = _on.order_account
+        btn_lnk = DIV(view_lnk, edit_lnk, prin_lnk, rele_lnk)            
+        _on = db(db.Purchase_Receipt.purchase_order_no == n.purchase_order_no).select().first()
+        if not _on: 
+            _order_account = 'None'
+        else:
+            _order_account = _on.order_account
         row.append(TR(            
             TD(n.document_register_date),
             TD(n.document_register_no),
-            # TD(_po.purchase_order_no_id.purchase_order_no_prefix_id.prefix,_po.purchase_order_no),
-            TD('PO'),
-            TD('_order_account' ),
+            TD(str('PO') + str(n.purchase_order_no)),
+            TD(_order_account),
             TD(n.currency_id.mnemonic, ' ', locale.format('%.3F',n.invoice_amount or 0, grouping = True),_align='right'),
             TD(n.due_date),
             TD(btn_lnk)))
@@ -7031,6 +7043,16 @@ def get_document_register_grid():
     return dict(form = form, _title = _title, table = table)
 
 def put_document_register_release_id():
+    _id = db(db.Document_Register.id == request.args(0)).select().first()    
+    _wr = db((db.Purchase_Warehouse_Receipt.purchase_order_no == _id.purchase_order_no) & (db.Purchase_Warehouse_Receipt.d1_reference == _id.document_register_no)).select().first()
+    if _wr:
+        _id.update_record(d1_release = True)
+        _wr.update_record(warehouse_receipt_release = True)
+        response.js = "$('#d1Table' ).load(window.location.href + ' #d1Table' )"
+
+    
+
+def xput_document_register_release_id():
     _id = db(db.Document_Register.id == request.args(0)).select().first()    
     _po = db(db.Document_Register_Purchase_Order.document_register_no_id == request.args(0)).select().first()    
     _po = db(db.Purchase_Request.purchase_order_no == _po.purchase_order_no).select().first()          
@@ -7200,23 +7222,15 @@ def post_purchase_warehouse_receipt_sync(x):
 @auth.requires_login()
 def put_document_register_id():
     _id = db(db.Document_Register.id == request.args(0)).select().first()
-    _po = db(db.Document_Register_Purchase_Order.document_register_no_id == _id.id).select().first()
-    head = THEAD(TR(TH('Date'),TH('Purchase Order No.'),TH('Department'),TH('Location'),TH('Supplier'),_class='active'))
-    for n in db(db.Purchase_Request.purchase_order_no == _po.purchase_order_no).select():        
-        row.append(TR(
-            TD(n.purchase_request_date),
-            TD(n.purchase_order_no_prefix_id.prefix,n.purchase_order_no),
-            TD(n.dept_code_id.dept_code,' - ',n.dept_code_id.dept_name),
-            TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),
-            TD(n.supplier_code_id.supp_code,' - ',n.supplier_code_id.supp_name,', ', n.supplier_code_id.supp_sub_code)))
-    body = TBODY(*row)
-    table = TABLE(*[head, body], _class = 'table table-bordered table-condensed')
+    _wr = db(db.Purchase_Warehouse_Receipt.purchase_order_no == _id.purchase_order_no).select().first()
+    table = TABLE(
+        TR(TD('Date'),TD('Purchase Order No.'),TD('Department'),TD('Location'),TD('Supplier')),
+        TR(TD(_wr.purchase_order_date_approved),TD(_wr.purchase_order_no_prefix_id.prefix,_wr.purchase_order_no),TD(_wr.dept_code_id.dept_code,' - ', _wr.dept_code_id.dept_name),TD(_wr.location_code_id.location_code,' - ', _wr.location_code_id.location_name),TD( _wr.supplier_code_id.supp_name,', ',_wr.supplier_code_id.supp_sub_code)), _class = 'table table-bordered table-condensed')
     db.Document_Register.document_register_no.writable = False
     db.Document_Register.supplier_code_id.writable = False
     db.Document_Register.document_register_date.writable = False
     db.Document_Register.trade_terms_id.writable = False
-    _total_amount_qr = float(_id.invoice_amount or 0) * float(_id.exchange_rate or 0)
-    db.Document_Register.total_amount_in_qr.default = _total_amount_qr
+    db.Document_Register.dept_code_id.writable = False    
     form = SQLFORM(db.Document_Register, request.args(0))
     if form.process().accepted:
         response.flash = 'Form updated.'        
@@ -7224,6 +7238,13 @@ def put_document_register_id():
     elif form.errors:        
         response.flash = form.errors                
     return dict(form = form, _id = _id, table = table)
+
+def get_d1_currency_id():
+    _id = db(db.Currency_Exchange.currency_id == request.vars.currency_id).select().first()    
+    if _id:
+        response.js = "$('#Document_Register_exchange_rate').val(%s), Calculate()"  % (_id.exchange_rate_value or 0)
+    else:
+        response.js = "$('#Document_Register_exchange_rate').val(0)"
 
 @auth.requires_login()
 def get_other_payment_schedule_grid():        
@@ -7468,8 +7489,7 @@ def get_document_register_id():
         _total_amount += x.invoice_amount or 0
     body = TBODY(*row)
     foot = TFOOT(TR(TD(),TD('Total Amount: '),TD(locale.format('%.3F',_total_amount or 0, grouping = True),_align='right')))
-    table = TABLE(*[head, body, foot],_class='table table-condensed')    
-    _replace = 'window.location.replace("{{=URL("procurement","document_register_grid_process",extension = False)}}")'
+    table = TABLE(*[head, body, foot],_class='table table-condensed')        
     response.js = "bootbox.confirm({title:'D1 Registry',message:'%s', buttons:{confirm: {label:'Yes',className:'btn-success'},cancel:{label:'No',className:'btn-danger'}},callback:function(result){if(result){gotoDocumentReg(%s)}}})" %(XML(table), int(request.args(0)))
 
 def get_me():
@@ -7825,11 +7845,11 @@ def purchase_receipt_warehouse_grid_consolidated():
     if _usr.department_id == 3:
         _department = db.Purchase_Warehouse_Receipt.dept_code_id == 3
     else:
-        _department = db.Purchase_Warehouse_Receipt.dept_code_id != 3    
+        _department = db.Purchase_Warehouse_Receipt.dept_code_id != 3
     row = []
     head = THEAD(TR(TH('Date'),TH('Transaction No'),TH('Purcase Order No.'),TH('Document Register'),TH('Department'),TH('Supplier Code'),TH('Location'),TH('Status'),TH('Action Required'),TH('Action'),_class='bg-primary'))
     # for n in db((_department) & ((db.Purchase_Warehouse_Receipt.status_id != 28) | (db.Purchase_Warehouse_Receipt.status_id == 18) | (db.Purchase_Warehouse_Receipt.status_id == 25))).select(orderby = db.Purchase_Warehouse_Receipt.id):
-    for n in db((_department) & (db.Purchase_Warehouse_Receipt.status_id != 21)).select():
+    for n in db((_department) & (db.Purchase_Warehouse_Receipt.status_id != 21) & (db.Purchase_Warehouse_Receipt.warehouse_receipt_release == True)).select():
         view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle', callback = URL('procurement','get_warehouse_purchase_receipt_id', args = n.id, extension = False))
         edit_lnk = A(I(_class='fas fa-user-edit'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-warning btn-icon-toggle', _href = URL('procurement','purchase_receipt_warehouse_grid_consolidated_processed', args = n.id, extension = False))
         dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')
@@ -10898,7 +10918,7 @@ def document_register_report():
         ['FINANCE MANAGER'],
         ['Merch & Partners W.L.L.,'],
         ['Doha-Qatar'],
-        ['Order No. ' + str(_list)],
+        ['Order No. PO' + str(_id.purchase_order_no)],
         ['Enclosed please find the following documents:-'],
         ['Suppliers Invoice No.: ' + str(_id.invoice_no) + ' dated ' + str(_id.invoice_date.strftime('%d/%b/%Y'))],
         ['Value: ' +str(_id.currency_id.mnemonic) +' ' + str(locale.format('%.3F',_id.invoice_amount or 0, grouping = True)) + ' / ' + str(_id.trade_terms_id.trade_terms)],

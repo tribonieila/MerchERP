@@ -1,6 +1,7 @@
 # ------------------------------------------------------------------------------------------
 # -------------------------------  S A L E S   S Y S T E M  --------------------------------
 # ------------------------------------------------------------------------------------------
+
 import string, random, locale
 from datetime import date, datetime
 now = datetime.now()
@@ -105,7 +106,7 @@ def get_sales_order_transaction_id():
             TD(n.Item_Master.item_description),
             TD(n.Sales_Order_Transaction.category_id.mnemonic),
             TD(n.Sales_Order_Transaction.uom),
-            TD(card(n.Sales_Order_Transaction.item_code_id, n.Sales_Order_Transaction.quantity, n.Sales_Order_Transaction.uom)),
+            TD(card(n.Sales_Order_Transaction.quantity, n.Sales_Order_Transaction.uom)),
             TD(locale.format('%.3F',n.Sales_Order_Transaction.price_cost or 0, grouping = True),_align='right'),
             TD(locale.format('%.2F',n.Sales_Order_Transaction.discount_percentage or 0, grouping = True),_align='right'),
             TD(locale.format('%.3F',n.Sales_Order_Transaction.net_price or 0, grouping = True),_align='right'),
@@ -141,10 +142,9 @@ def get_sales_order_transaction_id():
     
 
 # ---- C A R D Function  -----
-def card(item, quantity, uom_value):
-    _itm_code = db(db.Item_Master.id == item).select().first()
-    
-    if _itm_code.uom_value == 1:
+@auth.requires_login()
+def card(quantity, uom_value):
+    if uom_value == 1:
         return quantity
     else:
-        return str(int(quantity) / int(uom_value)) + ' - ' + str(int(quantity) - int(quantity) / int(uom_value) * int(uom_value))  + '/' + str(int(uom_value))        
+        return str(int(quantity) / int(uom_value)) + ' - ' + str(int(quantity) - int(quantity) / int(uom_value) * int(uom_value))  + '/' + str(int(uom_value))       

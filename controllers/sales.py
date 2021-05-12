@@ -5261,6 +5261,15 @@ def get_sales_invoice_validation(x):
             n.update_record(price_discrepancy = True)        
             return 2
 
+def get_stock_file_validation():    
+    _id = db(db.Sales_Order.id == request.args(0)).select().first()
+    _clo_stk = 0
+    for n in db(db.Sales_Order_Transaction.sales_order_no_id == request.args(0)).select():        
+        _stk_file = db((db.Stock_File.item_code_id == n.item_code_id) & (db.Stock_File.location_code_id == _id.stock_source_id)).select().first()
+        _clo_stk = int(_stk_file.closing_stock) - int(n.quantity)
+        if _clo_stk < 0:
+            response.js = "alertify.alert('Sales Invoice', 'Closing Stock for Item Code <b>%s</b> should not be less than to zero.')" % (n.item_code_id.item_code)
+
 def get_generate_sales_invoice_id():
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
     _trns_pfx = db((db.Transaction_Prefix.dept_code_id == _id.dept_code_id) & (db.Transaction_Prefix.prefix_key == 'INV')).select().first()        
@@ -5366,6 +5375,11 @@ def sale_order_manager_invoice_no_rejected():
 
 def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
     _id = db(db.Sales_Order.id == request.args(0)).select().first()    
+    print ':', _id.id
+    get_stock_file_validation()
+
+def xsale_order_manager_invoice_no_form_approved(): # manoj from forms approval
+    _id = db(db.Sales_Order.id == request.args(0)).select().first()    
     if db(db.Sales_Invoice.sales_order_no == _id.sales_order_no).select().first():
         session.flash = 'Delivery Note No. ' + str(_id.delivery_note_no) + ' already been delivered by ' + str(_id.sales_invoice_approved_by.first_name)
         response.js = 'jQuery(AccountRedirect())'        
@@ -5375,6 +5389,7 @@ def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
             response.js = 'jQuery(AccountRedirect())'
         else:
             _val = get_sales_invoice_validation(1)
+
             if _val == 2:                        
                 # print 'not equal'
                 _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now, remarks = 'Price Discrepancies.')            
@@ -5382,8 +5397,9 @@ def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
                 response.js = 'jQuery(AccountRedirect())'
             else:
                 # print 'equal'
-                _id.update_record(status_id = 7, sales_invoice_date_approved = request.vars.sales_invoice_date_approved, customer_good_receipt_no = request.vars.customer_good_receipt_no, remarks = request.vars.remarks)
-                get_generate_sales_invoice_id()
+                
+                _id.update_record(status_id = 7, sales_invoice_date_approved = request.vars.sales_invoice_date_approved, customer_good_receipt_no = request.vars.customer_good_receipt_no, remarks = request.vars.remarks)                
+                get_generate_sales_invoice_id()                
                 sync_to_sales_invoice_db()      
                 # session.flash = 'Sales Invoice No. ' + str(_id.sales_invoice_no) + ' generated.'      
                 session.flash = 'Sales Invoice generated.'      

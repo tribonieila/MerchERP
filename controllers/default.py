@@ -23,10 +23,10 @@ def get_index():
 @auth.requires_login()
 # @auth.requires_membership('ROOT')
 def index():        
-    if auth.is_logged_in:
-        print request.now, auth.user_id    
-    else:
-        print request.now, auth.user_id
+    # if auth.is_logged_in:
+    #     print request.now, auth.user_id    
+    # else:
+    #     print request.now, auth.user_id
     # print ''
     # print '--- * ---'
     # _ctr = db.Sales_Order.id.count()
