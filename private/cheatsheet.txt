@@ -14,12 +14,18 @@ UPDATE table_name
 SET column1 = value1, column2 = value2, ...
 WHERE condition;
 
+INSERT INTO Item_Prices (item_code_id, most_recent_cost, average_cost, most_recent_landed_cost,selective_tax_price,vansale_price) VALUES (10369,1,0,0,0,0)
+
 UPDATE [m3rch_hr_db].[dbo].[Employee_Employment_Details] SET [sub_department_code_id] = 13, [back_office_code_id] = 6 WHERE [id] = 212;
 UPDATE [m3rch_inv_db].[dbo].[Stock_File] SET [stock_in_transit] = -8, [probational_balance] = 4 WHERE [id] = 5604
 DELETE FROM [m3rch_inv_db].[dbo].[Stock_Transaction_Temp] WHERE [item_code_id]=4906
 
 DELETE FROM [m3rch_inv_db].[dbo].[Merch_Stock_Header]
 DBCC CHECKIDENT ('[Merch_Stock_Header]', RESEED, 0);
+OR 
+DELETE FROM EMP WHERE ID=3   
+DBCC CHECKIDENT ('Emp', RESEED, 1)  
+
 print float(str(f)[:5])
 
 form.vars.transaction_no = str(x.strftime('%m%d%y%H%M'))

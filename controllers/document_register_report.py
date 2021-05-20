@@ -87,16 +87,15 @@ def _landscape_header(canvas, doc):
     # Release the canvas
     canvas.restoreState()
 
-def get_document_register_report_id():    
+def xget_document_register_report_id():    
     print ':', request.vars.category_id#, request.vars.from_date, request.vars.to_date, request.vars.supplier_code_id, request.vars.dept_code_id, request.vars.due_date
-
-    if int(request.args(0)) == 1:        
+    if int(request.vars.category_id) == 1:        
         response.js = "PrintCIL(1)"
         _report = '1'
-    elif int(request.args(0)) == 2:
+    elif int(request.vars.category_id) == 2:
         response.js = "PrintCIL(2)"
         _report = '2'
-    elif int(request.args(0)) == 3:
+    elif int(request.vars.category_id) == 3:
         response.js = "PrintCIL(3)"
         _report = '3'
     rows = [[_report]]
@@ -111,14 +110,20 @@ def get_document_register_report_id():
     response.headers['Content-Type']='application/pdf'
     return pdf_data
 
+def get_document_register_report_id():
+    if request.vars.category_id == 1:
+        print '1:', request.vars.category_id, request.vars.from_date, request.vars.to_date
+    elif request.vars.category_id == 2:
+        print '2:', request.vars.category_id, request.vars.from_date, request.vars.to_date, request.vars.supplier_code_id, request.vars.dept_code_id, request.vars.due_date
 
-def xget_document_register_report_id():    
-    if int(request.vars.category_id) == 1:        
+
+def xxget_document_register_report_id():    
+    if int(request.vars.category_id) == 1:                
         head = THEAD(
             TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(A(I(_class='fas fa-print'),_target='_blank', _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('#')),_align='right')),
             # TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(),TD(A(I(_class='fas fa-print'),_target='_blank', _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('procurement','get_document_register_report_print_id', args = [request.vars.from_date,request.vars.to_date])),_align='right')),
             TR(TD('Date'),TD('Register No'),TD('Purchase Order'),TD('Supplier Name'),TD('CIL No'),TD('Order No'),TD('Bank'),TD('Currency'),TD('Amount Invoiced'),TD('Amount QAR'),TD('Due Date'),_class='bg-primary'))              
-        _query = db((db.Document_Register.cil_no != None) & (db.Document_Register.paid == False) & (db.Document_Register.document_register_date >= request.vars.from_date) & (db.Document_Register.document_register_date <= request.vars.to_date)).select(orderby = db.Document_Register.id | db.Document_Register.bank_master_id)
+        _query = db((db.Document_Register.document_register_date >= request.vars.from_date) & (db.Document_Register.document_register_date <= request.vars.to_date)).select(orderby = db.Document_Register.id | db.Document_Register.bank_master_id)
         for n in _query:
             _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()        
             _on = db(db.Purchase_Receipt.purchase_order_no == _po.purchase_order_no).select().first()
@@ -142,23 +147,23 @@ def xget_document_register_report_id():
                 TD(n.currency_id.mnemonic, ' ', locale.format('%.3F',n.invoice_amount or 0, grouping = True),_align='right'),
                 TD('QAR ', locale.format('%.3F',n.total_amount_in_qr or 0, grouping = True),_align='right'),
                 TD(n.due_date)))
-        _query2 = db((db.Other_Payment_Schedule.cil_number != None) & (db.Other_Payment_Schedule.paid == False) & (db.Other_Payment_Schedule.due_date >= request.vars.from_date) & (db.Other_Payment_Schedule.due_date <= request.vars.to_date)).select(orderby = db.Other_Payment_Schedule.id)
-        for x in _query2:
-            row.append(TR(               
-                TD(x.payment_date),
-                TD(x.serial_no),
-                TD(),
-                TD(x.supplier_name),
-                TD(x.cil_number),
-                TD(x.order_no),
-                TD(x.bank_name),
-                TD(x.currency),
-                TD(x.currency, ' ', locale.format('%.3F',x.foreign_currency_amount or 0, grouping = True),_align='right'),
-                TD('QAR ', locale.format('%.3F',x.local_currency_amount or 0, grouping = True),_align='right'),
-                TD(x.due_date)))
+        # _query2 = db((db.Other_Payment_Schedule.cil_number != None) & (db.Other_Payment_Schedule.paid == False) & (db.Other_Payment_Schedule.due_date >= request.vars.from_date) & (db.Other_Payment_Schedule.due_date <= request.vars.to_date)).select(orderby = db.Other_Payment_Schedule.id)
+        # for x in _query2:
+        #     row.append(TR(               
+        #         TD(x.payment_date),
+        #         TD(x.serial_no),
+        #         TD(),
+        #         TD(x.supplier_name),
+        #         TD(x.cil_number),
+        #         TD(x.order_no),
+        #         TD(x.bank_name),
+        #         TD(x.currency),
+        #         TD(x.currency, ' ', locale.format('%.3F',x.foreign_currency_amount or 0, grouping = True),_align='right'),
+        #         TD('QAR ', locale.format('%.3F',x.local_currency_amount or 0, grouping = True),_align='right'),
+        #         TD(x.due_date)))
         body = TBODY(*row)
         table = TABLE(*[head, body], _class='table')
-        return XML(DIV(table))  
+        return XML(DIV(table))
     elif int(request.vars.category_id) == 2:
         print '2'
     elif int(request.vars.category_id) == 2:

@@ -1,3 +1,4 @@
+import locale
 @auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ROOT')) 
 def get_sales_order_grid():
     _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()    
@@ -181,14 +182,141 @@ def get_sales_order_header_writable_false():
     db.Sales_Order.section_id.writable = False    
     db.Sales_Order.sales_man_id.writable = False
 
-def get_pending_sales_return_grid():
-    row = []
+@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ROOT')) 
+def get_tag_sales_return_grid():
+    _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
+    row = []    
+    ctr = 0
     form = SQLFORM.factory(
-        Field('from_date', 'date', default = request.now.date()),
-        Field('to_date', 'date', default = request.now.date()))    
-    if form.accepts(request):
-        title = 'PENDING '
-    return dict()
+        Field('from_date', 'date', default = request.now),
+        Field('to_date', 'date', default = request.now))    
+    if form.accepts(request):    
+        title = 'Tag Sales Invoice for Sales Return as of %s to %s' %(request.vars.from_date, request.vars.to_date)        
+        head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+        _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id)).select()
+        for n in _query:
+            ctr += 1
+            _returned = INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned)
+            _amount = INPUT(_type='text', _name='returned_amount', _id='returned_amount',_class='form-control returned_amount', value=locale.format('%.2F',n.returned_amount or 0, grouping = True), _style="text-align:right;")
+            if n.returned_processed == True:
+                _returned = INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned, _disabled = True)
+                _amount = INPUT(_type='text', _name='returned_amount', _id='returned_amount',_class='form-control', value=locale.format('%.2F',n.returned_amount or 0, grouping = True), _disabled = True, _style="text-align:right;")
+            row.append(TR(
+                TD(ctr,INPUT(_type='text',_class='_id', _name='_id', _id='_id', _value=n.id, _hidden = True)),
+                TD(_returned),
+                TD(_amount, _style="width:120px;"),
+                TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
+                TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered)),                
+                TD(n.sales_return_no),
+                TD(n.sales_invoice_date_approved),
+                TD(n.sales_invoice_no_prefix_id.prefix,n.sales_invoice_no),
+                TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),
+                TD(n.customer_code_id.account_name,', ',n.customer_code_id.account_code),                                
+                TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
+                TD(n.sales_man_id.employee_id.first_name)))
+        body = TBODY(*row)
+        table = TABLE(*[head, body], _class='table')
+        return dict(form = form, title = title, table = table)    
+    title = 'Tag Sales Invoice for Sales Return as of %s' %(request.now.date())
+    head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+    _query = db((db.Sales_Invoice.sales_invoice_date_approved == request.now) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id)).select()
+    for n in _query:
+        ctr += 1
+        _returned = INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned)
+        _amount = INPUT(_type='text', _name='returned_amount', _id='returned_amount',_class='form-control returned_amount', value=locale.format('%.2F',n.returned_amount or 0, grouping = True), _style="text-align:right;")
+        if n.returned_processed == True:
+            _returned = INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned, _disabled = True)
+            _amount = INPUT(_type='text', _name='returned_amount', _id='returned_amount',_class='form-control', value=locale.format('%.2F',n.returned_amount or 0, grouping = True), _disabled = True, _style="text-align:right;")
+        row.append(TR(
+            TD(ctr,INPUT(_type='text',_class='_id', _name='_id', _id='_id', _value=n.id, _hidden = True)),
+            TD(_returned),
+            TD(_amount, _style="width:120px;"),
+            TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
+            TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered)),                
+            TD(n.sales_return_no),
+            TD(n.sales_invoice_date_approved),
+            TD(n.sales_invoice_no_prefix_id.prefix,n.sales_invoice_no),
+            TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),
+            TD(n.customer_code_id.account_name,', ',n.customer_code_id.account_code),                                
+            TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
+            TD(n.sales_man_id.employee_id.first_name)))
+
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(form = form, title = title, table = table)
+
+def marked_sales_invoice_returned_id():    
+    db(db.Sales_Invoice.id == request.args(0)).update(returned = True)    
+
+def unmarked_sales_invoice_returned_id():
+    db(db.Sales_Invoice.id == request.args(0)).update(returned = False)    
+
+def marked_sales_invoice_delivered_id():
+    db(db.Sales_Invoice.id == request.args(0)).update(delivered = True)        
+
+def unmarked_sales_invoice_delivered_id():
+    db(db.Sales_Invoice.id == request.args(0)).update(delivered = False)        
+
+def marked_sales_invoice_returned_amount_id():    
+    db(db.Sales_Invoice.id == request.args(0)).update(returned_amount = request.args(1))
+
+@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ROOT')) 
+def get_pending_sales_return_grid():
+    _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
+    row = []    
+    ctr = 0
+    # session.forget(response)
+    print(":"), session.from_date, session.to_date
+    form = SQLFORM.factory(
+        Field('from_date', 'date', default = request.now),
+        Field('to_date', 'date', default = request.now))    
+    if form.accepts(request, keepvalues = True):    
+        session.from_date = form.vars.from_date
+        session.to_date = form.vars.to_date
+        print("."), session.from_date, session.to_date
+        title = 'Pending Sales Invoice for Sales Return as of %s to %s' %(request.vars.from_date, request.vars.to_date)        
+        head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+        _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.returned == True) & (db.Sales_Invoice.returned_processed != True)).select()
+        for n in _query:
+            ctr += 1
+            row.append(TR(
+                TD(ctr),
+                TD(INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned, _disabled = True)),
+                TD(locale.format('%.2F',n.returned_amount or 0, grouping = True), _style="width:120px;text-align:right;"),
+                TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
+                TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered,_disabled = True)),                
+                TD(n.sales_return_no),
+                TD(n.sales_invoice_date_approved),
+                TD(n.sales_invoice_no_prefix_id.prefix,n.sales_invoice_no),
+                TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),
+                TD(n.customer_code_id.account_name,', ',n.customer_code_id.account_code),                                
+                TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
+                TD(n.sales_man_id.employee_id.first_name)))
+        body = TBODY(*row)
+        table = TABLE(*[head, body], _class='table')
+        return dict(form = form, title = title, table = table)    
+    title = 'Pending Sales Invoice for Sales Return as of %s' %(request.now.date())
+    head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+    _query = db((db.Sales_Invoice.sales_invoice_date_approved == request.now) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.returned == True) & (db.Sales_Invoice.returned_processed != True)).select()
+    for n in _query:
+        ctr += 1
+        row.append(TR(
+            TD(ctr),
+            TD(INPUT(_type='checkbox', _name='returned', _id='returned',_class='returned', value=n.returned, _disabled = True)),
+            TD(locale.format('%.2F',n.returned_amount or 0, grouping = True), _style="width:120px;text-align:right;"),
+            TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
+            TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered,_disabled = True)),                
+            TD(n.sales_return_no),
+            TD(n.sales_invoice_date_approved),
+            TD(n.sales_invoice_no_prefix_id.prefix,n.sales_invoice_no),
+            TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),
+            TD(n.customer_code_id.account_name,', ',n.customer_code_id.account_code),                                
+            TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
+            TD(n.sales_man_id.employee_id.first_name)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(form = form, title = title, table = table)
+
 # ---- C A R D Function  -----
 def card(item, quantity, uom_value):
     _itm_code = db(db.Item_Master.id == item).select().first()

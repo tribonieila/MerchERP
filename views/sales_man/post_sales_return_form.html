@@ -104,8 +104,20 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
+                            <label class="col-sm-4 control-label">Sales Invoice No</label>
+                            <div class="col-sm-8">{{=form.custom.widget.sales_invoice_no}}
+                                <p class="help-block">Ex: 21300001</p> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        <div class="form-group">
                             <label class="col-sm-4 control-label">Remarks</label>
                             <div class="col-sm-8">{{=form.custom.widget.remarks}}</div>
+
                         </div>
                     </div>
                 </div>
@@ -150,9 +162,7 @@ $(document).ready(function(){
     $('#no_table_dept_code_id, #no_table_customer_code_id, #no_table_location_code_id, #no_table_sales_man_id, #no_table_status_id, #no_table_section_id').change(function(){
         if ($('#no_table_dept_code_id').val() && $('#no_table_customer_code_id').val() && $('#no_table_location_code_id').val() && $('#no_table_sales_man_id').val()  && $('#no_table_status_id').val() && $('#no_table_section_id').val()) {            
             $('#btnproceed').removeAttr('disabled');
-            console.log("good")
         } else {
-            console.log("not good")
             $('#btnproceed').attr('disabled','disabled');
         }
     });
@@ -166,21 +176,7 @@ $(document).ready(function(){
     });
 
     $('#btnproceed').click(function(){
-        $('#order_panel').slideDown('slow');
-        ajax('{{=URL('sales','sales_return_session')}}', ['dept_code_id', 'location_code_id']);
-        $('#btnhelp').removeAttr('disabled');
-        $("#item_code").focus();
-        $("#no_table_dept_code_id").attr('disabled','disabled');
-        $("#no_table_sales_man_id").attr('disabled','disabled');
-        $("#no_table_location_code_id").attr('disabled','disabled');
-        $("#no_table_customer_code_id").attr('disabled','disabled');
-        $("#no_table_sales_order_date").attr('disabled','disabled');
-        $("#no_table_customer_order_reference").attr('disabled','disabled');        
-        $("#no_table_status_id").attr('disabled','disabled');
-        $("#no_table_remarks").attr('disabled','disabled');
-        $("#no_table_section_id").attr('disabled','disabled');
-        $("#btnproceed").attr('disabled','disabled');
-        return false;
+        ajax("{{=URL('sales_man','get_sales_invoice_validation')}}",['sales_invoice_no']);
     });
 
     $('#btnsubmit').click(function(){
@@ -197,6 +193,7 @@ $(document).ready(function(){
         $("#no_table_status_id").removeAttr('disabled');
         $("#no_table_remarks").removeAttr('disabled');
         $("#no_table_section_id").removeAttr('disabled');
+        $("#no_table_sales_invoice_no").removeAttr('disabled');
     });
 
     // $('#btnAbort').click(function(){
@@ -204,4 +201,22 @@ $(document).ready(function(){
     // });
         
 });
+    function FuncProceed(){
+        $('#order_panel').slideDown('slow');
+        ajax('{{=URL('sales','sales_return_session')}}', ['dept_code_id', 'location_code_id']);
+        $('#btnhelp').removeAttr('disabled');
+        $("#item_code").focus();
+        $("#no_table_dept_code_id").attr('disabled','disabled');
+        $("#no_table_sales_man_id").attr('disabled','disabled');
+        $("#no_table_location_code_id").attr('disabled','disabled');
+        $("#no_table_customer_code_id").attr('disabled','disabled');
+        $("#no_table_sales_order_date").attr('disabled','disabled');
+        $("#no_table_customer_order_reference").attr('disabled','disabled');        
+        $("#no_table_status_id").attr('disabled','disabled');
+        $("#no_table_remarks").attr('disabled','disabled');
+        $("#no_table_section_id").attr('disabled','disabled');
+        $("#no_table_sales_invoice_no").attr('disabled','disabled');
+        $("#btnproceed").attr('disabled','disabled');
+        return false;
+    }
 </script>

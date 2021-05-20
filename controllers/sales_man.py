@@ -1043,6 +1043,7 @@ def get_sales_return_id():
     db.Sales_Return.total_vat_amount.writable = False    
     db.Sales_Return.sales_man_id.writable = False    
     db.Sales_Return.sales_man_on_behalf.writable = False    
+    db.Sales_Return.sales_invoice_no.writable = False    
     session.sales_return_no_id = request.args(0)
     _id = db(db.Sales_Return.id == request.args(0)).select().first()
     if _id.status_id == 10:
@@ -1204,10 +1205,11 @@ def post_sales_return_form():
         Field('customer_code_id','reference Master_Account', default=int(_default), ondelete = 'NO ACTION',label = 'Customer Code', requires = IS_IN_DB(db(_q_cstmr), db.Master_Account.id, '%(account_name)s, %(account_code)s', zero = 'Choose Customer')),    
         Field('customer_order_reference','string', length = 25),
         Field('delivery_due_date', 'date', default = request.now),
+        Field('sales_invoice_no', 'integer'),
         Field('remarks', 'string'),                
         Field('section_id','string', length=25,default = _usr.section_id, requires = IS_EMPTY_OR(IS_IN_SET([('F','Food Section'),('N','Non-Food Section')],zero ='Choose Section'))),
         Field('status_id','reference Stock_Status', default = 4, requires = IS_IN_DB(db(db.Stock_Status.id == 4), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')))
-    if form.process().accepted:        
+    if form.process().accepted:                
         ctr = db((db.Transaction_Prefix.prefix_key == 'SRS') & (db.Transaction_Prefix.dept_code_id == request.vars.dept_code_id)).select().first()
         _skey = ctr.current_year_serial_key 
         _skey += 1
@@ -1226,8 +1228,9 @@ def post_sales_return_form():
             sales_man_id = _usr.id,
             section_id = form.vars.section_id,
             remarks = form.vars.remarks,
-            total_amount = request.vars.total_amount_var,             
-            total_amount_after_discount = request.vars.net_amount_var,   
+            sales_invoice_no = form.vars.sales_invoice_no,
+            total_amount = request.vars.total_amount_var,
+            total_amount_after_discount = request.vars.net_amount_var,
             status_id = form.vars.status_id)
         _id = db(db.Sales_Return.sales_return_request_no == _skey).select().first()        
         _tmp = db(db.Sales_Return_Transaction_Temporary.ticket_no_id == request.vars.ticket_no_id).select()
@@ -1288,8 +1291,15 @@ def post_sales_return_form():
         db(db.Sales_Return_Transaction_Temporary.ticket_no_id == request.vars.ticket_no_id).delete()
         response.flash = 'Sales return no ' + str(_skey) + ' generated.'    
     elif form.errors:
-        response.flash = 'Form has error.'
+        response.flash = form.errorss
     return dict(form = form, ticket_no_id = ticket_no_id)    
+
+def get_sales_invoice_validation():    
+    _id = db(db.Sales_Return.sales_invoice_no == request.vars.sales_invoice_no).select().first()
+    if _id:
+        response.js = "alertify.warning('Sales Invoice No. %s already returned.')" %(request.vars.sales_invoice_no)
+    else:
+        response.js = "FuncProceed()"
 
 @auth.requires_login()
 def validate_sales_return_transaction(form):        

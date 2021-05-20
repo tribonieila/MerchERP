@@ -705,7 +705,7 @@ def sync_purchase_receipt():
     _skey = _tp.current_year_serial_key
     _skey += 1
     _tp.update_record(current_year_serial_key = int(_skey), updated_on = request.now, updated_by = auth.user_id)   
-    _id.update_record(status_id = 21, purchase_receipt_no_prefix_id = _tp.id, purchase_receipt_no = _skey, purchase_receipt_approved_by = auth.user_id, purchase_receipt_date_approved = request.now, posted = True)
+    _id.update_record(status_id = 21, purchase_receipt_no_prefix_id = _tp.id, purchase_receipt_no = _skey, purchase_receipt_approved_by = auth.user_id, purchase_receipt_date_approved = request.now, purchase_receipt_date = request.now, posted = True)
 
     _order_account = str('10-') + str(_id.purchase_order_no)[-5:]
     db(db.Purchase_Order.purchase_request_no == _id.purchase_request_no).update(status_id =21)
@@ -7263,13 +7263,16 @@ def get_other_payment_schedule_grid():
 def post_other_payment_schedule():
     _id = db(db.Other_Payment_Schedule.id == request.args(0)).select().first()
     if _id:
+        _id = _id.created_on.date()
         form = SQLFORM(db.Other_Payment_Schedule, request.args(0))
         if form.process().accepted:
             session.flash = 'Form updated.'
             redirect(URL('procurement','get_other_payment_schedule_grid'))
         elif form.errors:
             response.flash = 'Form has error.'
+    
     else:
+        _id = request.now.date()
         db.Other_Payment_Schedule.serial_no.default = get_transaction_no_id()
         db.Other_Payment_Schedule.serial_no.readable = True
         form = SQLFORM(db.Other_Payment_Schedule)
@@ -7278,7 +7281,7 @@ def post_other_payment_schedule():
             redirect(URL('procurement','get_other_payment_schedule_grid'))
         elif form.errors:
             response.flash = 'Form has error.'
-    return dict(form = form)
+    return dict(form = form, _id = _id)
 
 def get_transaction_no_id_x(): # check to validate 
     x = datetime.datetime.now()

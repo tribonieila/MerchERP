@@ -1,4 +1,5 @@
 
+import locale
 # ---- C A R D Function  -----
 @auth.requires_login()
 def card(quantity, uom_value):
@@ -53,9 +54,10 @@ row = []
 ctr = 0
 tmpfilename=os.path.join(request.folder,'private',str(uuid4()))
 # doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=200,bottomMargin=200, showBoundary=1)
-doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=1 * inch,bottomMargin=1.5 * inch)
+doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=1 * inch,bottomMargin=1.5 * inch)#, showBoundary=1)
 doc_po = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=2.5 * inch,bottomMargin=3 * inch)#, showBoundary=1)
 w_doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=2.1 * inch,bottomMargin=3 * inch)#, showBoundary=1)
+p_doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=.7 * inch,bottomMargin=.7 * inch)#, showBoundary=1) # pending report
 
 def get_warehouse_receipt_report_header(canvas, w_doc):
     canvas.saveState()
@@ -118,7 +120,7 @@ def get_warehouse_purchase_receipt_workflow_report_id():
     ctr = _after_discount = _discount = _total_amount = _total_amount_loc = 0
 
     _row = [['#','Item Code','Item Description','Prod.Date','Exp.Date','UOM','Category','Qty']]
-    for n in db((db.Purchase_Warehouse_Receipt_Transaction.purchase_warehouse_receipt_no_id == request.args(0)) & (db.Purchase_Warehouse_Receipt_Transaction.quantity_received != 0) & (db.Purchase_Warehouse_Receipt_Transaction.delete == False)).select(orderby = db.Purchase_Warehouse_Receipt_Transaction.id, left = db.Item_Master.on(db.Item_Master.id == db.Purchase_Warehouse_Receipt_Transaction.item_code_id)):
+    for n in db((db.Purchase_Warehouse_Receipt_Transaction.purchase_warehouse_receipt_no_id == request.args(0)) & (db.Purchase_Warehouse_Receipt_Transaction.delete == False) & (db.Purchase_Warehouse_Receipt_Transaction.delete_receipt == False)).select(orderby = db.Purchase_Warehouse_Receipt_Transaction.id, left = db.Item_Master.on(db.Item_Master.id == db.Purchase_Warehouse_Receipt_Transaction.item_code_id)):
         ctr += 1
         if int(n.Purchase_Warehouse_Receipt_Transaction.quantity_received) != 0:
             _quantity_received = card(n.Purchase_Warehouse_Receipt_Transaction.quantity_received,n.Purchase_Warehouse_Receipt_Transaction.uom)
@@ -138,7 +140,7 @@ def get_warehouse_purchase_receipt_workflow_report_id():
             _expiration_date,
             n.Purchase_Warehouse_Receipt_Transaction.uom,
             n.Purchase_Warehouse_Receipt_Transaction.category_id.description,
-            _quantity_received])    
+            card(n.Purchase_Warehouse_Receipt_Transaction.quantity_received,n.Purchase_Warehouse_Receipt_Transaction.uom)])    
     _table = Table(_row, colWidths=[20,70,'*',60,60,30,50,70], repeatRows = 1)
     _table.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
@@ -184,7 +186,58 @@ def get_warehouse_purchase_receipt_workflow_report_id():
     response.headers['Content-Type']='application/pdf'    
     return pdf_data
 
+def get_pending_sales_return_canvas(canvas, p_doc):
+    canvas.saveState()
+    _header = [['Pending Sales Invoice for Sales Return']]
+    _header_table = Table(_header, colWidths = '*')
+    _header_table.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('ALIGN',(0,0),(-1,-1),'CENTER'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier-Bold'),
+        ('FONTSIZE',(0,0),(-1,-1),9),
+    ]))    
+    _header_table.wrapOn(canvas, p_doc.width, p_doc.topMargin)
+    _header_table.drawOn(canvas, p_doc.leftMargin, p_doc.height + p_doc.topMargin + .1 * inch)   
+    canvas.restoreState()
 
+def get_pending_sales_return_report():    
+    _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()    
+    _row = [['#','For SRS','Amount','SR.No.','Date','SI.No.','Department','Customer','Total Amount','Req.By']]    
+    ctr = 0
+    for n in db((db.Sales_Invoice.sales_invoice_date_approved >= session.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= session.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.returned == True) & (db.Sales_Invoice.returned_processed != True)).select():
+        ctr += 1        
+        _row.append([
+            ctr,
+            n.returned,
+            locale.format('%.2F',n.returned_amount or 0, grouping = True),
+            # n.returned_processed,
+            # n.delivered,
+            n.sales_return_no,
+            n.sales_invoice_date_approved,
+            str(n.sales_invoice_no_prefix_id.prefix) + str(n.sales_invoice_no),
+            str(n.dept_code_id.dept_code) + ' - ' + str(n.dept_code_id.dept_name),
+            str(n.customer_code_id.account_name) + ', ' + str(n.customer_code_id.account_code),
+            locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),
+            n.sales_man_id.employee_id.first_name])
+    _table = Table(_row, colWidths=[20,40,50,60,60,60,70,'*',70,70], repeatRows=1)
+    _table.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('FONTNAME',(0,0),(-1,-1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN', (2,1), (2,-1), 'RIGHT'),
+        ('ALIGN', (8,1), (8,-1), 'RIGHT'),
+        ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
+        ('LINEABOVE', (0,1), (-1,1), 0.25, colors.black,None, (2,2)),
+    ]))
+    row.append(_table)
+    p_doc.pagesize = landscape(A4)
+    p_doc.build(row, onFirstPage= get_pending_sales_return_canvas, onLaterPages = get_pending_sales_return_canvas, canvasmaker=LandscapePageNumCanvas)
+    pdf_data = open(tmpfilename,"rb").read()
+    os.unlink(tmpfilename)
+    response.headers['Content-Type']='application/pdf'    
+    return pdf_data    
+
+    
 ########################################################################
 class WarehousePageNumCanvas(canvas.Canvas):
     """
@@ -233,3 +286,48 @@ class WarehousePageNumCanvas(canvas.Canvas):
         self.setFont("Courier", 7)
         self.drawRightString(200*mm, 28*mm, printed_on)
         self.drawRightString(115*mm, 28*mm, page)
+
+class LandscapePageNumCanvas(canvas.Canvas):
+    """
+    http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
+    http://code.activestate.com/recipes/576832/
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, *args, **kwargs):
+        """Constructor"""
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self.pages = []
+ 
+    #----------------------------------------------------------------------
+    def showPage(self):
+        """
+        On a page break, add information to the list
+        """
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+ 
+    #----------------------------------------------------------------------
+    def save(self):
+        """
+        Add the page number to each page (page x of y)
+        """
+        page_count = len(self.pages)
+ 
+        for page in self.pages:
+            self.__dict__.update(page)
+            self.draw_page_number(page_count)
+            canvas.Canvas.showPage(self)
+ 
+        canvas.Canvas.save(self)
+ 
+    #----------------------------------------------------------------------
+    def draw_page_number(self, page_count):
+        """        Add the page number        """                
+        page = []        
+        _page_number = self._pageNumber                
+        page = "Page %s of %s" % (_page_number, page_count)                
+        printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
+        self.setFont("Courier", 7)
+        self.drawRightString(285*mm, 10*mm, printed_on)
+        self.drawRightString(25*mm, 10*mm, page)

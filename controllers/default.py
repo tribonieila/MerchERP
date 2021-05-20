@@ -95,8 +95,10 @@ def get_task():
     
 import arabic_reshaper
 from bidi.algorithm import get_display
+from PIL import Image
 from reportlab.platypus import *
 from reportlab.platypus.flowables import Image
+# from reportlab.lib import utils
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
@@ -290,26 +292,51 @@ ctr = 0
 
 # doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=200,bottomMargin=200, showBoundary=1)
 
-logo_path = request.folder + '/static/images/Merch.jpg'
+logo_path = request.folder + '/static/images/2invoice_header.jpg'
 # text_path = request.folder + 'static/fonts/reports'
 img = Image(logo_path)
-img.drawHeight = 2.55*inch * img.drawHeight / img.drawWidth
+img.drawHeight = 4*inch * img.drawHeight / img.drawWidth
 img.drawWidth = 3.25 * inch
 img.hAlign = 'CENTER'
 
+_limage = Image(logo_path, width =550, height=115, hAlign='CENTER')
 # _limage = Image(logo_path)
-# _limage.drawHeight = 2.55*inch * _limage.drawHeight / _limage.drawWidth
-# _limage.drawWidth = 2.25 * inch
+# _limage.drawHeight = 7*inch * _limage.drawHeight / _limage.drawWidth
+# _limage.drawWidth = 8 * inch
 # _limage.hAlign = 'CENTER'
 
 merch = Paragraph('''<font size=8>Merch & Partners Co. WLL. <font color="black">|</font></font> <font size=7 color="black"> Merch ERP</font>''',styles["BodyText"])
 
+def generate_pdf(c):
+    """ 
+    letter :- (612.0, 792.0)
+    """
+    im = Image.open(_limage)   
+    c.drawInlineImage(im, 256, 720, width=100, height=60)
+
+    c = canvas.Canvas("report_image.pdf", pagesize=letter)
+    generate_pdf(c)
+    c.save()
+
 def print_arabic_canvas(canvas, doc):  
-    canvas.saveState()  
-    header = Table([[_ar_sales_invoice]], colWidths='*')
-    header.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2))]))
+    
+    canvas.saveState()      
+    # img = utils.ImageReader(_limage)
+    # canvas.drawImage(_limage,256, 720, width=100, height=60)
+    image_header =Table([[_limage]])
+    image_header.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2))]))
+    header = Table([['sales invoice here']], colWidths='*')
+    header.setStyle(TableStyle([
+        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        # ('SPAN',(0,0),(-1,-1)),
+        ]))    
+
+    image_header.wrap(doc.width, doc.topMargin)
+    image_header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - 1 * inch)
+
     header.wrap(doc.width, doc.topMargin)
     header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - .8 * inch)
+    
 
     _page = [['Hello']]
     footer = Table(_page, colWidths='*')
@@ -323,8 +350,11 @@ def print_arabic_canvas(canvas, doc):
     canvas.restoreState()
 
 def print_arabic():
-    print 'arabic_text: ', arabic_text
-    doc.build([Paragraph(arabic_text, heading_style)], onFirstPage=print_arabic_canvas, onLaterPages = print_arabic_canvas, canvasmaker=PageNumCanvas)    
+    # print 'arabic_text: ', arabic_text
+    # doc_invoice.build(row, onFirstPage=get_sales_invoice_pdf_canvas, onLaterPages = get_sales_invoice_pdf_canvas, canvasmaker=PDFPageNumCanvas)   
+    
+    # Story = [Spacer(1, 2 * inch)]
+    doc.build([Paragraph(arabic_text, heading_style)], onFirstPage=print_arabic_canvas, onLaterPages = print_arabic_canvas, canvasmaker=PDFPageNumCanvas)    
     pdf_data = open(tmpfilename,"rb").read()
     os.unlink(tmpfilename)
     response.headers['Content-Type']='application/pdf'
@@ -360,7 +390,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
         else:
             _area_name = ''
         _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' + str(_cu.telephone_no)
-        _area = str(_cu.area_name) + '\n' + str(_cu.country.upper())        
+        _area = str(_cu.area_name) + '\n' + str(_cu.country)        
         # _area = str(_cu.area_name) + ', ' +str(_area_name)+ '\n' + str(_cu.country.upper())        
     else:        
         _pobox = _area = ''
@@ -448,7 +478,6 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
 
     # Release the canvas
     canvas.restoreState()
-
 
 @auth.requires(lambda: auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('MANAGEMENT') |  auth.has_membership('ACCOUNT MANAGER') | auth.has_membership('ROOT'))
 def get_workflow_sales_invoice_reports_id():  
@@ -661,6 +690,263 @@ def get_workflow_sales_invoice_reports_id():
     response.headers['Content-Type']='application/pdf'
     return pdf_data
 
+def get_sales_invoice_pdf_canvas(canvas, doc_invoice):      # # for pdf file
+    # Save the state of our canvas so we can draw on it
+    canvas.saveState()    
+
+    image_header =Table([[_limage]])
+    # image_header.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2))]))
+
+    _id = db(db.Sales_Invoice.id == request.args(0)).select().first()    
+    _ma = db(db.Master_Account.id == _id.customer_code_id).select().first()
+    _cu = db(db.Customer.customer_account_no == str(_ma.account_code)).select().first()
+    if _cu:        
+        if _cu.area_name_id:
+            _area_name = _cu.area_name_id.area_name
+        else:
+            _area_name = ''
+        _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' + str(_cu.telephone_no)
+        _area = str(_cu.area_name) + '\n' + str(_cu.country)        
+        # _area = str(_cu.area_name) + ', ' +str(_area_name)+ '\n' + str(_cu.country.upper())        
+    else:        
+        _pobox = _area = ''
+    # Header 'Stock Request Report'
+    for n in db(db.Sales_Invoice.id == request.args(0)).select():
+        _customer = n.customer_code_id.account_name#.upper() + str('\n') + str(n.customer_code_id.area_name.upper()) + str('\n') + 'Unit No.: ' + str(n.customer_code_id.unit_no) + str('\n') + 'P.O. Box ' + str(n.customer_code_id.po_box_no) + '  Tel.No. ' + str(n.customer_code_id.telephone_no) + str('\n')+ str(n.customer_code_id.state.upper()) + ', ' + str(n.customer_code_id.country.upper())
+        _so = [            
+            ['CREDIT INVOICE','','','','','',_ar_sales_invoice],
+            [str(n.sales_invoice_no_prefix_id.prefix)+str(n.sales_invoice_no)],
+            ['Invoice No. ', ':',str(n.sales_invoice_no_prefix_id.prefix)+str(n.sales_invoice_no),':',_ar_invoice_no,'','Invoice Date ',':',n.sales_invoice_date_approved.strftime('%d/%b/%Y'),':',_ar_invoice_date],
+            ['Customer Code',':',n.customer_code_id.account_code,':',_ar_customer_code,'','Transaction Type',':','Credit',':',_ar_transaction_type],             
+            [n.customer_code_id.account_name,'', '','','','','Department',':',n.dept_code_id.dept_name,':',_ar_department],
+            [_pobox,'','','', '','','Location', ':',n.stock_source_id.location_name,':',_ar_location],       
+            [_area,'','','', '','','Sales Man',':',str(n.sales_man_id.employee_id.first_name.upper()) + ' ' + str(n.sales_man_id.employee_id.last_name.upper()),':',_ar_sales_man],
+            ['','','','','','','','','','',''],
+            ]    
+    header = Table(_so, colWidths=[110,10,'*',10,'*',10,'*',10,'*',10,'*'])#,rowHeights=(12))
+    header.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('SPAN',(0,0),(4,0)),
+        ('SPAN',(6,0),(-1,0)),
+        ('SPAN',(0,1),(-1,1)),        
+        # ('SPAN',(0,5),(5,-1)),        
+        ('ALIGN',(0,0),(0,0),'RIGHT'),        
+        ('ALIGN',(6,0),(-1,0),'LEFT'),
+        ('ALIGN',(0,1),(-1,1),'CENTER'),
+        ('VALIGN',(0,2),(-1,-1),'TOP'),
+        ('FONTNAME', (0, 0), (-1, 1), 'Courier',12),           
+        ('FONTNAME', (0, 1), (-1, 1), 'Courier-Bold'),
+        ('FONTSIZE',(0,1),(-1,-1),13),                
+        ('FONTNAME', (0, 2), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,2),(-1,-1),8),
+        ('VALIGN',(0,4),(4,-1),'TOP'),
+        ('TOPPADDING',(0,1),(-1,1),10),
+        ('BOTTOMPADDING',(0,1),(-1,1),25),
+        ('TOPPADDING',(0,2),(-1,-1),0),
+        ('BOTTOMPADDING',(0,2),(-1,-1),0),
+        
+        # ('TOPPADDING',(0,1),(6,-1),0),
+        # ('BOTTOMPADDING',(0,0),(0,0),12),
+        
+        ]))
+
+    image_header.wrap(doc.width, doc.topMargin)
+    image_header.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - .5 * inch)
+
+    header.wrapOn(canvas, doc_invoice.width, doc_invoice.topMargin)
+    header.drawOn(canvas, doc_invoice.leftMargin, doc_invoice.height + doc_invoice.topMargin -.7 * inch)
+    _signatory = [
+            ['','We hereby confirm receipt of this invoice.','','For Merch & Partners Co. WLL',''],
+            ['','','','',''],
+            ['','Name and Signature of Customer','','Authorized Signatory','']]
+    
+    _signatory_table = Table(_signatory, colWidths=[50,'*',25,'*',50])
+    _signatory_table.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),                
+        ('LINEBELOW', (1,1), (1,1),0.5, colors.black,None, (2,2)),
+        ('LINEBELOW', (3,1), (3,1),0.5, colors.black,None, (2,2))        
+        # ('LINEBELOW', (1,1), (1,1),0.5, colors.Color(0, 0, 0, 0.2)),
+        # ('LINEBELOW', (3,1), (3,1),0.5, colors.Color(0, 0, 0, 0.2))        
+
+    ]))    
+
+    _page = [
+        ['Delivery Note No.',':',str(_id.delivery_note_no_prefix_id.prefix)+str(_id.delivery_note_no),':',_ar_delivery_note_no,'','Delivery Note Date',':',_id.delivery_note_date_approved.strftime('%d/%b/%Y'),':',_ar_delivery_note_date],
+        ['Sales Order No.',':',str(_id.transaction_prefix_id.prefix)+str(_id.sales_order_no),':',_ar_sales_order_no,'','Sales Order Date',':',_id.sales_order_date.strftime('%d/%b/%Y'),':',_ar_sales_order_date],
+        ["Good's Receipt No.",':',_id.customer_good_receipt_no,':',_ar_good_receipt_no,'','Customer Order Ref.',':',_id.customer_order_reference,':',_ar_customer_order_ref],
+        ['Issued by',':','',':',_ar_issued_by,'','Delivered by',':','',':',_ar_delivered_by],        
+        ['Date Issued',':','',':',_ar_date_issued,'','Date Delivered',':','',':',_ar_date_delivered]        
+        ]
+    footer = Table(_page, colWidths=[90,10,80,10,80,10,95,10,80,10,80])
+    footer.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),              
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('VALIGN',(0,0),(-1,-1),'TOP'),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('ALIGN', (0,0), (-1,-1), 'LEFT')]))
+
+    _signatory_table.wrap(doc_invoice.width, doc_invoice.bottomMargin)
+    _signatory_table.drawOn(canvas, doc_invoice.leftMargin, doc_invoice.bottomMargin - 2.4 * cm)
+
+    footer.wrap(doc_invoice.width, doc_invoice.bottomMargin)
+    footer.drawOn(canvas, doc_invoice.leftMargin, doc_invoice.bottomMargin - 4.6 * cm)
+
+    # Release the canvas
+    canvas.restoreState()
+
+@auth.requires(lambda: auth.has_membership('SALES') | auth.has_membership('ACCOUNTS') | auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('MANAGEMENT') |  auth.has_membership('ACCOUNT MANAGER') | auth.has_membership('ROOT'))
+def get_sales_invoice_pdf_id():  # for pdf file
+    row = []
+    _id = db(db.Sales_Invoice.id == request.args(0)).select().first()
+
+    ctr = 0
+    _st = [['#','Item Code','Item Description','UOM','Cat','Qty','Unit Price','Discount %','Net Price','Total'],
+    ['',_ar_item_code,_ar_item_description,_ar_uom,_ar_category,_ar_qty,_ar_unit_price,_ar_discount,_ar_net_price,_ar_total]]        
+    _grand_total = 0
+    _total_amount = 0        
+    _total_excise_tax = _selective_tax_sum = _selective_tax_foc_sum = 0    
+    _count = db((db.Sales_Invoice_Transaction.sales_invoice_no_id == request.args(0)) & (db.Sales_Invoice_Transaction.delete == False)).count()
+    # print 'count: ', _count
+    # if int(_count):
+    #     pages = int(_count)
+    # else:
+    #     pages = 0
+    # _items_per_page = 10
+    # _limitby = (pages*_items_per_page, (pages+1)*_items_per_page+1)
+    
+    for t in db((db.Sales_Invoice_Transaction.sales_invoice_no_id == request.args(0)) & (db.Sales_Invoice_Transaction.delete == False)).select(orderby = db.Sales_Invoice_Transaction.id, left = db.Item_Master.on(db.Item_Master.id == db.Sales_Invoice_Transaction.item_code_id)):
+        
+        ctr += 1        
+
+        _selective_tax_sum += t.Sales_Invoice_Transaction.selective_tax
+        _selective_tax_foc_sum += t.Sales_Invoice_Transaction.selective_tax_foc
+
+        if t.Item_Master.uom_value == 1:
+            _qty = t.Sales_Invoice_Transaction.quantity
+        else:
+            _qty = card(t.Item_Master.id, t.Sales_Invoice_Transaction.quantity, t.Sales_Invoice_Transaction.uom)
+
+        if t.Sales_Invoice_Transaction.category_id == 3:
+            _net_price = 'FOC-Price'
+        else:
+            _net_price = locale.format('%.3F',t.Sales_Invoice_Transaction.net_price or 0, grouping = True)
+        if t.Sales_Invoice_Transaction.category_id != 4:
+            _category = t.Sales_Invoice_Transaction.category_id.mnemonic
+        else:
+            _category = ''          
+        _st.append([ctr,Paragraph(t.Item_Master.item_code,style = _style), t.Item_Master.brand_line_code_id.brand_line_name+ '\n' + t.Item_Master.item_description, 
+            t.Sales_Invoice_Transaction.uom, 
+            _category,             
+            _qty,
+            locale.format('%.2F',t.Sales_Invoice_Transaction.price_cost or 0, grouping = True), 
+            locale.format('%.2F',t.Sales_Invoice_Transaction.discount_percentage or 0, grouping = True), 
+            _net_price,
+            locale.format('%.2F',t.Sales_Invoice_Transaction.total_amount or 0, grouping = True)])
+        _total_amount += t.Sales_Invoice_Transaction.total_amount
+    _total_amount_after_discount = float(_total_amount or 0) - float(_id.discount_added or 0)
+    if _selective_tax_sum:
+        _selective_tax = 'Total Selective Tax: '+ str(locale.format('%.2F',_selective_tax_sum or 0, grouping = True)) 
+        _show_ar_total_selective_task = _ar_total_selective_task
+    else:
+        _selective_tax = _show_ar_total_selective_task = ''
+    if _selective_tax_foc_sum > 0:
+        _selective_tax_foc = 'Total Selective Tax FOC: '+ str(locale.format('%.2F',_selective_tax_foc_sum or 0, grouping = True))
+        _show_ar_total_selective_task_foc = _ar_total_selective_task_foc
+    else:
+        _selective_tax_foc = _show_ar_total_selective_task_foc = ''
+        
+    if _id.discount_added:
+        # _discount_value = 'Discount %',':',_ar_discount,locale.format('%.2F',_id.discount_added or 0, grouping = True)
+        _discount_value = locale.format('%.2F',_id.discount_added or 0, grouping = True)
+        _discount_arabic = _ar_discount
+        _discount_word = 'Discount:'
+    else:        
+        _discount_word = _discount_arabic= _discount_value = ''
+    (_whole, _frac) = (int(_total_amount_after_discount), locale.format('%.2f',_total_amount_after_discount or 0, grouping = True))
+    _amount_in_words = 'QAR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS'
+    # _st.append(['-------------     NOTHING TO FOLLOWS     -------------','','','','','','','','',''])
+    _st.append([_selective_tax_foc,'',_show_ar_total_selective_task_foc,'','','','','Total Amount :',_ar_total_amount,locale.format('%.2F',_total_amount or 0, grouping = True)])
+    _st.append([_selective_tax,'',_show_ar_total_selective_task,'','','','' ,_discount_word,_discount_arabic,_discount_value])
+    _st.append([_amount_in_words,'','','','','','','Net Amount :',_ar_net_amount,locale.format('%.2F',_total_amount_after_discount or 0, grouping = True)])
+
+    
+    _st_tbl = Table(_st, colWidths=[20,60,160,35,25,50,50,45,50,50],repeatRows=1)
+    _st_tbl.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        # ('SPAN',(2,4),(5,4)),
+        ('BOTTOMPADDING',(0,0),(-1,0),0),
+        ('TOPPADDING',(0,1),(-1,1),0),
+        ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
+        ('LINEBELOW', (0,1), (-1,1), 0.25, colors.black,None, (2,2)),
+        ('LINEABOVE', (0,-3), (-1,-3), 0.25,  colors.black,None, (2,2)),
+        ('LINEABOVE', (0,-1), (-1,-1), 0.25,  colors.black,None, (2,2)),
+        ('LINEBELOW', (0,-1), (-1,-1), 0.25,  colors.black,None, (2,2)),
+        ('LINEBELOW', (0,2), (-1,-5), 0.5, colors.Color(0, 0, 0, 0.2)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTNAME', (0, -1), (9, -1), 'Courier-Bold', 12),                
+        ('FONTSIZE',(0,0),(-1,1),7),
+        ('FONTSIZE',(0,1),(-1,-1),8),
+        ('VALIGN',(0,2),(-1,-1),'TOP'),        
+        ('ALIGN', (5,2), (-1,-1), 'RIGHT'),
+        
+    ]))    
+
+    _others = [        
+        ['Delivery Note No.',':',str(_id.delivery_note_no_prefix_id.prefix)+str(_id.delivery_note_no), '','Sales Order No.',':',str(_id.transaction_prefix_id.prefix)+str(_id.sales_order_no)],
+        ['Delivery Note Date.',':',_id.delivery_note_date_approved.strftime('%d-%m-%Y, %H:%M %p'), '','Sales Order Date.',':',_id.sales_order_date.strftime('%d-%m-%Y')],
+        ['Remarks',':',_id.remarks, '','Customer Sales Order Ref.',':',_id.customer_order_reference]]
+    _others_table = Table(_others, colWidths=['*',25,'*',25,'*',25,'*'])
+    _others_table.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0),
+        ('VALIGN',(0,0),(-1,-1),'TOP'),
+    ]))
+    # row.append(Spacer(1,.7*cm))    
+
+    _signatory = [
+        ['','We hereby confirm receipt of this invoice.','','For Merch & Partners Co. WLL',''],
+        ['','','','',''],
+        ['','Name and Signature of Customer','','Authorized Signatory','']]
+    
+    _signatory_table = Table(_signatory, colWidths=[50,'*',25,'*',50])
+    _signatory_table.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('TOPPADDING',(0,1),(1,1),30),
+        ('LINEBELOW', (1,1), (1,1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('LINEBELOW', (3,1), (3,1),0.5, colors.Color(0, 0, 0, 0.2))        
+    ]))
+
+    _customer = [["","","E.& O.E "]]
+    _c_tbl = Table(_customer, colWidths=[100,355,100])
+    _c_tbl.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('ALIGN', (1,0), (1,0), 'CENTER'),        
+        ('ALIGN', (2,0), (2,0), 'RIGHT'),        
+        ('FONTSIZE',(0,0),(-1,-1),7),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier-Bold'),        
+        ('TEXTCOLOR',(0,0),(-1,-1),colors.white),
+        ('BACKGROUND',(0,0),(-1,-1),colors.grey),
+        ]))
+    row.append(_st_tbl)
+    row.append(_c_tbl)
+    row.append(PageBreak())
+    doc_invoice.build(row, onFirstPage=get_sales_invoice_pdf_canvas, onLaterPages = get_sales_invoice_pdf_canvas, canvasmaker=PDFPageNumCanvas)    
+    pdf_data = open(tmpfilename,"rb").read()
+    os.unlink(tmpfilename)
+    response.headers['Content-Type']='application/pdf'
+    return pdf_data
+
 def get_sales_order_header_footer(canvas, doc_invoice):     # audited
     # Save the state of our canvas so we can draw on it
     canvas.saveState()
@@ -673,7 +959,7 @@ def get_sales_order_header_footer(canvas, doc_invoice):     # audited
         else:
             _area_name = ''
         _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' + str(_cu.telephone_no)
-        _area = str(_cu.area_name) + '\n' + str(_cu.country.upper())
+        _area = str(_cu.area_name) + '\n' + str(_cu.country)
     else:
         _pobox = _area = ''
     # Header 'Stock Request Report'
@@ -1162,7 +1448,7 @@ def sales_return_accounts_header_footer_report(canvas, doc): # audited
         else:
             _area_name = ''
         _pobox = 'P.O. Box ' + str(_cu.po_box_no) + ', Tel.No. ' +str(_cu.telephone_no)
-        _area = str(_cu.area_name) + ', ' + str(_area_name) + '\n' + str(_cu.country.upper())
+        _area = str(_cu.area_name) + ', ' + str(_area_name) + '\n' + str(_cu.country)
     else:
         _pobox = _area = ''        
     # Header 'Stock Request Report'
@@ -2069,7 +2355,59 @@ class PageNumCanvas(canvas.Canvas):
         self.drawRightString(200*mm, 10*mm, printed_on)
         self.drawRightString(115*mm, 10*mm, page)
  
+########################################################################
+class PDFPageNumCanvas(canvas.Canvas):
+    """
+    http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
+    http://code.activestate.com/recipes/576832/
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, *args, **kwargs):
+        """Constructor"""
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self.pages = []
+ 
+    #----------------------------------------------------------------------
+    def showPage(self):
+        """
+        On a page break, add information to the list
+        """
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+ 
+    #----------------------------------------------------------------------
+    def save(self):
+        """
+        Add the page number to each page (page x of y)
+        """
+        page_count = len(self.pages)
+ 
+        for page in self.pages:
+            self.__dict__.update(page)
+
+            self.draw_page_number(page_count)
+            canvas.Canvas.showPage(self)
+ 
+        canvas.Canvas.save(self)
+ 
+    #----------------------------------------------------------------------
+    def draw_page_number(self, page_count):
+        """        Add the page number        """
+        page = []        
+        _page_count = page_count
+        _page_number = self._pageNumber
+        PDFfile = 'For electronic mail purposes only.'
+        page = "Page %s of %s" % (_page_number, _page_count)        
+        printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
+        self.setFont("Courier", 7)
+        # self.drawImage(_limage, 256, 720, width=100, height=60, mask=None)        
+        self.drawRightString(61*mm, 10*mm, PDFfile)
+        self.drawRightString(200*mm, 10*mm, printed_on)
+        self.drawRightString(115*mm, 10*mm, page)
+
 class PageNumCanvas2(canvas.Canvas):
+
     """
     http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
     http://code.activestate.com/recipes/576832/

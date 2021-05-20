@@ -1,0 +1,66 @@
+{{extend 'layout.html'}}
+
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">{{=title}}</span>
+        </div>
+        <div class="card-body tab-content">   
+            {{=form.custom.begin}}
+            <div class="row">
+                <label>Date Range</label>
+                  <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value={{=request.now.date()}}></div>
+                  <span>to</span>
+                  <div class="col">
+                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value={{=request.now.date()}}></div>                        
+                  </div>
+                  <div class="col">
+                    {{=form.custom.submit}}
+                  </div>
+            </div>
+            {{=form.custom.end}}
+            <br>            
+            {{=table}}      
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready( function () {
+        $('.table').DataTable();
+        $(".returned").click(function(e){                 
+            var _id = $(this).closest('tr').find('input:text').val();
+            if (this.checked) {                
+                ajax("{{=URL('warehouse_sales','marked_sales_invoice_returned_id')}}" + '/'+ _id);
+                alertify.success("For SRS marked.")
+            } else {
+                ajax("{{=URL('warehouse_sales','unmarked_sales_invoice_returned_id')}}" + '/'+ _id);
+                alertify.notify("For SRS unmarked.")
+            }
+        });
+        $(".returned_amount").change(function(e){                             
+            var _id = $(this).closest('tr').find('input:text').val();
+            var _amount = $(this).closest('tr').find('.returned_amount').val().replace(/,/g,"");
+            if (!isNaN(_amount)) {                
+                ajax("{{=URL('warehouse_sales','marked_sales_invoice_returned_amount_id')}}" + '/'+ _id + '/' + _amount);
+                alertify.success("Amount added")
+            } else {
+                alertify.error("Amount Error!")
+            }
+                        
+        });        
+        $(".delivered").click(function(e){                 
+            var _id = $(this).closest('tr').find('input:text').val();
+            if (this.checked) {                
+                ajax("{{=URL('warehouse_sales','marked_sales_invoice_delivered_id')}}" + '/'+ _id);
+                alertify.success("Delivered marked.")
+            } else {
+                ajax("{{=URL('warehouse_sales','unmarked_sales_invoice_delivered_id')}}" + '/'+ _id);
+                alertify.notify("Delivered unmarked.")
+            }
+        });
+
+    });
+</script>

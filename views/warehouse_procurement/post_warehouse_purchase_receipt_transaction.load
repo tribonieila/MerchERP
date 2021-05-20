@@ -38,7 +38,7 @@
 
 $(document).ready(function(){
     $('#no_table_new_item_code').change(function(){
-        ajax('{{=URL('warehouse_procurement','warehouse_add_new_item', args = request.args(0))}}', ['new_item_code'], '_item_code_description');     
+        ajax('{{=URL('procurement','warehouse_add_new_item', args = request.args(0))}}', ['new_item_code'], '_item_code_description');     
         return false;
     });
 

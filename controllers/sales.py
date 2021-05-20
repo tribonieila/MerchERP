@@ -2542,6 +2542,7 @@ def sales_return_sales_manager():
     db.Sales_Return.status_id.writable = False    
     db.Sales_Return.sales_man_on_behalf.writable = False    
     db.Sales_Return.section_id.writable = False
+    db.Sales_Return.sales_invoice_no.writable = False
 
     # db.Sales_Return.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 1) | (db.Stock_Status.id == 3)| (db.Stock_Status.id == 4)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
     # db.Sales_Return.status_id.default = 4
@@ -2553,7 +2554,10 @@ def sales_return_sales_manager():
         redirect(URL('inventory','mngr_req_grid'))
     elif form.errors:        
         response.flash = 'FORM HAS ERROR'    
-    return dict(form = form, _id = _id, _address = get_customer_address_id()) 
+    _section = 'Food Section'
+    if _id.section_id != 'F':
+        _section = 'Non-Food Section'
+    return dict(form = form, _id = _id, _address = get_customer_address_id(), _section = _section) 
 
 def get_customer_address_id():
     _id = db(db.Sales_Return.id == request.args(0)).select().first()
@@ -2628,6 +2632,7 @@ def sales_return_warehouse_form():
     db.Sales_Return.status_id.writable = False    
     db.Sales_Return.sales_man_on_behalf.writable = False
     db.Sales_Return.section_id.writable = False
+    db.Sales_Return.sales_invoice_no.writable = False
     # db.Sales_Return.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 1) | (db.Stock_Status.id == 3)| (db.Stock_Status.id == 4)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
     # db.Sales_Return.status_id.default = 4
     session.sales_return_no_id = request.args(0)
@@ -2638,7 +2643,11 @@ def sales_return_warehouse_form():
         redirect(URL('inventory','str_kpr_grid'))
     elif form.errors:
         response.flash = 'FORM HAS ERROR'    
-    return dict(form = form, _id = _id) 
+    _section = 'Food Section'
+    if _id.section_id != 'F':
+        _section = 'Non-Food Section'
+
+    return dict(form = form, _id = _id, _section = _section) 
 
 @auth.requires_login()
 def sales_return_warehouse_form_approved():
@@ -2681,6 +2690,7 @@ def sales_return_accounts_form():
     db.Sales_Return.sales_man_id.writable = False        
     db.Sales_Return.sales_man_on_behalf.writable = False    
     db.Sales_Return.section_id.writable = False    
+    db.Sales_Return.sales_invoice_no.writable = False    
     db.Sales_Return.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 12) | (db.Stock_Status.id == 13)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
     # db.Sales_Return.status_id.requires = IS_IN_DB(db((db.Stock_Status.id == 12) | (db.Stock_Status.id == 13) | (db.Stock_Status.id == 14)), db.Stock_Status.id, '%(description)s', zero = 'Choose Status')
     db.Sales_Return.status_id.default = 14
@@ -2692,7 +2702,10 @@ def sales_return_accounts_form():
         redirect(URL('inventory','account_grid'))
     elif form.errors:
         response.flash = 'FORM HAS ERROR'    
-    return dict(form = form, _id = _id)     
+    _section = 'Food Section'
+    if _id.section_id != 'F':
+        _section = 'Non-Food Section'
+    return dict(form = form, _id = _id, _section = _section)           
 
 @auth.requires_login()
 def sales_return_accounts_form_approved(): # manoj sales return approved
@@ -2707,6 +2720,9 @@ def sales_return_accounts_form_approved(): # manoj sales return approved
         response.js = "jQuery(AccountRedirect())"
     else:
         _id = db(db.Sales_Return.id == request.args(0)).select().first()
+        _si = db(db.Sales_Invoice.sales_invoice_no == _id.sales_invoice_no).select().first()
+        if _si:
+            _si.update_record(returned_processed = True, sales_return_no = _id.sales_return_no)
         _damaged_qty = 0
         for n in db(db.Sales_Return_Transaction.sales_return_no_id == _id.id).select():
             _price = db(db.Item_Prices.item_code_id == n.item_code_id).select().first()
@@ -3720,8 +3736,9 @@ def get_workflow_reports():
                 view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', callback=URL('sales','get_sales_invoice_id', args = n.id))
                 prin_lnk = A(I(_class='fas fa-print'), _target="#",_title='Print Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('delivery_note_reports','get_workflow_delivery_reports_id', args = n.id))
             elif auth.has_membership(role = 'SALES') | auth.has_membership(role = 'INVENTORY SALES MANAGER'):                
-                view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', callback=URL('sales','get_sales_invoice_id', args = n.id))
-            elif auth.has_membership(role = 'ACCOUNTS') | auth.has_membership(role = 'ACCOUNTS MANAGER'):                
+                view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle', callback=URL('sales','get_sales_invoice_id', args = n.id))
+                prin_lnk = A(I(_class='fas fa-print'), _target="#",_title='Print Row', _type='button  ', _role='button', _class='btn btn-warning btn-icon-toggle', _href=URL('default','get_sales_invoice_pdf_id', args = n.id))
+            elif auth.has_membership(role = 'ACCOUNTS') | auth.has_membership(role = 'ACCOUNTS MANAGER'):
                 view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle view', callback=URL('sales','get_sales_invoice_id', args = n.id))
                 # view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-info btn-icon-toggle', _href=URL('sales','get_workflow_reports_id', args = [1, n.id]))
                 prin_lnk = A(I(_class='fas fa-print'), _target="#",_title='Print Row', _type='button  ', _role='button', _class='btn btn-warning btn-icon-toggle', _href=URL('default','get_workflow_sales_invoice_reports_id', args = n.id))
@@ -4327,7 +4344,7 @@ def get_sales_invoice_id():
                 TD(locale.format('%.3F',n.Sales_Invoice_Transaction.price_cost or 0, grouping = True),_align='right'),
                 TD(locale.format('%.2F',n.Sales_Invoice_Transaction.discount_percentage or 0, grouping = True),_align='right'),
                 TD(locale.format('%.3F',n.Sales_Invoice_Transaction.net_price or 0, grouping = True),_align='right'),
-                TD(locale.format('%.3F',n.Sales_Invoice_Transaction.total_amount or 0, grouping = True),_align='right')))
+                TD(locale.format('%.2F',n.Sales_Invoice_Transaction.total_amount or 0, grouping = True),_align='right')))
             _selective_tax += n.Sales_Invoice_Transaction.selective_tax or 0
             _selective_tax_foc += n.Sales_Invoice_Transaction.selective_tax_foc or 0        
             if (_selective_tax > 0.0):
@@ -4342,9 +4359,9 @@ def get_sales_invoice_id():
             _total_amount += n.Sales_Invoice_Transaction.total_amount
             _total_amount_after_discount = float(_total_amount or 0) - float(_id.discount_added or 0)
         foot = TFOOT(
-            TR(TD(_tax_remarks,_colspan='8',_rowspan='3'),TD('Total Amount:',_align='right',_colspan='2'),TD(locale.format('%.3F', _total_amount or 0, grouping = True), _align = 'right')),    
-            TR(TD('Added Discount Amount:',_align='right',_colspan='2'),TD(locale.format('%.3F',_id.discount_added or 0, grouping = True), _align = 'right')),
-            TR(TD('Net Amount:',_align='right',_colspan='2'),TD(locale.format('%.3F',_total_amount_after_discount or 0, grouping = True), _align = 'right')))                                
+            TR(TD(_tax_remarks,_colspan='8',_rowspan='3'),TD('Total Amount:',_align='right',_colspan='2'),TD(locale.format('%.2F', _total_amount or 0, grouping = True), _align = 'right')),    
+            TR(TD('Added Discount Amount:',_align='right',_colspan='2'),TD(locale.format('%.2F',_id.discount_added or 0, grouping = True), _align = 'right')),
+            TR(TD('Net Amount:',_align='right',_colspan='2'),TD(locale.format('%.2F',_total_amount_after_discount or 0, grouping = True), _align = 'right')))                                
         body = TBODY(*row)        
         table += TABLE(*[head, body, foot], _class='table table-bordered table-hover table-condensed')
         

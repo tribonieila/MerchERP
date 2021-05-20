@@ -313,8 +313,8 @@ def put_purchase_receipt_transaction_id(): # .load
         # Field('category_id','reference Transaction_Item_Category', default = _ex_or_not_default, ondelete = 'NO ACTION', requires = IS_IN_DB(db(_ex_or_not), db.Transaction_Item_Category.id, '%(mnemonic)s - %(description)s', zero = 'Choose Type')))
     if form2.process(onvalidation = validated_purchase_receipt_id).accepted:
         _p = db(db.Item_Prices.item_code_id == form2.vars.item_code_id).select().first()
-        db(db.Purchase_Request.id == request.args(0)).update(invoiced = False)
-        db.Purchase_Request_Transaction.insert(
+        db(db.Purchase_Warehouse_Receipt.id == request.args(0)).update(invoiced = False)
+        db.Purchase_Warehouse_Receipt.insert(
             purchase_request_no_id = request.args(0),            
             item_code = form2.vars.item_code,
             item_code_id = form2.vars.item_code_id,
@@ -347,11 +347,11 @@ def put_purchase_receipt_submit_id():
         trade_terms_id = request.vars.trade_terms_id,
         supplier_reference_order = request.vars.supplier_reference_order,        
         currency_id=request.vars.currency_id,
-        exchange_rate = request.vars.exchange_rate,
-        landed_cost = request.vars.landed_cost,
-        custom_duty_charges = request.vars.custom_duty_charges,
-        selective_tax = request.vars.selective_tax,
-        other_charges = request.vars.other_charges,
+        exchange_rate = request.vars.exchange_rate or 0,
+        landed_cost = request.vars.landed_cost or 0,
+        custom_duty_charges = request.vars.custom_duty_charges or 0,
+        selective_tax = request.vars.selective_tax or 0,
+        other_charges = request.vars.other_charges or 0,
         remarks=request.vars.remarks,
         d1_reference = request.vars.d1_reference)
     session.flash = 'Purchase receipt submitted...'    
@@ -388,6 +388,65 @@ def delete_purchase_receipt_transaction_id():
     db(db.Purchase_Warehouse_Receipt_Transaction.id == request.args(0)).update(delete_invoiced = True)
     response.js = "$('#POTtbl').get(0).reload()"
 
+@auth.requires_login()
+def generate_item_code_recent_cost():
+    # print request.vars.item_code
+    _i = db(db.Item_Master.item_code == str(request.vars.item_code)).select().first()    
+    
+    if not _i:
+        _value = 0        
+    else:
+        _p = db(db.Item_Prices.item_code_id == int(_i.id)).select().first()
+        if not _p:
+            _value = 0
+        else:
+            _value = _p.most_recent_cost     
+    
+    response.js = "$('#no_table_most_recent_cost').val(%s)" % (_value)
+
+def get_item_code_id():
+    _id = db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select().first()
+    _im = db((db.Item_Master.item_code == str(request.vars.item_code)) & (db.Item_Master.dept_code_id == int(_id.dept_code_id)) & (db.Item_Master.supplier_code_id == int(_id.supplier_code_id))).select().first()    
+    if not _im:
+        # response.js = "toastr['error']('Item code no %s dont beleong to selected supplier'), toastr.options = { 'positionClass': 'toast-top-full-width'}" % (request.vars.item_code)
+        # return CENTER(DIV(B('WARNING! '), "Item code no " + str(request.vars.item_code) +" doesn't belong to the selected supplier. ", _class='alert alert-warning',_role='alert'))   
+        return CENTER(DIV(B('WARNING! '), "Item code no " + str(request.vars.item_code) +" doesn't belong to the selected supplier. ", _class='alert alert-warning',_role='alert'))
+        # response.js = "toastr['error']('<table>%s</table>'), toastr.options = { 'positionClass': 'toast-bottom-full-width'}" % (request.vars.item_code)     
+    else:
+        _ip = db(db.Item_Prices.item_code_id == int(_im.id)).select().first()        
+        _sf = db((db.Stock_File.item_code_id == int(_im.id)) & (db.Stock_File.location_code_id == int(_id.location_code_id))).select().first()
+        if _sf:
+            if _im.uom_value == 1:
+                response.js = "$('.no_table_pieces').attr('disabled','disabled')"
+                _on_balanced = _sf.probational_balance
+                _on_transit = _sf.order_in_transit
+                _on_hand = _sf.closing_stock    
+            else:
+                response.js = "$('#no_table_pieces').removeAttr('disabled')"                
+                _on_balanced = card(_sf.probational_balance, _im.uom_value)
+                _on_transit = card(_sf.order_in_transit, _im.uom_value)
+                _on_hand = card(_sf.closing_stock, _im.uom_value)   
+            return CENTER(TABLE(THEAD(TR(TH('Item Code'),TH('Description'),TH('Group Line'),TH('Brand Line'),TH('UOM'),TH('Retail Price'),TH('Closing Stock'),TH('Order In Transit'))),
+            TBODY(TR(
+                TD(_im.item_code),
+                TD(_im.item_description.upper()),
+                TD(_im.group_line_id.group_line_name),
+                TD(_im.brand_line_code_id.brand_line_name),
+                TD(_im.uom_value),                
+                TD(_ip.retail_price),                
+                TD(_on_hand),
+                TD(_on_transit)),_class="bg-info"),_class='table'))                                
+        else:
+            return CENTER(TABLE(THEAD(TR(TH('Item Code'),TH('Description'),TH('Group Line'),TH('Brand Line'),TH('UOM'),TH('Retail Price'),TH('Closing Stock'),TH('Order In Transit'))),
+            TBODY(TR(
+                TD(_im.item_code),
+                TD(_im.item_description.upper()),
+                TD(_im.group_line_id.group_line_name),
+                TD(_im.brand_line_code_id.brand_line_name),
+                TD(_im.uom_value),                
+                TD(_ip.retail_price),                
+                TD(0),
+                TD(0)),_class="bg-info"),_class='table'))      
 # ---- C A R D Function  -----
 @auth.requires_login()
 def card(quantity, uom_value):

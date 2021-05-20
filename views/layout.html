@@ -58,7 +58,8 @@
 
     <link rel="stylesheet" href="https://cdn.datatables.net/rowreorder/1.2.7/css/rowReorder.dataTables.min.css"/>
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css"/>
-
+	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.7.0/css/buttons.dataTables.min.css"/>
+	
 	<!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css"/>  -->
 	
 	<link rel="stylesheet" href="{{=URL('static','css/styles.css')}}"/>	
@@ -758,7 +759,14 @@
 						
 					</ul>
 				</li>
-				<li><a href="{{=URL('warehouse_sales','get_pending_sales_return_grid')}}"><div class="gui-icon"><i class="md fas fa-cart-arrow-down"></i></div><span class="title">PENDING SALES RETURN</span></a></li>			
+				<li><a href="#"><div class="gui-icon"><i class="md fas fa-cart-arrow-down"></i></div><span class="title">SALES INVOICE FOR SRS</span></a> 					
+					<ul>
+						<li><a href="{{=URL('warehouse_sales','get_tag_sales_return_grid')}}"><span class="title">Tag SI for SRS</span></a></li>
+						<li><a href="{{=URL('warehouse_sales','get_pending_sales_return_grid')}}" ><span class="title">Pending INV for SRS</span></a></li>						
+					</ul>
+				</li>
+
+				
 			</ul>
 			{{pass}}
 			{{if (auth.user_id != None) &  (auth.has_membership(role = 'INVENTORY POS')):}}
@@ -831,7 +839,7 @@
 
     <script src="https://cdn.datatables.net/rowreorder/1.2.7/js/dataTables.rowReorder.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
-
+	<script src="https://cdn.datatables.net/buttons/1.7.0/js/dataTables.buttons.min.js"></script>	
 	
 	<script src="{{=URL('static','dist/alertify/alertify.min.js')}}"></script>    
 	<script src="{{=URL('static','js/jquery.autocomplete.min.js')}}"></script>    

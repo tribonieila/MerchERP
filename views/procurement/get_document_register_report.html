@@ -53,7 +53,7 @@
 $(document).ready( function () {    
     $("#no_table_supplier_code_id, #no_table_due_date, #no_table_dept_code_id").hide();    
     $("#btnSubmit").click(function(){                
-        ajax("{{=URL('document_register_report','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'])        
+        ajax("{{=URL('document_register_report','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'], 'tblView' )        
     });
 
     $("#no_table_category_id").change(function(){   
@@ -70,9 +70,9 @@ $(document).ready( function () {
     });
 });
 
-    function PrintCIL(x){
-        window.open("{{=URL('document_register_report','get_document_register_report_id')}}" +  '/' +  x)
-    }
+    // function PrintCIL(x){
+    //     window.open("{{=URL('document_register_report','get_document_register_report_id')}}" +  '/' +  x)
+    // }
 </script>
 
 
