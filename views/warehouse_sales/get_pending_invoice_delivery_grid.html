@@ -1,0 +1,47 @@
+{{extend 'layout.html'}}
+
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">{{=title}}</span>
+        </div>
+        <div class="card-body tab-content">   
+            {{=form.custom.begin}}
+            <div class="row">
+                <label>Date Range</label>
+                  <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value={{=request.now}}></div>
+                  <span>to</span>
+                  <div class="col">
+                    <div class="col"><input class="form-control" id="no_table_to_date" name="to_date" type="date" value={{=request.now}}></div>                        
+                  </div>
+                  <div class="col">
+                    {{=form.custom.submit}}
+                  </div>
+            </div>
+            {{=form.custom.end}}
+            <br>            
+            
+            {{=table}}      
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready( function () {        
+        $('.table').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    text: 'Print',
+                    action: function ( e, dt, node, config ) {
+                        var from_date = document.getElementById('no_table_from_date').value
+                        var to_date = document.getElementById('no_table_to_date').value
+                        console.log(from_date, to_date);
+                        window.open("{{=URL('warehouse_reports','get_pending_invoice_for_delivery_report')}}");
+                    }
+                }
+            ]
+        });            
+    });
+</script>

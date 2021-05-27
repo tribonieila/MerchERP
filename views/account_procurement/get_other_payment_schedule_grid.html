@@ -1,0 +1,22 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">Other Payment Schedule Grid</span>
+        </div>
+        <div class="card-body tab-content">            
+            {{=table}}            
+            <a class="btn btn-primary" id="btnAdd" role="button" href="{{=URL('account_procurement','post_other_payment_schedule', extension = False)}}">+ create payment schedule</a>
+        </div>
+    </div>
+</div>
+        
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+<script>
+$(document).ready( function () {
+    $('.table').DataTable();
+});
+</script>
+
+
+

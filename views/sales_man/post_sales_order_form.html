@@ -121,7 +121,11 @@
 </div>
 
 <script>
+    function 
+</script>
+<script>
 $(document).ready(function(){    
+    
     $('#btnsubmit').attr('disabled','disabled');
     $('#btnhelp').attr('disabled','disabled');
     $('#btnproceed').attr('disabled','disabled');
@@ -141,6 +145,7 @@ $(document).ready(function(){
     $('#no_table_dept_code_id').change(function(){
         ajax('{{=URL('sales_man','post_sales_order_no')}}', ['dept_code_id']);     
     });
+           
     
     $('#btnproceed').click(function(){
         $('#order_panel').slideDown('slow');
@@ -175,6 +180,12 @@ $(document).ready(function(){
     $('#btnAbort').click(function(){
         ajax('{{=URL('sales_man','put_sales_order_form_abort')}}', ['ticket_no_id']);
     });        
+
+    var _blocked = [{{for n in db(db.Master_Account.blocked == True).select():}} {{=n.id}}, {{pass}}]
+    
+    $.each(_blocked, function(k, v) {        
+        $('#no_table_customer_code_id option[value=' + v + ']').prop('disabled', true);
+    })
 });
 
 

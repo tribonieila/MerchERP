@@ -1,0 +1,120 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline"> 
+        <div class="card-head">
+            <span class="card-title">Other Payment Schedule Form</span>
+        </div>
+        <div class="card-body tab-content">            
+            <div class="form-horizontal">
+            {{=form.custom.begin}}
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Document Register Date</label>
+                            <div class="col-sm-8"><input type="text" class="form-control" value="{{=request.now.date()}}" readonly></div>
+                        </div>                        
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Order No</label>
+                        <div class="col-sm-8">{{=form.custom.widget.document_register_no}}</div>
+                        
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Due date</label>
+                        <div class="col-sm-8">{{=form.custom.widget.due_date}}</div>
+                    </div>
+                </div>                  
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">CIL No.</label>
+                        <div class="col-sm-8">{{=form.custom.widget.cil_no}}</div>
+                    </div>
+                </div>                 
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Supplier Name</label>
+                        <div class="col-sm-8">{{=form.custom.widget.supplier_code_id}}</div>
+                    </div>
+                </div>                                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Bank Name</label>
+                        <div class="col-sm-8">{{=form.custom.widget.bank_master_id}}</div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Invoice Amount</label>
+                        <div class="col-sm-8">{{=form.custom.widget.invoice_amount}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Currency</label>
+                        <div class="col-sm-8">{{=form.custom.widget.currency_id}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Exchange Rate</label>
+                        <div class="col-sm-8">{{=form.custom.widget.exchange_rate}}</div>
+                    </div>
+                </div>                               
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Trade Terms</label>
+                        <div class="col-sm-8">{{=form.custom.widget.payment_terms}}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Paid</label>
+                        <div class="col-sm-8">{{=form.custom.widget.paid}}</div>
+                    </div>
+
+                </div>
+                <div class="col-md-4">
+                    <label class="col-sm-4 control-label"></label>
+                    <div class="col-sm-8">{{=form.custom.submit}}</div>                    
+                </div>
+            </div>
+            {{=form.custom.end}}
+            </div>
+        </div>
+    </div>
+</div>
+        
+
+<script>
+    $(document).ready(function(){
+        var invoice_amount = $("#Document_Register_invoice_amount").val();  
+        var exchange_rate = $("#Document_Register_exchange_rate").val();  
+        
+        var invoice_amount=parseFloat(invoice_amount).toFixed(2);
+        var exchange_rate=parseFloat(exchange_rate).toFixed(3);
+
+        var invoice_amount = invoice_amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        
+        $("#Document_Register_invoice_amount").val(invoice_amount);  
+        $("#Document_Register_exchange_rate").val(exchange_rate);  
+        $("#Document_Register_currency_id").change(function(){ 
+            ajax("{{=URL('account_procurement','get_currency_id')}}",['currency_id'])
+        })
+        // $("form").submit(function( event ) {              
+        //     $("#Document_Register_invoice_amount").val().replace(/,/g,"");                        
+        // })
+    })
+</script>

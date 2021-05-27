@@ -143,6 +143,11 @@
                             <input class="btn btn-warning" type="button" value="reject" onclick=onReject()>                                    
                             <button class="btn btn-info" type="button" onclick=onPurchaseHistory()> Purchase History</button>
                             <!-- <button class="btn btn-info" type="button" onclick="window.open('{{=URL('procurement','purchase_history', args = request.args(0))}}')"> Purchase History</button> -->
+                        {{ elif _id.status_id == 29: }}
+                            <input class="btn btn-success" type="button" value="approved" onclick=onCANCApproved()>
+                            <!-- <input class="btn btn-warning" type="button" value="reject" onclick=onCANCReject()>                                     -->
+                            <button class="btn btn-info" type="button" onclick=onPurchaseHistory()> Purchase History</button>
+
                         {{ else: }}
                             <input class="btn btn-success" type="button" value="approved" disabled>
                             <input class="btn btn-warning" type="button" value="reject" disabled>                            
@@ -173,6 +178,10 @@
         ajax('{{=URL('procurement','purchase_request_approved', args = request.args(0))}}', ['remarks'])
         window.location.replace("{{=URL('inventory','inventory_manager')}}")
     }
+    function onCANCApproved(){
+        ajax('{{=URL('procurement','put_purchase_request_cancellation_id', args = request.args(0))}}', ['remarks'])
+        window.location.replace("{{=URL('inventory','inventory_manager')}}")
+    }    
     function onReject(){
         bootbox.confirm({
             size: "small",

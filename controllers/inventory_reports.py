@@ -770,9 +770,13 @@ def get_stock_transfer_report_id():    # final report
             _uom = ''
         else:
             _uom = i.Item_Master.uom_id.mnemonic
+        if i.Item_Master.int_barcode == None:
+            _barcode = ''
+        else:
+            _barcode = i.Item_Master.int_barcode
         stk_trn.append([ctr,
         Paragraph(i.Stock_Transfer_Transaction.item_code_id.item_code, style=_courier),        
-        str(i.Item_Master.brand_line_code_id.brand_line_name)+str('\n')+str(i.Item_Master.item_description.upper()),        
+        str(i.Item_Master.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(i.Item_Master.item_description.upper()),        
         _uom,
         # i.Item_Master.uom_id.mnemonic,
         i.Stock_Transfer_Transaction.category_id.mnemonic,

@@ -192,7 +192,7 @@ def get_tag_sales_return_grid():
         Field('to_date', 'date', default = request.now))    
     if form.accepts(request):    
         title = 'Tag Sales Invoice for Sales Return as of %s to %s' %(request.vars.from_date, request.vars.to_date)        
-        head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+        head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Good Receipt No.'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
         _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id)).select()
         for n in _query:
             ctr += 1
@@ -205,6 +205,8 @@ def get_tag_sales_return_grid():
                 TD(ctr,INPUT(_type='text',_class='_id', _name='_id', _id='_id', _value=n.id, _hidden = True)),
                 TD(_returned),
                 TD(_amount, _style="width:120px;"),
+                TD(INPUT(_type='text', _name='returned_good_receipt_no', _id='returned_good_receipt_no',_class='form-control returned_good_receipt_no', value=n.returned_good_receipt_no)),
+                # TD(INPUT(_type='text', _name='returned_good_receipt_no', _id='returned_good_receipt_no',_class='form-control returned_good_receipt_no', value=n.returned_good_receipt_no, _onchange="ajax('get_marked',['_id','returned','returned_amount','returned_good_receipt_no','delivered'])")),
                 TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
                 TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered)),                
                 TD(n.sales_return_no),
@@ -215,10 +217,10 @@ def get_tag_sales_return_grid():
                 TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
                 TD(n.sales_man_id.employee_id.first_name)))
         body = TBODY(*row)
-        table = TABLE(*[head, body], _class='table')
+        table = TABLE(*[head, body], _class='table', _id='Tagtbl')
         return dict(form = form, title = title, table = table)    
     title = 'Tag Sales Invoice for Sales Return as of %s' %(request.now.date())
-    head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+    head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Good Receipt No.'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
     _query = db((db.Sales_Invoice.sales_invoice_date_approved == request.now) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id)).select()
     for n in _query:
         ctr += 1
@@ -231,6 +233,7 @@ def get_tag_sales_return_grid():
             TD(ctr,INPUT(_type='text',_class='_id', _name='_id', _id='_id', _value=n.id, _hidden = True)),
             TD(_returned),
             TD(_amount, _style="width:120px;"),
+            TD(INPUT(_type='text', _name='returned_good_receipt_no', _id='returned_good_receipt_no',_class='form-control returned_good_receipt_no', value=n.returned_good_receipt_no)),
             TD(INPUT(_type='checkbox', _name='returned_processed', _id='returned_processed',_class='returned_processed', value=n.returned_processed,_disabled = True)),
             TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered)),                
             TD(n.sales_return_no),
@@ -244,6 +247,27 @@ def get_tag_sales_return_grid():
     body = TBODY(*row)
     table = TABLE(*[head, body], _class='table')
     return dict(form = form, title = title, table = table)
+
+def get_marked():
+    if isinstance(request.vars._id, list):        
+        row = 0        
+        for n in request.vars._id:
+            print(":"), n
+            _row = db(db.Sales_Invoice.id == n).select().first()
+            _row.update_record(
+                returned = request.vars.returned[row], 
+                delivered = request.vars.delivered[row], 
+                returned_amount = request.vars.returned_amount[row],
+                returned_good_receipt_no = request.vars.returned_good_receipt_no[row])            
+            row += 1
+    else:
+        print(":"), request.vars._id
+        # db(db.Sales_Invoice.id == request.vars._id).update(
+        #     returned = request.vars.returned,
+        #     delivered = request.vars.delivered, 
+        #     returned_amount = request.vars.returned_amount,
+        #     returned_good_receipt_no = request.vars.returned_good_receipt_no)            
+    # response.js = "alertify.info('Tag successfully.')"
 
 def marked_sales_invoice_returned_id():    
     db(db.Sales_Invoice.id == request.args(0)).update(returned = True)    
@@ -260,23 +284,33 @@ def unmarked_sales_invoice_delivered_id():
 def marked_sales_invoice_returned_amount_id():    
     db(db.Sales_Invoice.id == request.args(0)).update(returned_amount = request.args(1))
 
+def put_good_receipt_no_id():
+    if request.args(1) == None:
+        _receipt_no = ""
+        db(db.Sales_Invoice.id == request.args(0)).update(returned_good_receipt_no = _receipt_no)
+        response.js = "alertify.notify('Good Receipt No updated.')"
+    else:
+        _receipt_no = str(request.args(1).replace("_"," "))
+        db(db.Sales_Invoice.id == request.args(0)).update(returned_good_receipt_no = _receipt_no)
+        response.js = "alertify.success('Good Receipt No added.')"
+
 @auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ROOT')) 
 def get_pending_sales_return_grid():
     _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
     row = []    
     ctr = 0
     # session.forget(response)
-    print(":"), session.from_date, session.to_date
+    # print(":"), session.from_date, session.to_date
     form = SQLFORM.factory(
         Field('from_date', 'date', default = request.now),
         Field('to_date', 'date', default = request.now))    
     if form.accepts(request, keepvalues = True):    
         session.from_date = form.vars.from_date
         session.to_date = form.vars.to_date
-        print("."), session.from_date, session.to_date
+        # print("."), session.from_date, session.to_date
         title = 'Pending Sales Invoice for Sales Return as of %s to %s' %(request.vars.from_date, request.vars.to_date)        
         head = THEAD(TR(TD('#'),TD('For SRS'),TD('Amount'),TD('Processed'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
-        _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.returned == True) & (db.Sales_Invoice.returned_processed != True)).select()
+        _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.returned == True) & (db.Sales_Invoice.returned_processed == False)).select()
         for n in _query:
             ctr += 1
             row.append(TR(
@@ -316,6 +350,39 @@ def get_pending_sales_return_grid():
     body = TBODY(*row)
     table = TABLE(*[head, body], _class='table')
     return dict(form = form, title = title, table = table)
+
+@auth.requires(lambda: auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('ROOT')) 
+def get_pending_invoice_delivery_grid():
+    _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
+    row = []    
+    ctr = 0
+    form = SQLFORM.factory(
+        Field('from_date', 'date', default = request.now),
+        Field('to_date', 'date', default = request.now))
+    _query = db((db.Sales_Invoice.sales_invoice_date_approved == request.vars.now) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.delivered == False)).select()
+    title = 'Pending Invoice for Delivery as of %s' % (request.now.date())
+    head = THEAD(TR(TD('#'),TD('Delivered'),TD('Sales Return No'),TD('Date'),TD('Sales Invoice No'),TD('Department'),TD('Customer'),TD('Total Amount'),TD('Requested By'), _class='style-warning'))
+    if form.accepts(request, keepvalues = True):    
+        session.from_date = form.vars.from_date
+        session.to_date = form.vars.to_date
+        title = 'Pending Invoice for Delivery as of %s to %s' % (request.vars.from_date, request.vars.to_date)        
+        _query = db((db.Sales_Invoice.sales_invoice_date_approved >= request.vars.from_date) & (db.Sales_Invoice.sales_invoice_date_approved <= request.vars.to_date) & (db.Sales_Invoice.status_id == 7) & (db.Sales_Invoice.dept_code_id == _usr.department_id) & (db.Sales_Invoice.delivered == False)).select(orderby = db.Sales_Invoice.customer_code_id)    
+    for n in _query:
+        ctr += 1
+        row.append(TR(
+            TD(ctr),
+            TD(INPUT(_type='checkbox', _name='delivered', _id='delivered',_class='delivered',value=n.delivered,_disabled = True)),                
+            TD(n.sales_return_no),
+            TD(n.sales_invoice_date_approved),
+            TD(n.sales_invoice_no_prefix_id.prefix,n.sales_invoice_no),
+            TD(n.dept_code_id.dept_code,' - ', n.dept_code_id.dept_name),
+            TD(n.customer_code_id.account_name,', ',n.customer_code_id.account_code),                                
+            TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True),_align='right'),
+            TD(n.sales_man_id.employee_id.first_name)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(form = form, title = title, table = table)
+
 
 # ---- C A R D Function  -----
 def card(item, quantity, uom_value):

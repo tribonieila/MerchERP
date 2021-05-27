@@ -53,7 +53,16 @@
 $(document).ready( function () {    
     $("#no_table_supplier_code_id, #no_table_due_date, #no_table_dept_code_id").hide();    
     $("#btnSubmit").click(function(){                
-        ajax("{{=URL('document_register_report','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'], 'tblView' )        
+        // ajax("{{=URL('document_register_report','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'] )        
+        // open("{{=URL('document_register_report','get_document_register_report_id')}}",['category_id','from_date','to_date','supplier_code_id','dept_code_id','due_date'] )     
+        
+        var category_id = document.getElementById('no_table_category_id').value        
+        var from_date = document.getElementById('from_date').value        
+        var to_date = document.getElementById('to_date').value        
+        // var dept_code_id = document.getElementById('no_table_dept_code_id').value        
+        // var due_date = document.getElementById('no_table_due_date').value        
+        window.open("{{=URL('document_register_report','get_document_register_report_id')}}" + '/' + category_id + '/' + from_date + '/' + to_date);
+        // window.open("{{=URL('document_register_report','get_document_register_report_id')}}" + '/' + category_id + '/' + from_date + '/' + to_date + '/' + dept_code_id + '/' + due_date);
     });
 
     $("#no_table_category_id").change(function(){   

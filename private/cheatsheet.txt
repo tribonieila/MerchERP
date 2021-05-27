@@ -85,9 +85,28 @@ if ( fup.files[0].type === 'application/pdf' ) {
 
 window.open("https://www.w3schools.com");
 
+ajax("{{=URL('procurement','put_purchase_request_cancel_id',args = request.args(0))}}",['remarks']);
+window.open('{{=URL('default','sales_return_report_account_user',args = request.args(0))}}');      
+var category_id = document.getElementById('no_table_category_id').value         
+window.open("{{=URL('document_register_report','get_document_register_report_id')}}" + '/' + category_id + '/' + from_date + '/' + to_date);     
+
 IP STATION
 Apt 17 - 128.1.2.18
 
 RELOAD
 $( "#here" ).load(window.location.href + " #here" );
 
+-- auth.user_department {
+--     user_id
+--     dept_id
+-- }
+
+-- auth.element {
+--     element_name,
+--     description
+-- }
+
+-- auth.permission {
+--     user_id,
+--     element_id
+-- }

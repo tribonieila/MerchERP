@@ -11,5 +11,11 @@
     </div>                
 </div>
 <script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })    
 
+    function Mark(x){
+        ajax("{{=URL('utility','marked_master_account_id')}}" + '/'+ x);   
+    }
 </script>

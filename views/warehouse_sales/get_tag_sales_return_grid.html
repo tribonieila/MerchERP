@@ -29,7 +29,10 @@
 
 <script>
     $(document).ready( function () {
-        $('.table').DataTable();
+        $('.table').DataTable({
+            "bPaginate": false
+        });
+
         $(".returned").click(function(e){                 
             var _id = $(this).closest('tr').find('input:text').val();
             if (this.checked) {                
@@ -51,6 +54,14 @@
             }
                         
         });        
+        
+        $(".returned_good_receipt_no").change(function(e){                             
+            var _id = $(this).closest('tr').find('input:text').val();
+            var _good = $(this).closest('tr').find('.returned_good_receipt_no').val(); 
+            ajax("{{=URL('warehouse_sales','put_good_receipt_no_id')}}" + '/'+ _id + '/' + _good);
+            
+        });        
+
         $(".delivered").click(function(e){                 
             var _id = $(this).closest('tr').find('input:text').val();
             if (this.checked) {                
@@ -61,6 +72,11 @@
                 alertify.notify("Delivered unmarked.")
             }
         });
-
     });
+
+    // function mark_returned_good_receipt_no(x, y){
+    //     var _good = $(this).closest('tr').find('input[name:returned_good_receipt_no]').val(); 
+    //     var _value = $(".returned_good_receipt_no").val();
+    //     console.log(x, y)
+    // }
 </script>

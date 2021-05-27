@@ -447,6 +447,64 @@ def get_item_code_id():
                 TD(_ip.retail_price),                
                 TD(0),
                 TD(0)),_class="bg-info"),_class='table'))      
+
+# -------------------  O T H E R  P A Y M E N T S C H E D U L E  -------------------
+
+def get_other_payment_schedule_grid():        
+    row = []
+    ctr = 0
+    head = THEAD(TR(TD('#'),TD('Due Date'),TD('Order No'),TD('Supplier Name'),TD('Trade Terms'),TD('Total Amount'),TD('Paid'),TD('Action')),_class='style-primary small-padding')
+    for n in db(db.Document_Register.others == True).select():        
+        ctr += 1
+        view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))
+        edit_lnk = A(I(_class='fas fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-danger btn-icon-toggle', _href=URL('account_procurement','post_other_payment_schedule', args = n.id))
+        dele_lnk = A(I(_class='fas fa-trash-alt'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled', _href=URL('#', args = n.id))
+        btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
+        row.append(TR(
+            TD(ctr),
+            TD(n.due_date),
+            TD(n.document_register_no),
+            TD(n.supplier_code_id.supp_name),
+            TD(n.payment_terms),            
+            TD(n.currency_id.mnemonic,' ',locale.format('%.2F',n.invoice_amount or 0, grouping = True),_align = 'right'),
+            TD(n.paid),TD(btn_lnk)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class='table')
+    return dict(table = table)
+
+def other_validation(form):
+    form.vars.invoice_amount = float(request.vars.invoice_amount.replace(',',''))
+    print(">"), form.vars.invoice_amount, float(request.vars.invoice_amount.replace(',',''))
+    form.vars.total_amount_in_qr = float(request.vars.invoice_amount.replace(',',''))
+
+def post_other_payment_schedule():
+    _id = db(db.Document_Register.id == request.args(0)).select().first()
+    db.Document_Register.document_register_no.writable = True    
+    db.Document_Register.document_register_date.default = request.now
+    db.Document_Register.mode_of_shipment.writable = False
+    db.Document_Register.forwarder_supplier_id.writable = False
+    db.Document_Register.trade_terms_id.writable = False
+    db.Document_Register.dept_code_id.writable = False
+    db.Document_Register.location_code_id.writable = False
+    db.Document_Register.supplier_code_id.requires = IS_IN_DB(db(db.Supplier_Master.supplier_type == 'DOCUMENT'), db.Supplier_Master.id,'%(supp_name)s, %(supp_code)s', zero = 'Choose Supplier Code')
+    db.Document_Register.due_date.default = request.now
+    db.Document_Register.others.default = True
+    form = SQLFORM(db.Document_Register, request.args(0))
+    if form.process(onvalidation = other_validation).accepted:        
+        session.flash = 'Form updated.'
+        redirect(URL('account_procurement','get_other_payment_schedule_grid'))
+    elif form.errors:
+        response.flash = form.errors    
+    return dict(form = form, _id = _id)
+
+def get_currency_id():    
+    if request.vars.currency_id == "":
+        response.js = "$('#Document_Register_exchange_rate').val(0)" 
+    else:
+        _id = db(db.Currency.id == request.vars.currency_id).select().first()    
+        _xh = db(db.Currency_Exchange.currency_id == _id.id).select().first()
+        response.js = "$('#Document_Register_exchange_rate').val(%s)" % (_xh.exchange_rate_value)
+
 # ---- C A R D Function  -----
 @auth.requires_login()
 def card(quantity, uom_value):

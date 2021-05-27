@@ -595,7 +595,7 @@ def put_sales_man_customer_delete_id():
 
 @auth.requires_login()
 def get_back_office_users_grid():
-    form = SQLFORM(db.Back_Office_User)
+    form = SQLFORM(db.Back_Office_User, request.args(0))
     if form.process().accepted:
         response.flash = 'FORM SAVE'
     elif form.errors:
@@ -606,7 +606,7 @@ def get_back_office_users_grid():
     for n in db(db.Back_Office_User).select():
         ctr += 1
         view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')        
-        edit_lnk = A(I(_class='fa fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled') 
+        edit_lnk = A(I(_class='fa fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('sales','get_back_office_users_grid', args = n.id) ) 
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', callback= URL('put_sales_man_customer_delete_id',args = n.id))        
         btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
         row.append(TR(TD(ctr),TD(n.user_id.first_name,' ',n.user_id.last_name),TD(n.department_id.dept_name),TD(n.section_id),TD(btn_lnk)))
@@ -679,7 +679,7 @@ def sales_order_form():
             _heads_up = 'Required max 10 items only.'
             _widget = SQLFORM.widgets.autocomplete(request, db.Master_Account.stock_adjustment_account, id_field = db.Master_Account.id, limitby = (0,10), min_length = 2)
     elif auth.has_membership('INVENTORY BACK OFFICE'): # for amin, mimi, hernando
-        _dept = db(db.Back_Office_User.user_id == auth.user_id).select().first()        
+        _dept = db(db.Back_Office_User.user_id == auth.user_id).select().first()
         _section = _dept.section_id
         _sales_m = _dept.user_id
         _query_dept = db.Department.id == int(_dept.department_id)

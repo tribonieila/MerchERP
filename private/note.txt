@@ -62,8 +62,8 @@ harunur	    hr140706, 15-732
 benito	    bd200606
 ogie	    ai210702
 
-samer	sa400506
 
+samerf	sf260828 @beauty
 
 
 POS
@@ -85,8 +85,7 @@ joseph	    jm130606
 francia	    fi210706
 aji	        aa270307
 
-
-
+samer	sa400506 @ admin
 j.massoud@merch.com.qa
 n.khanfar@merch.com.qa
 b.varghese@merch.com.qa

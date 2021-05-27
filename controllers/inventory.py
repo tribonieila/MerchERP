@@ -244,7 +244,7 @@ def suplr_add_form():
             Field('supp_sub_code', 'string',length = 10),
             Field('dept_code_id','reference Department', label = 'Dept Code',requires = IS_IN_DB(db, db.Department.id,'%(dept_code)s - %(dept_name)s', zero = 'Choose Department', error_message='value not in department')),
             Field('supp_name','string',length=50,requires = [IS_UPPER(), IS_NOT_IN_DB(db, 'Supplier_Master.supp_name')]),
-            Field('supplier_type','string', length = 10, requires = IS_IN_SET(['FOREIGN','LOCAL'], zero = 'Choose Type')), # foriegn or local supplier
+            Field('supplier_type','string', length = 10, requires = IS_IN_SET(['FOREIGN','LOCAL','DOCUMENT'], zero = 'Choose Type')), # foriegn or local supplier
             Field('contact_person', 'string', length=30, requires = IS_UPPER()),
             Field('address_1','string', length = 50, requires = IS_UPPER()),
             Field('address_2','string', length = 50, requires = IS_UPPER()),    
@@ -10387,10 +10387,10 @@ def stock_card_movement():
                     _quantity_in = card_view(_itm_code.id, n._extra[_total_qty])
                     _quantity_out = 0
                     _balanced = card_view(_itm_code.id, _bal)
-                    if n.Merch_Stock_Transaction.category_id == 'N':
-                        _qty_summary += n._extra[_total_qty]
+                    if n.Merch_Stock_Transaction.category_id == 'N':                        
+                        _qty_summary -= n._extra[_total_qty]
                     elif n.Merch_Stock_Transaction.category_id == 'P':
-                        _foc_summary += n._extra[_total_qty]    
+                        _foc_summary -= n._extra[_total_qty]    
                     elif n.Merch_Stock_Transaction.category_id == 'D':
                         _damage_summary += n._extra[_total_qty]                
                 elif _type == 5:

@@ -110,7 +110,13 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label class="col-sm-4 control-label">Status</label>
-                            <div class="col-sm-8">{{=form.custom.widget.status_id}}</div>                            
+                            <div class="col-sm-8">
+                                {{if _id.status_id == 19:}}
+                                    {{=form.custom.widget.status_id}}
+                                {{else:}}
+                                    <input type="text" class="form-control" value="{{=_id.status_id.description}}" readonly>
+                                {{pass}}
+                            </div>
                         </div>    
                     </div>             
                 </div>
@@ -120,7 +126,7 @@
                         <div class="form-group">          
                             <div class="col-sm-2"></div>
                             <div class="col-sm-10">                                                                               
-                                {{ if (_id.status_id == 1) or (_id.status_id == 3) or (_id.status_id == 19) :}}                                    
+                                {{ if (_id.status_id == 1) or (_id.status_id == 3) or (_id.status_id == 19) :}}
                                     <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit">
                                 {{elif (_id.status_id == 20) & (_id.dept_code_id != 3):}}
                                     <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit">
@@ -128,7 +134,11 @@
                                     <input class="btn btn-primary" type="submit" value="submit" id="btnsubmit" disabled>
                                 {{ pass }}
                                 {{=form.custom.end}}
-                                <input class="btn btn-danger" type="button" value="abort" id="btnAbort">                
+
+                                <input class="btn btn-danger" type="button" value="abort" id="btnAbort">              
+                                <div class="checkbox checkbox-inline checkbox-styled">
+                                    <label><input type="checkbox" id="btnCancel"><span></span>Cancel?</label>
+                                </div>                                  
                             </div>            
                         </div>  
                     </div>
@@ -150,5 +160,32 @@ $(document).ready(function(){
     $("#btnAbort").click(function(){
         window.location.replace("{{=URL('inventory','get_back_off_workflow_grid')}}")
     });
+    $("#btnCancel").click(function(){
+        if ($("#btnCancel").is(":checked")) {
+            bootbox.confirm({
+                size: "small",
+                message: "Would you like to cancel this record?",
+                buttons: {
+                    confirm: {
+                        label: "Yes",
+                        className: "btn-success"
+                    },
+                    cancel: {
+                        label: "No",
+                        className: "btn-danger"
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        ajax("{{=URL('procurement','put_purchase_request_cancel_id',args = request.args(0))}}",['remarks']);
+                        window.location.href = '{{=URL('inventory','get_back_off_workflow_grid')}}';                        
+                    } else {
+                        // console.log("False")
+                        $('#btnCancel').prop('checked', false); // Unchecks it                        
+                    }
+                }
+            })
+        }
+    })
 });
 </script>

@@ -1,0 +1,193 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <!-- <ul class="nav nav-tabs pull-right" data-toggle="tabs">
+                <li class="active"><a href="#">EDIT VIEW</a></li>
+                <li class=""><a href="#" onclick=window.location="{{=URL('inventory','mngr_req_grid')}}";>BROWSE</a></li>
+            </ul> -->
+            <span class="card-title">PURCHASE ORDER FORM</span>
+            
+        </div>
+        <div class="card-body tab-content">                                            
+            <div class="form-horizontal"> 
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Order No</label>
+                            <div class="col-sm-8">                                
+                                <input type="text" class="form-control" value="{{=_id.purchase_order_no_prefix_id.prefix}}{{=_id.purchase_order_no}}" readonly>                                
+                            </div>                           
+                        </div>                        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Order Date</label>
+                            <div class="col-sm-8"> 
+                                <input type="text" class="form-control" value="{{=_id.purchase_order_date}}" readonly>
+                            </div>
+                        </div>                    
+                    </div>
+
+                </div>                                                  
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Request No</label>
+                            <div class="col-sm-8">                                
+                                <input type="text" class="form-control" value="{{=_id.purchase_request_no_prefix_id.prefix}}{{=_id.purchase_request_no}}" readonly>                                
+                            </div>                           
+                        </div>                        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Purchase Request Date</label>
+                            <div class="col-sm-8"> 
+                                <input type="text" class="form-control" value="{{=_id.purchase_request_date}}" readonly>
+                            </div>
+                        </div>                    
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">ETA</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.estimated_time_of_arrival}}" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Department</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.dept_code_id.dept_code}} - {{=_id.dept_code_id.dept_name}}" readonly>
+                            </div>
+                        </div>            
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Location</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.location_code_id.location_code}} - {{=_id.location_code_id.location_name}}" readonly>
+                            </div>
+                        </div>                                           
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Supplier Proforma Invoice</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.supplier_reference_order}}" readonly>
+                            </div>
+                        </div>                             
+                    </div>    
+                </div>       
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Supplier Code</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.supplier_code_id.supp_sub_code}} - {{=_id.supplier_code_id.supp_name}}" readonly>                                
+                            </div>                  
+                        </div>      
+                    </div>
+                    <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Currency</label>
+                                <div class="col-sm-3">
+                                    <input type="text" class="form-control" value="{{=_id.currency_id.description}}" readonly>
+                                </div>
+                                <div>
+                                    <label class="col-sm-2 control-label">Exchange Rate</label>
+                                    <div class="col-sm-3">
+                                        <input type="text" class="form-control" value="{{=_id.exchange_rate}}" readonly>
+                                    </div>
+                                </div>
+                            </div>                   
+                        </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Trade Terms</label>
+                            <div class="col-sm-8">              
+                                <input type="text" class="form-control" value="{{=_id.trade_terms_id.trade_terms}}" readonly>
+                            </div>    
+                        </div>                   
+                    </div>    
+                </div>         
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Mode of Shipment</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.mode_of_shipment}}" readonly>
+                            </div>
+                        </div>                         
+        
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Remarks</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="remarks" value="{{=_id.remarks}}">
+                            </div>
+                        </div>             
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Status</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" value="{{=_id.status_id.description}}" readonly>
+                            </div>
+
+                        </div>             
+                    </div>                        
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Section</label>
+                            <div class="col-sm-8">                                                                  
+                                <input type="text" class="form-control" value="{{=_section}}" readonly>
+                            </div>
+                        </div>
+                    </div>                                   
+                </div>
+                
+                <hr>
+                <div class="row">
+                    <div class="col-md-12">                        
+                        <div class="form-group">
+                            <div class="col-sm-9"></div>
+                            <div class="col-sm-3">                         
+                                {{ if _id.status_id == 29: }}
+                                    <input class="btn btn-success" type="button" value="approved" onclick=onApprove()>
+                                    <!-- <input class="btn btn-warning" type="button" value="reject" onclick=onReject()>     -->
+                                {{ else: }}
+                                    <input class="btn btn-success" type="button" value="approved" disabled>
+                                    <!-- <input class="btn btn-warning" type="button" value="reject" disabled>                                                                       -->
+                                {{ pass }}                                                                               
+                                <button type="button" class="btn btn-danger" onclick="onAbort()">Abort</button>
+                            </div>        
+                        </div>  
+                        
+                    </div>
+                </div>                  
+                <div id = "order_panel">
+                    {{=LOAD('procurement','get_purchase_order_transaction_id.load', args = request.args(0))}}                    
+                </div>
+            </div>          
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function onApprove(){
+        ajax("{{=URL('procurement','put_purchase_approved_cancel_id', args = request.args(0))}}", ['remarks'])
+        window.location.replace("{{=URL('inventory','inventory_manager')}}");
+    }
+
+    function onAbort(){
+        window.location.replace("{{=URL('inventory','inventory_manager')}}");
+    }
+</script>

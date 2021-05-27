@@ -147,8 +147,48 @@ def put_stock_in_transit_cleaner(): # stock in transit utility
         n.update_record(probational_balance = _bal)
     response.js = "$('#tab3').load(location.href + ' #tab3'); toastr['success']('Transaction Cleaned')"
 
+#------------------------------------------------
+#...... BLOCKED/UNBLOCKED MASTER ACCOUNT.........
+#------------------------------------------------
 
+def get_master_account_grid():
+    ctr = 0
+    row = []
+    head = THEAD(TR(TH('#'),TH('Blocked/Unblocked'),TH('Account Name'),TH('Area Name')))
+    for n in db().select(orderby = db.Master_Account.account_name):
+        ctr += 1        
+        _id = db(db.Customer.customer_account_no == n.account_code).select().first()        
+        if not _id:
+            _area_name = 'None'        
+        else:
+            _area_name = _id.area_name
+        row.append(TR(
+            TD(ctr),            
+            TD(INPUT(_type='checkbox', _name='blocked', _id='blocked',_class='blocked', value=n.blocked, _onchange="Mark(%s)" % (n.id))),            
+            TD(n.account_name,', ', n.account_code),
+            TD(_area_name)))
+    body = TBODY(*row)
+    table = TABLE(*[head, body], _class = 'table')
+    return dict(table = table)
 
+def marked_master_account_id():
+    _id = db(db.Master_Account.id == request.args(0)).select().first()
+    if _id.blocked == True:
+        _id.update_record(blocked = False)
+        response.js = "alertify.success('Account Code %s Unblocked')" % (_id.account_code)
+    else:
+        _id.update_record(blocked = True)
+        response.js = "alertify.error('Account Code %s Blocked')" % (_id.account_code)
+
+def blocked_master_account_id():    
+    _id = db(db.Master_Account.id == request.args(0)).select().first()
+    _id.update_record(blocked = True)
+    response.js = "alertify.error('Account Code %s Blocked')" % (_id.account_code)
+
+def unblocked_master_account_id():    
+    _id = db(db.Master_Account.id == request.args(0)).select().first()
+    _id.update_record(blocked = False)
+    response.js = "alertify.success('Account Code %s Unblocked')" % (_id.account_code)
 #------------------------------------------------
 #.......... STOCK UTILITY CONSOLIDATION ..........
 #------------------------------------------------

@@ -192,7 +192,6 @@ def post_sales_order_form():
         response.flash = 'SAVING SALES ORDER NO ' + str(_skey) + '.'    
     elif form.errors:
         response.flash = 'ENTRY HAS ERROR'
-
     return dict(form = form, ticket_no_id = ticket_no_id, heads_up = _heads_up)
 
 @auth.requires_login()
@@ -1314,16 +1313,16 @@ def validate_sales_return_transaction(form):
         _categ = db((db.Sales_Return_Transaction_Temporary.ticket_no_id == session.ticket_no_id) & (db.Sales_Return_Transaction_Temporary.item_code == request.vars.item_code) & (db.Sales_Return_Transaction_Temporary.category_id == request.vars.category_id)).select(db.Sales_Return_Transaction_Temporary.category_id).first()
         _not_allowed = db(
             (db.Sales_Return_Transaction_Temporary.ticket_no_id == session.ticket_no_id) & 
-            (db.Sales_Return_Transaction_Temporary.item_code == request.vars.item_code) & 
-            ((int(request.vars.category_id) == 1) | (int(request.vars.category_id) == 4))).select().first()
+            (db.Sales_Return_Transaction_Temporary.item_code == request.vars.item_code)).select().first()
         _total_pcs = int(request.vars.quantity) * int(_id.uom_value) + int(request.vars.pieces or 0)     
         _item_discount = float(request.vars.discount_percentage or 0) 
         _retail_price_per_uom = _price.retail_price / _id.uom_value     
         _wholesale_price_per_uom = _price.wholesale_price / _id.uom_value
         _selective_tax_per_uom = _price.selective_tax_price / _id.uom_value
-        if _not_allowed:
+        # if _not_allowed:
             # form.errors.item_code = CENTER(DIV(B('Info! '),'Not Allowed to returned both Normal/Damaged.',_class='alert alert-danger',_role='alert'))            
-            form.errors.item_code = "Not Allowed to returned both Normal/Damaged."
+            # form.errors.item_code = "Not Allowed to returned both Normal/Damaged."
+            # response.js = "alertify.error('Error.')"
 
         if not _price:
             form.errors.item_code = "Item code does'nt have price."
@@ -1342,6 +1341,7 @@ def validate_sales_return_transaction(form):
 
         if _exist:
             form.errors.item_code = 'Item code ' + str(_exist.item_code) + ' already exist.'            
+            response.js = "alertify.error('Item code %s already exist')" % (_exist.item_code)
         else:
 
             if int(request.vars.category_id) == 3:

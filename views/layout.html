@@ -350,6 +350,7 @@
 						<li><a href="{{=URL('utility','get_sales_invoice_id')}}" ><span class="title">Sales Invoice Softcopy</span></a></li>
 						<!-- <li><a href="{{=URL('utility', 'get_stock_in_transit_utility_tool')}}"><span class="title">Stock In Transit Cleaner</span></a></li> -->
 						<li><a href="{{=URL('utility', 'get_transaction_cleaner_utility_tool')}}"><span class="title">Transaction Cleaner</span></a></li>
+						<li><a href="{{=URL('utility', 'get_master_account_grid')}}"><span class="title">Blocked/Unblocked MA</span></a></li>
 						<li><a href="http://10.128.4.21:8010/MERCH_DBFUPLOAD/" target="_blank"><span class="title">Export to DBF</span></a></li>
 					</ul>
 				</li>				
@@ -730,19 +731,10 @@
 						<li><a href="{{=URL('inventory', 'get_workflow_reports', args = 5)}}" ><span class="title">Stock Transfer Voucher</span></a></li>
 						<li><a href="{{=URL('inventory', 'get_workflow_reports', args = 6)}}" ><span class="title">Stock Receipt</span></a></li>
 						<li><a href="{{=URL('sales', 'get_workflow_reports', args = 3)}}" ><span class="title">Delivery Note</span></a></li>
-						<!-- <li class="gui-folder">							
-							<a href="javascript:void(0);" ><span class="title">Delivery Note</span></a>
-							<ul>
-								<li><a href="{{=URL('sales', 'get_workflow_reports', args = 3)}}" ><span class="title">Delivery Note Grid</span></a></li>
-								<li><a href="{{=URL('delivery_note', 'get_delivery_note_grid')}}" ><span class="title">Customer Grid</span></a></li>
-							</ul>
-						</li> -->
-						<li><a href="{{=URL('sales', 'get_workflow_reports', args = 2)}}" ><span class="title">Sales Return</span></a></li>						
-						<li><a href="{{=URL('procurement', 'get_workflow_reports', args = 3)}}" ><span class="title">Purchase Receipt</span></a></li>
+						<li><a href="{{=URL('sales', 'get_workflow_reports', args = 2)}}" ><span class="title">Sales Return</span></a></li>												
 						<li><a href="{{=URL('procurement', 'get_workflow_reports', args = 5)}}" ><span class="title">Warehouse Receipt</span></a></li>
 						<li><a href="{{=URL('inventory', 'get_workflow_reports', args = 3)}}" ><span class="title">Stock Corrections</span></a></li>
 						<li><a href="{{=URL('inventory', 'get_workflow_reports', args = 4)}}" ><span class="title">Obsolescence of Stocks</span></a></li>
-						<!-- <li><a href="{{=URL('procurement', 'get_purchase_order_warehouse_grid')}}" ><span class="title">Purchase Receipt</span></a></li> -->
 					</ul>
 				</li>				
 				<!-- # viewing only -->
@@ -756,13 +748,17 @@
 						<li><a href="{{=URL('sales', 'delivery_note_browse')}}" ><span class="title">Delivery Note</span></a></li>
 						<li><a href="{{=URL('sales', 'sales_invoice_browse')}}" ><span class="title">Sales Invoice</span></a></li>
 						<li><a href="{{=URL('sales', 'get_workflow_reports', args = 2)}}" ><span class="title">Sales Return</span></a></li>
+						<li><a href="{{=URL('procurement', 'get_workflow_reports', args = 3)}}" ><span class="title">Purchase Receipt</span></a></li>
+						<li><a href="{{=URL('procurement', 'get_workflow_reports', args = 4)}}" ><span class="title">Direct Purchase Receipt</span></a></li>
+
 						
 					</ul>
 				</li>
 				<li><a href="#"><div class="gui-icon"><i class="md fas fa-cart-arrow-down"></i></div><span class="title">SALES INVOICE FOR SRS</span></a> 					
 					<ul>
 						<li><a href="{{=URL('warehouse_sales','get_tag_sales_return_grid')}}"><span class="title">Tag SI for SRS</span></a></li>
-						<li><a href="{{=URL('warehouse_sales','get_pending_sales_return_grid')}}" ><span class="title">Pending INV for SRS</span></a></li>						
+						<li><a href="{{=URL('warehouse_sales','get_pending_sales_return_grid')}}" ><span class="title">Pending INV for SRS</span></a></li>
+						<li><a href="{{=URL('warehouse_sales','get_pending_invoice_delivery_grid')}}" ><span class="title">Pending INV for Delivery</span></a></li>
 					</ul>
 				</li>
 

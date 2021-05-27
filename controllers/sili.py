@@ -141,8 +141,32 @@ def get_transaction_no_id():
 def generate():        
     import datetime
     # print 'year: ', request.now.strftime('%y')
-    # invoice & return 2 - 4    
-    print '-'
+    # print '-'    
+    for n in db().select(db.Other_Payment_Schedule.ALL):
+        _splr = db(db.Supplier_Master.supplier_type == 'DOCUMENT').select().first()
+        _curr = db(db.Currency.mnemonic == 'QR').select().first()
+        _cexh = db(db.Currency_Exchange.currency_id == _curr.id).select().first()
+        _bank = db(db.Bank_Master.bank_name == 'HSBC').select().first() #  1
+        print(":"), n.created_on.date(), n.order_no, _splr.id, n.trade_terms, n.currency, _cexh.exchange_rate_value, n.local_currency_amount, _bank.id
+
+        db.Document_Register.insert(
+            document_register_date = n.created_on.date(),
+            document_register_no = n.order_no, 
+            supplier_code_id = _splr.id, 
+            location_code_id = 1, 
+            payment_terms = n.trade_terms, 
+            currency_id =  6, 
+            exchange_rate = _cexh.exchange_rate_value,         
+            invoice_amount = n.local_currency_amount,
+            cil_no = n.cil_number,
+            due_date = n.due_date,
+            paid = n.paid,
+            others = True,
+            created_by = n.created_by,
+            created_on = n.created_on,
+            updated_on = n.updated_on,
+            updated_by = n.updated_by)
+        
     # for n in db().select(db.Document_Register.ALL):
     #     _id = db(db.Supplier_Master.id == n.supplier_code_id).select().first()
     #     n.update_record(dept_code_id = _id.dept_code_id)
@@ -230,7 +254,7 @@ def generate():
     #             created_by = 1)
     # db.Document_Register.supplier_code_id.requires = IS_IN_DB()
     table = SQLFORM.grid(db.Document_Register)
-    return dict(table = table)
+    return dict(table = 'table')
 
 def validate():
     print '---'
