@@ -126,7 +126,7 @@ pdfmetrics.registerFont(TTFont('Arabic', '/home/larry/Workspace/web2py/applicati
 tmpfilename=os.path.join(request.folder,'private',str(uuid4()))
 doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=2.3 * inch,bottomMargin=1.5 * inch)#, showBoundary=1)
 dlv_note_frame = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=2.3 * inch,bottomMargin=2.5 * inch)#, showBoundary=1)
-doc_invoice = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=3.1 * inch,bottomMargin=2.4 * inch)#, showBoundary=1)
+doc_invoice = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=3.1 * inch,bottomMargin=2.4 * inch, showBoundary=1)
 # doc_invoice = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=3 * inch,bottomMargin=2 * inch, showBoundary=1)
 
 style=ParagraphStyle(name='Normal',fontName='Arabic',fontSize=15)
@@ -409,7 +409,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
             ]    
     header = Table(_so, colWidths=[110,10,'*',10,'*',10,'*',10,'*',10,'*'])#,rowHeights=(12))
     header.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         ('SPAN',(0,0),(4,0)),
         ('SPAN',(6,0),(-1,0)),
         ('SPAN',(0,1),(-1,1)),        
@@ -442,7 +442,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
     
     _signatory_table = Table(_signatory, colWidths=[50,'*',25,'*',50])
     _signatory_table.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('ALIGN', (0,0), (-1,-1), 'CENTER'),                
@@ -462,7 +462,7 @@ def sales_invoice_canvas(canvas, doc_invoice):      # audited
         ]
     footer = Table(_page, colWidths=[90,10,80,10,80,10,95,10,80,10,80])
     footer.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),              
+        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),              
         ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('VALIGN',(0,0),(-1,-1),'TOP'),

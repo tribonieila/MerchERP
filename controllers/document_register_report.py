@@ -112,11 +112,15 @@ def xget_document_register_report_id():
     return pdf_data
 
 def get_document_register_report_id():    
-    if int(request.args(0)) == 1:                
-        ctr = 0
-        
+    if int(request.args(0)) == 1:               
+        ctr = 0        
         _row = [['#','Date','Register No','Purchase Order','Supplier Name','CIL No','Order No','Bank','Currency','Amount Invoice','Amount QAR','Due Date']]
-        _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )
+        if int(request.args(3)) == 1:
+            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == True) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )
+        elif int(request.args(3)) == 2:
+            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == False) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )
+        elif int(request.args(3)) == 3:
+            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )        
         for n in _query:
             _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()
             _purchase_order = ""

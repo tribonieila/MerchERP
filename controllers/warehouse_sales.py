@@ -188,6 +188,7 @@ def get_tag_sales_return_grid():
     row = []    
     ctr = 0
     form = SQLFORM.factory(
+        Field('category_id','integer',requires = IS_IN_SET([('1','By Sales Invoice'),('2','By Date Range')], zero = 'Choose Parameters')),
         Field('from_date', 'date', default = request.now),
         Field('to_date', 'date', default = request.now))    
     if form.accepts(request):    

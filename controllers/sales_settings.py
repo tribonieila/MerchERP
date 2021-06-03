@@ -54,7 +54,7 @@ def get_financial_statement_group_grid():
     table = TABLE(*[thead, tbody], _class = 'table')
     return dict(form = form, table = table)
 
-@auth.requires_login()
+@auth.requires_login() 
 def get_chart_account_main_group():
     form = SQLFORM(db.Chart_Account_Main_Group, request.args(0))
     if form.process().accepted:

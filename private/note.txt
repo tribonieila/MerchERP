@@ -22,6 +22,10 @@ marwa   mb220505
 baiju   bv140508
 hakim   ah180305
 mimi    rq240808
+mimi_inv    rq240808
+joseph	jm130606
+joseph_inv	jm130606
+
 khaled  ke320606 
 amin    aa230409
 chally  cy220605
@@ -33,7 +37,7 @@ jyothi  jm261114
 manoj	     mm180507 
 hernando	hj300803
 leonardo	lj180807
-joseph	jm130606
+
 dinesh	dv290512
 
 hesham	hm380606
@@ -67,10 +71,15 @@ samerf	sf260828 @beauty
 
 
 POS
-pos-salwa   salwa
-pos-tawar   tawar
-pos-darsalam darsalam 
-
+pos-salwa       salwa
+pos-tawar       tawar
+pos-darsalam    darsalam 
+pos-highland    highland
+pos-4u          4ucenter
+pos-salwa2      salwa2 
+pos-blue        bluesalon
+pos-topnote     topnote
+pos-highlandcc  highlandcc
 
 key accounts:
 athanikkal	ah211010 - FS

@@ -162,6 +162,23 @@
                     </div>
 
                 </div>  
+                {{ if _id.srn_status_id == 5: }}          
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label text-danger">* Received By</label>
+                            <div class="col-sm-8">{{=form.custom.widget.received_by}}<p class="help-block text-danger">* required</p></div>
+                        </div>                                               
+                    </div>                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label text-danger">* Delivered By</label>
+                            <div class="col-sm-8">{{=form.custom.widget.delivered_by}}<p class="help-block text-danger">* required</p></div>
+                        </div>                  
+                    </div>
+
+                </div>                  
+                {{pass}}
                 <div class="row">
                     <div class="col-md-6">  
                         <div class="form-group">
@@ -245,7 +262,7 @@
                                             <input class="btn btn-success" type="button" value="Reject" id="btnAccountReject" hidden>                                            
                                         {{pass}}
                                     {{pass}}
-                                    {{ if auth.has_membership(role = 'INVENTORY BACK OFFICE') | auth.has_membership(role = 'SALES'): }}      
+                                    {{ if auth.has_membership(role = 'INVENTORY BACK OFFICE') | auth.has_membership(role = 'SALES'): }}
                                         {{ if _id.srn_status_id == 4:}}
                                             <input class="btn btn-success" type="button" value="submit" id="btnSubmit">
                                         {{else:}}
@@ -271,11 +288,7 @@
     
 $(document).ready(function(){
     
-    if ($("#btnPOSReceipt").prop(true)) { 
-        console.log("active");
-    } else {
-        console.log("disabled");
-    }
+    document.getElementById("btnPOSReceiptAndPrint").disabled = true;
     // $('#btncreate').attr('disabled','disabled');
     // $('#btnApproved').attr('disabled','disabled');
     // $('#btnReceive').attr('disabled','disabled');
@@ -305,11 +318,21 @@ $(document).ready(function(){
         window.location.href = "{{=URL('inventory','get_pos_workflow_grid')}}";        
     }); 
     
-    $('#btnPOSReceiptAndPrint').click(function(){        
-        ajax('{{=URL('inventory','put_stock_receipt_view_id', args = request.args(0))}}')
-        window.open("{{=URL('inventory','stock_receipt_report',args = request.args(0))}}")
-        window.location.href = "{{=URL('inventory','get_pos_workflow_grid')}}";        
+    $("#Stock_Request_received_by, #Stock_Request_delivered_by").change(function(){
+        _delivered_by = $("#Stock_Request_delivered_by").val()                
+        if ($("#Stock_Request_received_by").val() & $("#Stock_Request_delivered_by").val().indexOf(' ')>=0) {
+            document.getElementById("btnPOSReceiptAndPrint").disabled = false;
+        } else {
+            document.getElementById("btnPOSReceiptAndPrint").disabled = true;
+        }
     }); 
+
+    $('#btnPOSReceiptAndPrint').click(function(){ 
+            ajax('{{=URL('inventory','put_stock_receipt_view_id', args = request.args(0))}}',['received_by','delivered_by','remarks'])
+            window.open("{{=URL('inventory','stock_receipt_report',args = request.args(0))}}")
+            window.location.href = "{{=URL('inventory','get_pos_workflow_grid')}}";        
+    });
+
     $('#btnAccountApprovedAndPrint').click(function(){                
         ajax('{{=URL('inventory','get_stock_transfer_process', args = request.args(0))}}',['remarks'])        
         window.open("{{=URL('inventory','stock_transfer_report',args = request.args(0))}}")        

@@ -8,11 +8,23 @@
         <div class="card-body tab-content">   
             {{=form.custom.begin}}
             <div class="row">
+                
+                    <label class="col-sm-2 control-label">Choose Selections</label>
+                    <div class="col-sm-10">
+                        <label class="radio-inline radio-styled">
+                            <input type="radio" name="inlineRadioOptions" value="1"><span>By Sales Invoice</span>
+                        </label>
+                        <label class="radio-inline radio-styled">
+                            <input type="radio" name="inlineRadioOptions" value="2"><span>By Date Range</span>
+                        </label>
+                    </div>
+                
+                {{=form.custom.widget.category_id}}
                 <label>Date Range</label>
                   <div class="col"><input class="form-control" id="no_table_from_date" name="from_date" type="date" value={{=request.now.date()}}></div>
                   <span>to</span>
                   <div class="col">
-                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value={{=request.now.date()}}></div>                        
+                    <div class="col"><input class="form-control" id="no_table_from_date" name="to_date" type="date" value={{=request.now.date()}}></div>
                   </div>
                   <div class="col">
                     {{=form.custom.submit}}
@@ -25,10 +37,11 @@
     </div>
 </div>
 
-
-
 <script>
     $(document).ready( function () {
+        $("#inlineRadioOptions").checked(function(){
+            console.log("option")
+        })
         $('.table').DataTable({
             "bPaginate": false
         });

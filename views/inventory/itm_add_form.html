@@ -113,10 +113,19 @@ $(document).ready(function(){
         }
     });
 
-    // $("#no_table_supplier_code_id").change(function(){
-    //    console.log('supplier')
-    //    ajax("{{=URL('procurement','gen_item_code')}}");
-    // });
+    $("#no_table_item_description").change(function(){
+        var regex = /^[A-Za-z0-9]+$/;
+        
+    })
+
+    $("#no_table_int_barcode").change(function(){
+        var _barcode = $("#no_table_int_barcode").val();
+        // # 80050278
+        ajax("{{=URL('inventory','validate_barcode_id')}}", ['int_barcode'])
+        
+    });
+
+
 
 });
 

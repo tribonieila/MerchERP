@@ -1,0 +1,57 @@
+{{extend 'layout.html'}}
+<div class="col-md-12">
+    <div class="card card-underline">
+        <div class="card-head">
+            <span class="card-title">Delivery Men Grid</span>
+        </div>        
+        <div class="card-body tab-content">            
+            <div class="col-md-8"> {{=table}}</div>
+            <div class="col-md-4">
+                <br>
+                <div class="form-horizontal">   
+                    {{=form.custom.begin}}
+                    <div class="row">                    
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Account Code</label>
+                                <div class="col-sm-4">{{=form.custom.widget.account_code}}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">First Name</label>
+                                <div class="col-sm-8">{{=form.custom.widget.first_name}}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Last Name</label>
+                                <div class="col-sm-8">{{=form.custom.widget.last_name}}</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">Status</label>
+                                <div class="col-sm-4">{{=form.custom.widget.status_id}}</div>
+                            </div>    
+                            <label class="col-sm-4 control-label"></label>
+                            <div class="col-sm-8">
+                                {{=form.custom.submit}}
+                                <button type="button" class="btn btn-warning" onclick="Clear()">Clear</button>
+                            </div>
+    
+                        </div>
+                    </div>
+                    {{=form.custom.end}}
+                    
+                </div>      
+            </div>
+                   
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function(){
+        $(".table").DataTable();
+    })
+
+    function Clear(){
+        window.location.href = "{{=URL('sales_master_account','get_delivery_men_grid')}}";
+    }
+</script>

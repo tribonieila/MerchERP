@@ -101,7 +101,9 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">Total Amount</label>
-                                <div class="col-sm-8">{{=form.custom.widget.invoice_amount}}</div>
+                                <div class="col-sm-8">                                    
+                                    <input type="text" class="form-control" name='invoice_amount' id='invoice_amount' value="{{=_id.invoice_amount}}">
+                                </div>
                             </div>
                         </div>                                                                                                        
 
@@ -142,7 +144,9 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">Total Amount QR</label>
-                                <div class="col-sm-8">{{=form.custom.widget.total_amount_in_qr}}</div>
+                                <div class="col-sm-8">                                    
+                                    <input type="text" class="form-control" name='total_amount_in_qr' id='total_amount_in_qr' value="{{=_id.total_amount_in_qr}}" readonly>
+                                </div>
                             </div>
                         </div>                        
                     </div>                    
@@ -190,16 +194,27 @@
 
 <script>    
     $(document).ready(function(){
-        $("#Document_Register_currency_id, #Document_Register_exchange_rate, #Document_Register_invoice_amount").change(function(){                    
-            ajax("{{=URL('procurement','get_d1_currency_id')}}",['currency_id'])                        
+        $("#total_amount_in_qr").prop("readonly", true);        
+        var _ta = $("#invoice_amount").val();
+        var _ta = parseFloat(_ta).toFixed(3)
+        var _ta = $("#invoice_amount").val(_ta.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+        var exchange_rate = $("#Document_Register_exchange_rate").val();                  
+        $("#Document_Register_currency_id, #Document_Register_exchange_rate, #invoice_amount").change(function(){                    
+            ajax("{{=URL('procurement','get_d1_currency_id')}}",['currency_id'])
         })        
+        $("#invoice_amount").change(function(){
+            var _ta = $("#invoice_amount").val();
+            $("#invoice_amount").val(_ta.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
+            Calculate();
+        })
     })
     Calculate();
     function Calculate(){
         var _xr = $("#Document_Register_exchange_rate").val();
-        var _ta = $("#Document_Register_invoice_amount").val();
-        var _qr = parseFloat(_xr) * parseFloat(_ta);
-        $("#Document_Register_total_amount_in_qr").val(_qr);        
+        var _ta = $("#invoice_amount").val();        
+        var _qr = parseFloat(_xr) * parseFloat(_ta.replace(/,/g, ''));
+        var _qr = parseFloat(_qr).toFixed(3);                
+        $("#total_amount_in_qr").val(_qr.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
     }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>

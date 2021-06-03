@@ -606,7 +606,7 @@ def get_back_office_users_grid():
     for n in db(db.Back_Office_User).select():
         ctr += 1
         view_lnk = A(I(_class='fa fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled')        
-        edit_lnk = A(I(_class='fa fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('sales','get_back_office_users_grid', args = n.id) ) 
+        edit_lnk = A(I(_class='fa fa-pencil-alt'), _title='Edit Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', _href=URL('sales','get_back_office_users_grid', args = n.id)) 
         dele_lnk = A(I(_class='fa fa-trash'), _title='Delete Row', _type='button  ', _role='button', _class='btn btn-icon-toggle', callback= URL('put_sales_man_customer_delete_id',args = n.id))        
         btn_lnk = DIV(view_lnk, edit_lnk, dele_lnk)
         row.append(TR(TD(ctr),TD(n.user_id.first_name,' ',n.user_id.last_name),TD(n.department_id.dept_name),TD(n.section_id),TD(btn_lnk)))
@@ -3295,11 +3295,11 @@ def sales_return_grid():
     _usr = db(db.User_Department.user_id == auth.user_id).select().first()
     _query = db(db.Sales_Return).select(orderby = db.Sales_Return.id)
     if auth.has_membership(role = 'INVENTORY SALES MANAGER'):
-        # if not _usr:
-        # _query = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.archives == False)).select(orderby = db.Sales_Return.id)
-        # else:
-        #     _query = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.dept_code_id == _usr.department_id)& (db.Sales_Return.section_id == _usr.section_id)).select(orderby = db.Sales_Return.id)        
-        _query = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.dept_code_id == _usr.department_id)& (db.Sales_Return.section_id == _usr.section_id)).select(orderby = db.Sales_Return.id)        
+        _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first()
+        if _usr.department_id == 3:
+            _query = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.dept_code_id == 3) & (db.Sales_Return.section_id == _usr.section_id)).select(orderby = db.Sales_Return.id)        
+        else:
+            _query = db((db.Sales_Return.status_id == 4) & (db.Sales_Return.dept_code_id != 3) & (db.Sales_Return.section_id == _usr.section_id)).select(orderby = db.Sales_Return.id)        
     elif auth.has_membership(role = 'INVENTORY STORE KEEPER'): # db.Warehouse_Manager_User
         _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
         _query = db((db.Sales_Return.status_id == 14) & (db.Sales_Return.archives == False) & (db.Sales_Return.dept_code_id == _usr.department_id)).select(orderby = db.Sales_Return.id)
@@ -4182,18 +4182,20 @@ def get_workflow_reports_transaction_id():
 @auth.requires(lambda: auth.has_membership('ACCOUNTS MANAGER') | auth.has_membership('ACCOUNTS') | auth.has_membership('INVENTORY SALES MANAGER') | auth.has_membership('INVENTORY STORE KEEPER') | auth.has_membership('MANAGEMENT') | auth.has_membership('ROOT')) 
 @auth.requires_login()
 def sales_order_manager_grid():
-    _usr = db(db.User_Department.user_id == auth.user_id).select().first()
+    _usr = db(db.User_Department.user_id == auth.user_id).select().first()    
     if auth.has_membership(role = 'INVENTORY SALES MANAGER'):
-        if not _usr:
-            _query = db(db.Sales_Order.status_id == 4).select(orderby = ~db.Sales_Order.id)                
-        elif _usr.section_id == 'N':
-            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == 'N') & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id == _usr.department_id)).select(orderby = ~db.Sales_Order.id)            
-        else:        
-            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == 'F') & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id == _usr.department_id)).select(orderby = ~db.Sales_Order.id)    
+        _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first()
+        if int(_usr.department_id) == 3:
+            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == _usr.section_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id == 3)).select()            
+        else:            
+            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == _usr.section_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id != 3)).select()            
         head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
     elif auth.has_membership(role = 'INVENTORY STORE KEEPER'): # db.Warehouse_Manager_User
         _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()    
-        _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id == _usr.department_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == False)).select(orderby = db.Sales_Order.delivery_note_no)
+        if _usr.department_id == 3: # FMCG
+            _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id == 3) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == False)).select(orderby = db.Sales_Order.delivery_note_no)
+        else: # LOCAL, BEAUTY
+            _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id != 3) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == False)).select(orderby = db.Sales_Order.delivery_note_no)
         head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))        
     elif auth.has_membership(role = 'ACCOUNTS MANAGER'):
         _query = db((db.Sales_Order.status_id == 8)).select(orderby = ~db.Sales_Order.id)
@@ -4618,7 +4620,10 @@ def get_transaction_reference(_amt,_dis,_aft,_tax,_foc):
 @auth.requires_login()
 def get_delivery_note_pending_grid():    
     _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()
-    _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id == _usr.department_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == True)).select(orderby = db.Sales_Order.delivery_note_no)
+    if _usr.department_id == 3:        
+        _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id == 3) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == True)).select(orderby = db.Sales_Order.delivery_note_no)
+    else:
+        _query = db(((db.Sales_Order.status_id == 9) | (db.Sales_Order.status_id == 1)) & (db.Sales_Order.dept_code_id != 3) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.delivery_note_pending == True)).select(orderby = db.Sales_Order.delivery_note_no)
     head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TD('Delivery Note'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))        
     row = []
     ctr = 0
@@ -5063,6 +5068,7 @@ def sale_order_manager_delivery_note_approved_form():
             response.js = "warehouse_grid()"
         else:                    
             _val = get_delivery_note_validation(1)
+            _stk = get_stock_file_validation(1)
             if _val != 1:        
                 _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now, remarks = 'Price Discrepancies.')
                 get_sales_order_trnx_redo()                          
@@ -5070,6 +5076,8 @@ def sale_order_manager_delivery_note_approved_form():
             elif get_item_code_id_validation():
                 x = 0
                 # print 'true'
+            elif _stk == 2:
+                response.js = "alertify.alert('Sales Invoice', 'Closing Stock for Item Code <b>%s</b> should not be less than to zero.')" % (session.item_code)
             else:          
                 # print 'false'
                 if _id.delivery_note_pending == True:                
@@ -5278,14 +5286,15 @@ def get_sales_invoice_validation(x):
             n.update_record(price_discrepancy = True)        
             return 2
 
-def get_stock_file_validation():    
+def get_stock_file_validation(x):    
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
     _clo_stk = 0
     for n in db(db.Sales_Order_Transaction.sales_order_no_id == request.args(0)).select():        
         _stk_file = db((db.Stock_File.item_code_id == n.item_code_id) & (db.Stock_File.location_code_id == _id.stock_source_id)).select().first()
         _clo_stk = int(_stk_file.closing_stock) - int(n.quantity)
         if _clo_stk < 0:
-            response.js = "alertify.alert('Sales Invoice', 'Closing Stock for Item Code <b>%s</b> should not be less than to zero.')" % (n.item_code_id.item_code)
+            session.item_code = n.item_code_id.item_code
+            return 2
 
 def get_generate_sales_invoice_id():
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
@@ -5390,12 +5399,12 @@ def sale_order_manager_invoice_no_rejected():
     session.flash = 'Delivery Note Rejected'
     response.js = "$('#tblso').get(0).reload()"
 
-def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
+def xsale_order_manager_invoice_no_form_approved(): # manoj from forms approval
     _id = db(db.Sales_Order.id == request.args(0)).select().first()    
     print ':', _id.id
     get_stock_file_validation()
 
-def xsale_order_manager_invoice_no_form_approved(): # manoj from forms approval
+def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
     _id = db(db.Sales_Order.id == request.args(0)).select().first()    
     if db(db.Sales_Invoice.sales_order_no == _id.sales_order_no).select().first():
         session.flash = 'Delivery Note No. ' + str(_id.delivery_note_no) + ' already been delivered by ' + str(_id.sales_invoice_approved_by.first_name)
@@ -5406,12 +5415,14 @@ def xsale_order_manager_invoice_no_form_approved(): # manoj from forms approval
             response.js = 'jQuery(AccountRedirect())'
         else:
             _val = get_sales_invoice_validation(1)
-
+            _stk = get_stock_file_validation(1)
             if _val == 2:                        
                 # print 'not equal'
                 _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now, remarks = 'Price Discrepancies.')            
                 get_sales_order_trnx_redo_id(_id.id)
                 response.js = 'jQuery(AccountRedirect())'
+            elif _stk == 2:
+                response.js = "alertify.alert('Sales Invoice', 'Closing Stock for Item Code <b>%s</b> should not be less than to zero.')" % (session.item_code)
             else:
                 # print 'equal'
                 

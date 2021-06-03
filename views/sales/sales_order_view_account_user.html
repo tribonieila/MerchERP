@@ -199,10 +199,8 @@ $(document).ready(function(){
     function reload(){
         location.reload();          
     }
-    function report(){        
-        // location.reload();       
-        // window.open('{{=URL('default','get_sales_order_id', args = request.args(0))}}');
-        
+    function report(){                
+        window.open('{{=URL('default','get_sales_order_id', args = request.args(0))}}');        
     }
     function AccountRedirect(){          
         window.location.href = "{{=URL('inventory','account_grid')}}" 

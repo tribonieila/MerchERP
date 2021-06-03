@@ -161,6 +161,7 @@ auth.enable_record_versioning(db)
 db = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_inv_db?driver={ODBC Driver 17 for SQL Server}", pool_size=0) # production
 dc = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_almeera_db?driver={ODBC Driver 17 for SQL Server}", pool_size=0) # production
 d2 = DAL("mssql4://SA:M3rch2018@localhost:1433/m3rch_hr_db?driver={ODBC Driver 17 for SQL Server}", migrate=False, fake_migrate_all = True) # production
+dd = DAL("mssql4://SA:M3rch2018@10.128.4.21:1433/MerchDB_Live?driver={ODBC Driver 17 for SQL Server}", migrate=False, fake_migrate_all = True) # production
 # db = DAL("mssql4://SA:M3rch2018@localhost:1433/M3rchDB_Test?driver={ODBC Driver 17 for SQL Server}") # testing
 # db = DAL("mssql4://SA:M3rch2018@localhost:1433/M3rchDB_Deve?driver={ODBC Driver 17 for SQL Server}") # development
 # db = DAL("mssql4://SA:M3rch2018@MERCHERP:1433/M3rchDB?driver={SQL Server}") # production

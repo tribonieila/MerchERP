@@ -224,6 +224,7 @@
 								<li><a href="{{=URL('inventory', 'price_list_report')}}" ><span class="title">Price List Report</span></a></li>
 								<li><a href="{{=URL('inventory', 'stock_value_report')}}" ><span class="title">Stock Value Report</span></a></li>
 								<li><a href="{{=URL('inventory', 'get_stock_value_utility')}}" ><span class="title">Stock On Transit</span></a></li>
+								<li><a href="{{=URL('inventory', 'get_list_of_negative_stock')}}" ><span class="title">List of Negative Stock</span></a></li>
 							</ul>
 						</li>
 						<li class="gui-folder">
@@ -284,7 +285,8 @@
 							<a href="javascript:void(0);" ><span class="title">D/1 Register</span></a>
 							<ul>
 								<li><a href="{{=URL('procurement', 'get_document_register_grid')}}" ><span class="title">Maintenance</span></a></li>
-								<li><a href="{{=URL('procurement', 'get_other_payment_schedule_grid')}}" ><span class="title">Other Payment</span></a></li>
+								<li><a href="{{=URL('account_procurement', 'get_other_payment_schedule_grid')}}" ><span class="title">Other Payment</span></a></li>
+								<!-- <li><a href="{{=URL('procurement', 'get_other_payment_schedule_grid')}}" ><span class="title">Other Payment</span></a></li> -->
 								<li><a href="{{=URL('procurement', 'get_document_register_report')}}" ><span class="title">Reports</span></a></li>
 							</ul>
 						</li>
@@ -315,6 +317,9 @@
 								<li><a href="{{=URL('sales', 'get_sales_manager_grid')}}" ><span class="title">Sales Manager</span></a></li>
 								<li><a href="{{=URL('sales', 'get_user_department_grid')}}" ><span class="title">User Department</span></a></li>
 								<li><a href="{{=URL('sales', 'get_warehouse_manager_grid')}}" ><span class="title">Warehouse Manager</span></a></li>
+								<li><a href="{{=URL('sales_master_account', 'get_pos_end_user_grid')}}" ><span class="title">POS End User</span></a></li>
+								<li><a href="{{=URL('sales_master_account', 'get_delivery_men_grid')}}" ><span class="title">Delivery Men</span></a></li>
+
 							</ul>
 						</li>
 						<li class="gui-folder">
@@ -714,6 +719,10 @@
 					<ul>									
 						<li><a href="{{=URL('inventory', 'master_item_view')}}" ><span class="title">Master Stock Card View</span></a></li>
 						<li><a href="{{=URL('inventory', 'stock_card_movement')}}" ><span class="title">Stock Card Movement</span></a></li>
+						<li><a href="{{=URL('inventory', 'get_transaction_reports', args = 1)}}" ><span class="title">Stock Request</span></a></li>
+						<li><a href="{{=URL('inventory', 'get_transaction_reports', args = 2)}}" ><span class="title">Stock Transfer</span></a></li>
+						<li><a href="{{=URL('sales', 'sales_order_browse')}}" ><span class="title">Sales Order</span></a></li>
+						<li><a href="{{=URL('sales', 'sales_return_browse')}}" ><span class="title">Sales Return</span></a></li>
 					</ul>
 				</li>								
 				<li><a href="http://10.128.4.21:8010/MERCHERP-REPORTS/" target='_blank'><div class="gui-icon"><i class="md fas fa-chart-pie"></i></div><span class="title">EIS REPORT</span></a></li>						

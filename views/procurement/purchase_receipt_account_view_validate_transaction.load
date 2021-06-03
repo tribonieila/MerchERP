@@ -74,6 +74,16 @@
                 </div>
             </div>
             <div class="col-md-4">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">Purchase Receipt Date</label>
+                    <div class="col-sm-4"><input type="date" class="form-control" name="purchase_receipt_date" id="purchase_receipt_date" value="{{=request.now.date()}}"></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-8"></div>
+            <div class="col-md-4">
 
                 {{ if auth.has_membership(role='ACCOUNTS MANAGER'):}}
                     {{if _pr.status_id == 25:}}
@@ -98,7 +108,7 @@
 <script>
     $(document).ready(function(){
         $('#btnApproved').click(function(){
-            ajax("{{=URL('procurement','purchase_receipt_approved', args = request.args(0))}}");
+            ajax("{{=URL('procurement','purchase_receipt_approved', args = request.args(0))}}", ['purchase_receipt_date']);
             window.location.replace("{{=URL('inventory','account_manager_workflow', extension=False)}}")
         });
     

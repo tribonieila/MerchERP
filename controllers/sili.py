@@ -100,14 +100,15 @@ def get_read_csv_file():
     #     data = csv.reader(f)
     #     for row in data:
     #         print(row[0],row[1])
-    print '-'
-    import csv
-    with open('/home/larry/Workspace/web2py/applications/Merch_ERP/private/brandclass.csv','rt')as f:
+    # print '-'
+    import csv    
+    # with open('C:/inetpub/wwwroot/applications/Merch_ERP/private/classbeauty.csv','rt') as f:
+    with open('/home/larry/Workspace/web2py/applications/Merch_ERP/private/brandclassbeauty.csv','rt')as f:
         data = csv.reader(f)
         for row in data:
             _id = db(db.Brand_Classification.brand_cls_code == row[4]).select().first()
             if not _id:                
-                # print 'insert: ', row[4]
+                # print('insert: '), row[4]
                 db.Brand_Classification.insert(
                     prefix_id = row[0],
                     group_line_id = row[1],
@@ -120,6 +121,8 @@ def get_read_csv_file():
                     created_by = 1,
                     updated_on = request.now,
                     updated_by = 1)
+            # else:
+            #     print("Updated: "), row[4]
 import math
 def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
@@ -142,31 +145,15 @@ def generate():
     import datetime
     # print 'year: ', request.now.strftime('%y')
     # print '-'    
-    for n in db().select(db.Other_Payment_Schedule.ALL):
-        _splr = db(db.Supplier_Master.supplier_type == 'DOCUMENT').select().first()
-        _curr = db(db.Currency.mnemonic == 'QR').select().first()
-        _cexh = db(db.Currency_Exchange.currency_id == _curr.id).select().first()
-        _bank = db(db.Bank_Master.bank_name == 'HSBC').select().first() #  1
-        print(":"), n.created_on.date(), n.order_no, _splr.id, n.trade_terms, n.currency, _cexh.exchange_rate_value, n.local_currency_amount, _bank.id
+    for n in db().select(orderby = db.Customer.id):
+        _id = db(db.Master_Account.account_code == n.customer_account_no).select().first()
+        if not _id:
+            db.Master_Account.insert(                
+                account_code = n.customer_account_no,
+                account_name = n.customer_name,
+                master_account_type_id = 'C')
 
-        db.Document_Register.insert(
-            document_register_date = n.created_on.date(),
-            document_register_no = n.order_no, 
-            supplier_code_id = _splr.id, 
-            location_code_id = 1, 
-            payment_terms = n.trade_terms, 
-            currency_id =  6, 
-            exchange_rate = _cexh.exchange_rate_value,         
-            invoice_amount = n.local_currency_amount,
-            cil_no = n.cil_number,
-            due_date = n.due_date,
-            paid = n.paid,
-            others = True,
-            created_by = n.created_by,
-            created_on = n.created_on,
-            updated_on = n.updated_on,
-            updated_by = n.updated_by)
-        
+
     # for n in db().select(db.Document_Register.ALL):
     #     _id = db(db.Supplier_Master.id == n.supplier_code_id).select().first()
     #     n.update_record(dept_code_id = _id.dept_code_id)

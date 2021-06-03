@@ -45,6 +45,7 @@ tmpfilename=os.path.join(request.folder,'private',str(uuid4()))
 docL = SimpleDocTemplate(tmpfilename,pagesize=A4, topMargin=80, leftMargin=20, rightMargin=20, bottomMargin=80)#,showBoundary=1)
 doc = SimpleDocTemplate(tmpfilename,pagesize=A4, topMargin=30, leftMargin=20, rightMargin=20, bottomMargin=80)#,showBoundary=1)
 a3 = SimpleDocTemplate(tmpfilename,pagesize=A3, topMargin=80, leftMargin=20, rightMargin=20, bottomMargin=80)#,showBoundary=1)
+doc_xfr = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=3.1 * inch,bottomMargin=2.4 * inch)#, showBoundary=1)
 logo_path = request.folder + '/static/images/Merch.jpg'
 img = Image(logo_path)
 img.drawHeight = 2.55*inch * img.drawHeight / img.drawWidth
@@ -115,28 +116,84 @@ def _stock_value_header(canvas, doc):
     # Release the canvas
     canvas.restoreState()
 
-def _transfer_header_footer(canvas, doc):
+def _transfer_header_footer(canvas, doc_xfr):
     # Save the state of our canvas so we can draw on it
     canvas.saveState()
+    _id = db(db.Stock_Transfer.id == request.args(0)).select().first()
+    _head = [
+        ['STOCK TRANSFER VOUCHER'],
+        [str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no)],
+        ['Stock Transfer No',':', str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no),'', 'Stock Transfer Date',':',str(_id.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Request No',':',str(_id.stock_request_no_id.prefix)+str(_id.stock_request_no),'', 'Stock Request Date',':',str(_id.stock_request_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Transfer From',':',_id.stock_source_id.location_name,'','Stock Transfer To',':',_id.stock_destination_id.location_name],
+        ['Department',':',_id.dept_code_id.dept_name,'','','',''],
+        ['','','','','','',''],
+        ['','','','','','','']]        
+    header = Table(_head, colWidths=['*',20,'*',10,'*',20,'*'])
+    header.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('SPAN',(0,0),(6,0)),
+        ('SPAN',(0,1),(-1,1)),
+        ('ALIGN', (0,0), (-1,1), 'CENTER'),                
+        ('FONTNAME', (0, 0), (-1, 1), 'Courier',12),           
+        ('FONTNAME', (0, 1), (-1, 1), 'Courier-Bold'),
+        ('FONTSIZE',(0,1),(-1,-1),13),                
+        ('FONTNAME', (0, 2), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,2),(-1,-1),8),        
+        ('TOPPADDING',(0,0),(0,0),5),        
+        ('BOTTOMPADDING',(0,0),(0,0),12),                                     
+        ('TOPPADDING',(0,1),(-1,-1),10),
+        ('BOTTOMPADDING',(0,1),(-1,1),25),
+        ('TOPPADDING',(0,2),(-1,-1),0),
+        ('BOTTOMPADDING',(0,2),(-1,-1),0)
+        ]))
+    header.wrapOn(canvas, doc_xfr.width, doc_xfr.topMargin)
+    header.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.height + doc_xfr.topMargin - .7 * inch)
+    
+    if _id.stock_transfer_dispatched_by == None:
+        _dispatched_by = _dispatched_date = ''
+    else:
+        _dispatched_by = str(_id.stock_transfer_dispatched_by.first_name)+' '+str(_id.stock_transfer_dispatched_by.last_name)
+        _dispatched_date = _id.stock_transfer_dispatched_date.strftime('%d/%b/%Y')
+    if _id.stock_receipt_no_id == None:
+        _receipt_no = _receipt_date = ''
+    else:
+        _receipt_no = str(_id.stock_receipt_no_id.prefix)+str(_id.stock_receipt_no)
+        _receipt_date = _id.stock_receipt_date_approved.strftime('%d/%b/%Y')
 
-    # Footer
-    # today = date.today()
-    _trn = db(db.Stock_Request.id == request.args(0)).select().first()
+    _signatory = [        
+        [_dispatched_by,'','','',''],
+        ['Issued by','','Receive by','','Delivered by']]
 
-    footer = Table([
-        # [str(_trn.stock_transfer_approved_by.first_name.upper() + ' ' + _trn.stock_transfer_approved_by.last_name.upper()),'',''],
-        # ['Issued by','Receive by', 'Delivered by'],
-        # ['','','Printed by: ' + str(auth.user.first_name.upper()) + ' ' + str(auth.user.last_name.upper()) + ' ' + str(strftime("%X"))],
-        # # ['','- - WAREHOUSE COPY - -',''],
-        [merch,''],['',request.now.strftime("%A %d. %B %Y, %I:%M%p ")]], colWidths=[None])
+    signatory = Table(_signatory, colWidths=['*',20,'*',20,'*'])
+    signatory.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN',(0,0),(-1,-1),'CENTER'),      
+        ('LINEBELOW', (0,0), (0,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (2,0), (2,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (4,0), (4,0), 0.25, colors.black,None   , (2,2)),
+    ]))
+
+    _footer = [
+        ['Dispatched By',':',_dispatched_by,'','Stock Receipt No.',':',_receipt_no],
+        ['Dispatched Date',':',_dispatched_date,'','Stock Receipt Date',':',_receipt_date],
+        ['Remarks',':',_id.remarks,'','','','']]
+
+    footer = Table(_footer, colWidths=['*',20,'*',10,'*',20,'*'])
     footer.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
-        ('FONTSIZE',(0,0),(1,1),8),
-        ('ALIGN',(1,1),(1,1),'RIGHT'),        
-        ('LINEABOVE',(0,1),(1,1),1, colors.Color(0, 0, 0, 0.55))
-        ]))
-    footer.wrap(doc.width, doc.bottomMargin)
-    footer.drawOn(canvas, doc.leftMargin, doc.bottomMargin - .7 * inch)
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0)]))
+
+    signatory.wrap(doc_xfr.width, doc_xfr.bottomMargin)
+    signatory.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.bottomMargin - 2.6 * cm)
+
+    footer.wrap(doc_xfr.width, doc_xfr.bottomMargin)
+    footer.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.bottomMargin - 4.6 * cm)
 
     # Release the canvas
     canvas.restoreState()
@@ -732,31 +789,94 @@ def stock_transaction_report():
     response.headers['Content-Type']='application/pdf'    
     return pdf_data   
 
+def get_stock_request_report_id():    # auto generate report 
+    _id = db(db.Stock_Request.id == request.args(0)).select().first()
+    _grand_total = 0    
+    ctr = 0
+    _total = 0           
+
+    ctr = _grand_total= 0
+    stk_trn = [['#', 'Item Code', 'Item Description/Barcode','Unit','Cat.', 'UOM','Qty.','Price','Total']]
+    for i in db((db.Stock_Request_Transaction.stock_request_id == request.args(0)) & (db.Stock_Request_Transaction.delete == False)).select():
+        ctr += 1
+        _im = db(db.Item_Master.id == n.item_code_id).select().first()
+        _grand_total += i.total_amount        
+        if i.Item_Master.uom_id == None:
+            _uom = ''
+        else:
+            _uom = i.Item_Master.uom_id.mnemonic
+        if i.Item_Master.int_barcode == None:
+            _barcode = ''
+        else:
+            _barcode = i.Item_Master.int_barcode
+        stk_trn.append([ctr,
+        Paragraph(i.item_code_id.item_code, style=_courier),        
+        str(i.item_code_id.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(i.item_code_id.item_description.upper()),        
+        _uom,
+        # i.Item_Master.uom_id.mnemonic,
+        i.Stock_Request_Transaction.category_id.mnemonic,
+        i.Stock_Request_Transaction.uom,
+        card(i.Item_Master.id, i.Stock_Request_Transaction.quantity, i.Stock_Request_Transaction.uom),        
+        locale.format('%.3F',i.Stock_Request_Transaction.unit_price or 0, grouping = True),
+        locale.format('%.2F',i.Stock_Request_Transaction.total_amount or 0, grouping = True)])
+    (_whole, _frac) = (int(_grand_total), locale.format('%.2f',_grand_total or 0, grouping = True))
+    stk_trn.append(['QAR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS','', '','', '','','Total Amount',':',locale.format('%.2F',_grand_total or 0, grouping = True)])
+    trn_tbl = Table(stk_trn, colWidths = [25,70,'*',30,30,30,50,50,50], repeatRows=1)
+    trn_tbl.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),        
+        ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
+        ('LINEABOVE', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),
+        ('LINEBELOW', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),
+        ('ALIGN',(6,1),(8,-1),'RIGHT'),
+        ('VALIGN',(0,1),(-1,-1),'TOP'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('FONTNAME',(0,0),(-1,-1), 'Courier'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Courier-Bold')]))
+    
+
+    _warehouse = [["-------------    WAREHOUSE'S COPY     -------------"]]
+    _accounts = [["-------------    ACCOUNT'S COPY     -------------"]]
+    _pos = [["-------------    POS COPY     -------------"]]
+    
+    _w_tbl = Table(_warehouse, colWidths='*')
+    _a_tbl = Table(_accounts, colWidths='*')
+    _p_tbl = Table(_pos, colWidths='*')
+
+    _w_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'),('FONTNAME', (0, 0), (-1, -1), 'Courier'),('FONTSIZE',(0,0),(-1,-1),7)]))
+    _a_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),7)]))
+    _p_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),7)]))
+    
+    row.append(trn_tbl)    
+    row.append(_w_tbl)
+    row.append(Spacer(1,2*cm))
+    row.append(PageBreak())
+
+    row.append(trn_tbl)    
+    row.append(_a_tbl)
+    row.append(Spacer(1,2*cm))
+    row.append(PageBreak())
+
+    row.append(trn_tbl)    
+    row.append(_p_tbl)
+    row.append(Spacer(1,2*cm))
+    row.append(PageBreak())
+
+    doc_xfr.build(row, onFirstPage=_transfer_header_footer, onLaterPages=_transfer_header_footer, canvasmaker=PageNumCanvas)    
+    pdf_data = open(tmpfilename,"rb").read()
+    os.unlink(tmpfilename)
+    response.headers['Content-Type']='application/pdf'
+    
+    return pdf_data   
+
 def get_stock_transfer_report_id():    # final report 
     _id = db(db.Stock_Transfer.id == request.args(0)).select().first()
     _grand_total = 0    
     ctr = 0
     _total = 0           
-    stk_req_no = [
-        ['STOCK TRANSFER VOUCHER'],               
-        ['Stock Transfer No',':', str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no),'', 'Stock Transfer Date',':',str(_id.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
-        ['Stock Request No',':',str(_id.stock_request_no_id.prefix)+str(_id.stock_request_no),'', 'Stock Request Date',':',str(_id.stock_request_date_approved.strftime('%d/%b/%Y'))],
-        ['Stock Transfer From',':',_id.stock_source_id.location_name,'','Stock Transfer To',':',_id.stock_destination_id.location_name],
-        ['Department',':',_id.dept_code_id.dept_name,'','','','']]        
-    stk_tbl = Table(stk_req_no, colWidths=['*',20,'*',10,'*',20,'*'])
-    stk_tbl.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
-        ('SPAN',(0,0),(6,0)),
-        ('ALIGN', (0,0), (0,0), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    
-        ('TOPPADDING',(0,0),(0,0),5),        
-        ('BOTTOMPADDING',(0,0),(0,0),12),                             
-        ('TOPPADDING',(0,1),(-1,-1),0),
-        ('BOTTOMPADDING',(0,1),(-1,-1),0),
-        ('FONTSIZE',(0,1),(-1,-1),8)]))
 
     ctr = _grand_total= 0
-    stk_trn = [['#', 'Item Code', 'Item Description','Unit','Cat.', 'UOM','Qty.','Price','Total']]
+    stk_trn = [['#', 'Item Code', 'Item Description/Barcode','Unit','Cat.', 'UOM','Qty.','Price','Total']]
     for i in db((db.Stock_Transfer_Transaction.stock_transfer_no_id == request.args(0)) & (db.Stock_Transfer_Transaction.delete == False)).select(db.Stock_Transfer_Transaction.ALL, db.Item_Master.ALL, left = db.Item_Master.on(db.Item_Master.id == db.Stock_Transfer_Transaction.item_code_id)):
         _soh = db((db.Stock_File.item_code_id == i.Stock_Transfer_Transaction.item_code_id) & (db.Stock_File.location_code_id == _id.stock_destination_id)).select().first()
         if not _soh:
@@ -793,81 +913,42 @@ def get_stock_transfer_report_id():    # final report
         ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),        
         ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
         ('LINEABOVE', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),
+        ('LINEBELOW', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),
         ('ALIGN',(6,1),(8,-1),'RIGHT'),
         ('VALIGN',(0,1),(-1,-1),'TOP'),
         ('FONTSIZE',(0,0),(-1,-1),8),
         ('FONTNAME',(0,0),(-1,-1), 'Courier'),
-        ('FONTNAME', (6, -1), (-1, -1), 'Courier-Bold')]))
+        ('FONTNAME', (0, -1), (-1, -1), 'Courier-Bold')]))
     
-    signatory = [
-        [str(_id.stock_transfer_approved_by.first_name.upper() + ' ' + _id.stock_transfer_approved_by.last_name.upper()),'','','',''],
-        ['Issued by','','Receive by','','Delivered by']]
-        # ['','','Printed by: ' + str(auth.user_id) + ' ' + str(auth.user_id) + ' ' + str(strftime("%X"))]]
-        # ['','','Printed by: ' + str(auth.user_id.first_name.upper()) + ' ' + str(auth.user_id.last_name.upper()) + ' ' + str(strftime("%X"))]]
 
-    signatory_table = Table(signatory, colWidths=['*',20,'*',20,'*'])
-    signatory_table.setStyle(TableStyle([
-        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
-        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
-        ('FONTSIZE',(0,0),(-1,-1),8),
-        ('ALIGN',(0,0),(-1,-1),'CENTER'),      
-        ('LINEBELOW', (0,0), (0,0), 0.25, colors.black,None   , (2,2)),
-        ('LINEBELOW', (2,0), (2,0), 0.25, colors.black,None   , (2,2)),
-        ('LINEBELOW', (4,0), (4,0), 0.25, colors.black,None   , (2,2)),
-    ]))
-    _printer = [['PRINT COUNT: ' + str(0)]]
-    _warehouse = [['- - WAREHOUSE COPY - -']]
-    _accounts = [['- - ACCOUNTS COPY - -']]
-    _pos = [['- - POS COPY - -']]
-
+    _warehouse = [["-------------    WAREHOUSE'S COPY     -------------"]]
+    _accounts = [["-------------    ACCOUNT'S COPY     -------------"]]
+    _pos = [["-------------    POS COPY     -------------"]]
     
     _w_tbl = Table(_warehouse, colWidths='*')
     _a_tbl = Table(_accounts, colWidths='*')
     _p_tbl = Table(_pos, colWidths='*')
-    _c_tbl = Table(_printer, colWidths='*')
 
-    _w_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'),('FONTNAME', (0, 0), (-1, -1), 'Courier'),('FONTSIZE',(0,0),(-1,-1),8)]))
-    _a_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),8)]))
-    _p_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),8)]))
-    _c_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),8)]))
+    _w_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'),('FONTNAME', (0, 0), (-1, -1), 'Courier'),('FONTSIZE',(0,0),(-1,-1),7)]))
+    _a_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),7)]))
+    _p_tbl.setStyle(TableStyle([('ALIGN', (0,0), (0,0), 'CENTER'), ('FONTNAME', (0, 0), (-1, -1), 'Courier'),    ('FONTSIZE',(0,0),(-1,-1),7)]))
     
-    row.append(stk_tbl)
-    row.append(Spacer(1,.5*cm))    
     row.append(trn_tbl)    
-    # stock_transaction_table()
-    row.append(Spacer(1,.7*cm))    
-    row.append(Spacer(1,.7*cm))
     row.append(_w_tbl)
-    # row.append(_c_tbl)
     row.append(Spacer(1,2*cm))
-    row.append(signatory_table)
     row.append(PageBreak())
 
-    row.append(stk_tbl)
-    row.append(Spacer(1,.5*cm))
     row.append(trn_tbl)    
-    # stock_transaction_table()
-    row.append(Spacer(1,.7*cm))    
-    row.append(Spacer(1,.7*cm))
     row.append(_a_tbl)
-    # row.append(_c_tbl)    
     row.append(Spacer(1,2*cm))
-    row.append(signatory_table)
     row.append(PageBreak())
 
-    row.append(stk_tbl)
-    row.append(Spacer(1,.5*cm))
     row.append(trn_tbl)    
-    # stock_transaction_table()
-    row.append(Spacer(1,.7*cm))    
-    row.append(Spacer(1,.7*cm))
     row.append(_p_tbl)
-    # row.append(_c_tbl)    
     row.append(Spacer(1,2*cm))
-    row.append(signatory_table)
     row.append(PageBreak())
 
-    doc.build(row, onFirstPage=_transfer_header_footer, onLaterPages=_transfer_header_footer)
+    doc_xfr.build(row, onFirstPage=_transfer_header_footer, onLaterPages=_transfer_header_footer, canvasmaker=PageNumCanvas)    
     pdf_data = open(tmpfilename,"rb").read()
     os.unlink(tmpfilename)
     response.headers['Content-Type']='application/pdf'
@@ -1993,3 +2074,60 @@ def card_view(item_code_id, stock):
         _pieces = abs(x) - (abs(_stock) * u)
         # return str(int(_stock)) + ' - ' + str(int(stock) - int(stock) / int(_item.uom_value) * int(_item.uom_value))  + '/' + str(int(_item.uom_value))        
         return str('{:,}'.format(int(_stock))) + ' - ' + str(_pieces)  + '/' + str(int(_item.uom_value))        
+
+########################################################################
+class PageNumCanvas(canvas.Canvas):
+    """
+    http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
+    http://code.activestate.com/recipes/576832/
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, *args, **kwargs):
+        """Constructor"""
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self.pages = []
+ 
+    #----------------------------------------------------------------------
+    def showPage(self):
+        """
+        On a page break, add information to the list
+        """
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+ 
+    #----------------------------------------------------------------------
+    def save(self):
+        """
+        Add the page number to each page (page x of y)
+        """
+        page_count = len(self.pages)
+ 
+        for page in self.pages:
+            self.__dict__.update(page)
+            self.draw_page_number(page_count)
+            canvas.Canvas.showPage(self)
+ 
+        canvas.Canvas.save(self)
+ 
+    #----------------------------------------------------------------------
+    def draw_page_number(self, page_count):
+        """        Add the page number        """
+        page = []        
+        _page_count = page_count / 3
+        _page_number = self._pageNumber
+        if page_count == 3:
+            _page_number = 1
+        else:            
+            if _page_number % 2:
+                _page_number = 1
+            else:
+                _page_number = 2       
+        printed_by = "Printed By: %s%s" %(auth.user.first_name[0],auth.user.last_name[0])
+        page = "Page %s of %s" % (_page_number, _page_count)        
+        printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
+        self.setFont("Courier", 7)
+        self.drawRightString(30*mm, 10*mm, printed_by)
+        self.drawRightString(200*mm, 10*mm, printed_on)
+        self.drawRightString(115*mm, 10*mm, page)
+ 
