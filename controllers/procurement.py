@@ -5742,14 +5742,17 @@ def purchase_request_grid():
     _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first()
     
     if auth.has_membership(role = 'INVENTORY SALES MANAGER'): # wael approval        
-        _query = db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.section_id == _usr.section_id) & (db.Purchase_Request.dept_code_id == _usr.department_id)).select(orderby = db.Purchase_Request.id)            
+        if _usr.department_id == 3:        
+            _query = db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.section_id == _usr.section_id) & (db.Purchase_Request.dept_code_id == 3)).select(orderby = db.Purchase_Request.id)        
+        else:
+            _query = db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.section_id == _usr.section_id) & (db.Purchase_Request.dept_code_id != 3)).select(orderby = db.Purchase_Request.id)            
         head = THEAD(TR(TH('Date'),TH('Purchase Request No.'),TH('Department'),TH('Supplier Code'),TH('Location'),TH('Amount'),TH('Requested by'),TH('Status'),TH('Action Required'),TH('Action'),_class='bg-primary'))
     # elif auth.has_membership(role = 'INVENTORY SALES MANAGER') & auth.has_membership(role = 'INVENTORY BACK OFFICE NON-FOOD'): # wael approval        
     #     _query = db((db.Purchase_Request.status_id == 19) & (db.Purchase_Request.section_id == 'N') & (db.Purchase_Request.dept_code_id == 3)).select(orderby = db.Purchase_Request.id)
     #     head = THEAD(TR(TH('Date'),TH('Purchase Request No.'),TH('Department'),TH('Supplier Code'),TH('Location'),TH('Amount'),TH('Requested by'),TH('Status'),TH('Action Required'),TH('Action'),_class='bg-primary'))        
     elif auth.has_membership(role = 'MANAGEMENT') | auth.has_membership(role='ROOT'):  # john approval
         head = THEAD(TR(TH('Date'),TH('Purchase Request No.'),TH('Department'),TH('Supplier'),TH('Amount'),TH('Requested by'),TH('Approved by'),TH('Status'),TH('Action Required'),TH('Action'),_class='bg-primary'))
-        _query = db((db.Purchase_Request.status_id == 20)).select(orderby = db.Purchase_Request.id)     
+        _query = db((db.Purchase_Request.status_id == 20) | (db.Purchase_Request.status_id == 29)).select(orderby = db.Purchase_Request.id)     
     elif auth.has_membership(role = 'INVENTORY STORE KEEPER'): # hakim approval
         if not _usr:
             _query = db((db.Purchase_Request.status_id == 17) & (db.Purchase_Request.archives == False) & (db.Purchase_Request.dept_code_id != 3)).select(orderby = ~db.Purchase_Request.id) 
@@ -5821,6 +5824,8 @@ def purchase_request_grid():
                 _approved_by = 'None'
             else:
                 _approved_by = n.purchase_request_approved_by.first_name.upper(),' ',n.purchase_request_approved_by.last_name.upper()
+            if n.status_id == 29:
+                _pr = SPAN(n.purchase_request_no_prefix_id.prefix,n.purchase_request_no, _class='badge style-danger')
             row.append(TR(
                 TD(n.purchase_request_date),
                 TD(_pr),
@@ -6723,7 +6728,7 @@ def purchase_receipt_warehouse_grid_process():
     _supplier = db(db.Supplier_Master.id == session.supplier_code_id).select().first()
     # head = THEAD(TR(TH('#'),TH('Item Code'),TH('Item Description'),TH('UOM'),TH('Category'),TH('Prod. Date'),TH('Exp. Date'),TH('Quantity'),TH('Pieces'),TH('Action'),_class='bg-success'))        
     head = THEAD(TR(
-        TD(DIV(LABEL('Location:'),DIV(SELECT(_name='location_code_id', _class='form-control', *[OPTION(i.location_name, _value=i.id) for i in db().select(db.Location.ALL, orderby = db.Location.id)])),_class='form-group'),_colspan='3'),TD(),
+        TD(DIV(LABEL('Location:'),DIV(SELECT(_name='location_code_id', _class='form-control', *[OPTION(i.location_name, _value=i.id) for i in db(db.Location.status_id == 1).select(db.Location.ALL, orderby = db.Location.id)])),_class='form-group'),_colspan='3'),TD(),
         TD(DIV(LABEL('Supplier:'),DIV(_supplier.supp_name),_class='form-group'),_colspan='2'),TD()))        
     head += THEAD(TR(TH('#'),TH('Item Code'),TH('Brand Line'),TH('Item Description'),TH('UOM'),TH('Category'),TH('Action'),_class='bg-primary'))        
     # for x in db((db.Purchase_Order_Transaction.selected == True) & (db.Purchase_Order_Transaction.consolidated == False) & (db.Purchase_Order_Transaction.updated_by == auth.user_id)).select(db.)
@@ -6747,7 +6752,7 @@ def purchase_receipt_warehouse_grid_process():
     # row.append(TR(TD(DIV(LABEL('Location:'),DIV(SELECT(_name='location_code_id', _class='form-control', *[OPTION(i.location_name, _value=i.id) for i in db().select(db.Location.ALL, orderby = db.Location.id)])),_class='form-group'),_colspan='2'),TD(),TD(),TD(),TD(INPUT(_type='submit', _value='Generate GRV',_class='btn btn-success'))))
     row.append(TR(TD(),TD(),TD(),TD(),TD(),TD(INPUT(_type='submit', _value='Generate WPR',_class='btn btn-success')),TD(INPUT(_type='button', _value='Abort',_id='btnReturn',_class='btn btn-danger'))))
     body = TBODY(*row)            
-    form = FORM(TABLE(*[head, body], _class='table table-hover', _id = 'tblPr'))
+    form = FORM(TABLE(*[head, body], _class='table table-hover table-bordered', _id = 'tblPr'))
     if form.accepts(request, session):        
         # validate if purchase order or partial T/F
         # if db((db.Purchase_Request.id == _id.purchase_request_no_id) & (db.Purchase_Request.partial == True)).select().first():
@@ -6907,6 +6912,7 @@ def get_document_register_report():
     _title = 'D1 Register Report'
     form = SQLFORM.factory(
         Field('category_id','integer',requires = IS_IN_SET([('1','CIL List'),('2','Supplier'),('3','By Due Date')], zero = 'Choose category')),
+        Field('bank_master_id', 'reference Bank_Master', ondelete = 'NO ACTION', requires = IS_EMPTY_OR(IS_IN_DB(db, db.Bank_Master.id,'%(bank_name)s', zero = 'Choose Bank'))),
         Field('paid_id','integer',requires = IS_IN_SET([('1','Paid'),('2','Unpaid'),('3','Paid & Unpaid')], zero = 'Choose category')),
         Field('due_date','integer',requires = IS_IN_SET([('5','5 Days'),('15','15 Days'),('25','25 Days'),('30','30 Days')], zero = 'Choose days')),        
         Field('supplier_code_id', 'reference Supplier_Master',ondelete = 'NO ACTION', label = 'Supplier Code', requires = IS_EMPTY_OR(IS_IN_DB(db, db.Supplier_Master.id,'%(supp_code)s - %(supp_name)s, %(supp_sub_code)s', zero = 'Choose Supplier Code'))),
@@ -8109,19 +8115,28 @@ def warehouse_delete_new_item():
     db(db.Purchase_Receipt_Transaction_Consolidated_New_Item.id == request.args(0)).update(delete = True)
     # response.js = "$('#PTtbl').get(0).reload()"
 
+def put_purchase_receipt_invoice_no():    
+    db(db.Purchase_Warehouse_Receipt.id == request.args(0)).update(supplier_reference_order = request.vars.supplier_reference_order)
+
 def purchase_receipt_warehouse_grid_consolidated_processed():
     row =  []
     trow = []
     ctr = _after_discount = _total_amount = grand_total = discount_percentage = _foc_amount = _loc_amount = _total_row_amount =  0
     _id = db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select().first()
-    head = THEAD(TR(TH('Date / Transaction No.'),TH('Date / Purchase Order No.'),TH('Date / Purchase Request No.'),TH('Location'),TH('Supplier'),_class='active'))
+    head = THEAD(TR(TH('Date / Transaction No.'),TH('Date / Purchase Order No.'),TH('Date / Purchase Request No.'),TH('Location'),TH('Supplier'),TH('Invoice No.'),_class='active'))
     for n in db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select():
         row.append(TR(                        
             TD(n.transaction_date,' / ',n.transaction_no),
             TD(n.purchase_order_date_approved,' / ',n.purchase_order_no_prefix_id.prefix, n.purchase_order_no),
             TD(n.purchase_request_date,' / ',n.purchase_request_no_prefix_id.prefix, n.purchase_request_no),
             TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),
-            TD(n.supplier_code_id.supp_sub_code, ' - ',n.supplier_code_id.supp_name)))
+            TD(n.supplier_code_id.supp_sub_code, ' - ',n.supplier_code_id.supp_name),
+            TD(DIV(
+                INPUT(_type='text',_class='form-control', _name = 'supplier_reference_order',_value = _id.supplier_reference_order),
+                DIV(
+                    INPUT(_value='save',_id='btnSave',_type='button',_class='btn btn-success'),_class='input-group-append'
+                ),_class='input-group mb-3'
+                ))))
     body = TBODY(*row)
     table = TABLE(*[head, body], _class = 'table table-bordered', _id='PCtbl')
     return dict(table = table)
@@ -8138,7 +8153,7 @@ def put_purchase_receipt_transaction():
     _id = db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select().first()
     ctr = 0
     trow = []
-    thead = THEAD(TR(TH('#'),TH('Item Code'),TH('Item Description'),TH('UOM'),TH('Category'),TH('Prod. Date'),TH('Exp. Date'),TH('Quantity'),TH('Pieces'),TH('Action'),_class='bg-primary'))    
+    thead = THEAD(TR(TH('#'),TH('Item Code'),TH('Barcode'),TH('Item Description'),TH('UOM'),TH('Category'),TH('Prod. Date'),TH('Exp. Date'),TH('Quantity'),TH('Pieces'),TH('Action'),_class='bg-primary'))    
     for t in db((db.Purchase_Warehouse_Receipt_Transaction.purchase_warehouse_receipt_no_id == request.args(0)) & (db.Purchase_Warehouse_Receipt_Transaction.delete == False) & (db.Purchase_Warehouse_Receipt_Transaction.delete_receipt == False)).select(db.Item_Master.ALL, db.Purchase_Warehouse_Receipt_Transaction.ALL, orderby = db.Purchase_Warehouse_Receipt_Transaction.id, left = db.Item_Master.on(db.Item_Master.id == db.Purchase_Warehouse_Receipt_Transaction.item_code_id)):
         ctr += 1
         view_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button  ', _role='button', _class='btn btn-icon-toggle disabled ')
@@ -8178,9 +8193,11 @@ def put_purchase_receipt_transaction():
             _item_code = SPAN(t.Purchase_Warehouse_Receipt_Transaction.item_code, _class='badge bg-success')
         else:
             _item_code = t.Purchase_Warehouse_Receipt_Transaction.item_code
+            
         trow.append(TR(
             TD(ctr, INPUT(_type='number',_name='_id', _value = t.Purchase_Warehouse_Receipt_Transaction.id, _hidden = True)),
             TD(_item_code, INPUT(_type='text',_name='item_code', _value=t.Item_Master.item_code, _hidden=True)),
+            Td(t.Purchase_Warehouse_Receipt_Transaction.item_code_id.int_barcode),
             TD(_description,INPUT(_type='number',_name='price_cost',_value=t.Purchase_Warehouse_Receipt_Transaction.price_cost, _hidden=True)),
             TD(t.Purchase_Warehouse_Receipt_Transaction.uom, INPUT(_type='text',_name='uom', _value=t.Purchase_Warehouse_Receipt_Transaction.uom, _hidden=True)),
             TD(t.Purchase_Warehouse_Receipt_Transaction.category_id.description),
@@ -8189,7 +8206,7 @@ def put_purchase_receipt_transaction():
             TD(INPUT(_type='number', _class='form-control quantity',_name='quantity', _value= _qty,  _align = 'right'), _style="width:120px;"),
             TD(_pcs, _align = 'right', _style="width:120px;"),            
             TD(btn_lnk)))
-    trow.append(TR(TD(),TD(),TD(),TD(),TD(),TD(
+    trow.append(TR(TD(),TD(),TD(),TD(),TD(),TD(),TD(
         INPUT(_id='btnDraft', _name ='btnDraft',_type='submit', _value='save as draft',_class='btn btn-primary')),
         TD(INPUT(_id='btnRefresh',_type='button', _value='refresh',_class='btn btn-warning')),
         TD(INPUT(_id='btnSubmit',  _name ='btnSubmit',_type='submit', _value='submit',_class='btn btn-success')),
@@ -9033,6 +9050,7 @@ ctr = 0
 tmpfilename=os.path.join(request.folder,'private',str(uuid4()))
 # doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=200,bottomMargin=200, showBoundary=1)
 doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=1 * inch,bottomMargin=1.5 * inch)
+doc_pr = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=20,leftMargin=20, topMargin=3.1 * inch,bottomMargin=2.4 * inch)#, showBoundary=1)
 doc_po = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=2.5 * inch,bottomMargin=3 * inch)#, showBoundary=1)
 w_doc = SimpleDocTemplate(tmpfilename,pagesize=A4, rightMargin=30,leftMargin=30, topMargin=2.1 * inch,bottomMargin=3 * inch)#, showBoundary=1)
 
@@ -9781,6 +9799,68 @@ def get_purchase_request_workflow_reports_id(): # from workflow reports
     response.headers['Content-Type']='application/pdf'    
     return pdf_data
 
+def get_purchase_receipt_canvas_id(canvas, doc_pr): # official print
+    canvas.saveState()
+    _id = db(db.Purchase_Receipt.id == request.args(0)).select().first()
+    _header = [
+        ['PURCHASE RECEIPT'],
+        ['Purchase Receipt No.',':',str(_id.purchase_receipt_no_prefix_id.prefix)+str(_id.purchase_receipt_no),'','Purchase Receipt Date',':',_id.purchase_receipt_date_approved.strftime('%d/%b/%Y')],        
+        ['Purchase Order No.',':',str(_id.purchase_order_no_prefix_id.prefix) + str(_id.purchase_order_no),'', 'Supplier Invoice ',':',_id.supplier_reference_order],
+        ['Supplier Code',':',_id.supplier_code_id.supp_sub_code,'','Supplier Name',':',_id.supplier_code_id.supp_name],
+        ['Location',':',_id.location_code_id.location_name,'','Trade Terms',':',_id.trade_terms_id.trade_terms],
+        ['Department',':',str(_id.dept_code_id.dept_code)+' - ' + str(_id.dept_code_id.dept_name),'','Currency',':',_id.currency_id.description]]
+    header = Table(_header, colWidths=['*',20,'*',20,'*',20,'*'])
+    header.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('SPAN',(0,0),(-1,0)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),  
+        ('FONTSIZE',(0,0),(-1,0),10),        
+        ('FONTSIZE',(0,1),(-1,-1),8),
+        ('ALIGN',(0,0),(0,0),'CENTER'), 
+        ('BOTTOMPADDING',(0,0),(0,0),20),   
+        ('TOPPADDING',(0,1),(-1,-1),0),
+        ('BOTTOMPADDING',(0,1),(-1,-1),0)]))
+
+    header.wrapOn(canvas, doc_pr.width, doc_pr.topMargin)
+    header.drawOn(canvas, doc_pr.leftMargin, doc_pr.height + doc_pr.topMargin - .5 * inch)
+
+
+    _posted_by = [
+        [str(auth.user.first_name.upper()) + ' ' + str(auth.user.last_name.upper()),'',''],    
+        ['Posted By','','']]
+    posted_by = Table(_posted_by, colWidths=['*',100,'*'])
+    posted_by.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),                
+        ('LINEABOVE', (0,-1), (0,-1), 0.25, colors.black,None, (2,2)),        
+        ('TOPPADDING',(0,0),(-1,0),5),
+        ('TOPPADDING',(0,-2),(0,-2),25),
+        ('BOTTOMPADDING',(0,0),(-1,0),5),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN',(0,-2),(0,-1),'CENTER'),
+    ]))
+
+    _page = [
+        ['D1 Reference',':',_id.d1_reference,'','','',''],
+        ['Remarks',':',_id.remarks]]
+
+    footer = Table(_page, colWidths=[130,10,130,20,130,10,'*'])
+    footer.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0),
+    ]))
+
+    posted_by.wrap(doc_pr.width, doc_pr.bottomMargin)
+    posted_by.drawOn(canvas, doc_pr.leftMargin, doc_pr.bottomMargin - 2.4 * cm)
+
+    footer.wrap(doc_pr.width, doc_pr.bottomMargin)
+    footer.drawOn(canvas, doc_pr.leftMargin, doc_pr.bottomMargin - 4.6 * cm)
+    
+    canvas.restoreState()
+
 def purchase_receipt_reports(): # from workflow reports
     _prt_rep = db(db.Purchase_Receipt.id == request.args(0)).select().first()
     if not _prt_rep:
@@ -9884,7 +9964,7 @@ def purchase_receipt_reports(): # from workflow reports
     _row.append(['Custom Duty Ch.',':', 'QR ' + str(locale.format('%.3F',_pr.custom_duty_charges or 0, grouping = True)),'','','Other Charges','',':','',str(_pr.currency_id.mnemonic) + ' ' + locale.format('%.3F', _pr.other_charges or 0, grouping = True)])
     _row.append(['Selective Tax',':', 'QR ' + str(locale.format('%.3F',_pr.selective_tax or 0, grouping = True)),'','','Net Amount','',':','',  str(_pr.currency_id.mnemonic) + ' ' + locale.format('%.3F', _total_amount or 0, grouping = True)])
     _row.append(['Purchase Value',':', 'QR ' + str(locale.format('%.3F',_purchase_value or 0, grouping = True)),'','','Net Amount (QR)','',':','', str('QR') + ' ' + locale.format('%.3F', _local_amount or 0, grouping = True)])
-    _table = Table(_row, colWidths=[20,70,'*',50,50,50,50,50,50,50])
+    _table = Table(_row, colWidths=[20,70,'*',50,50,50,50,50,50,50],repeatRows=1)
     _table.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
@@ -9984,7 +10064,7 @@ def purchase_receipt_reports(): # from workflow reports
     _row_2.append(['Selective Tax',':', 'QR ' + str(locale.format('%.3F',_pr.selective_tax or 0, grouping = True)),'','','Net Amount','',':','',  str(_pr.currency_id.mnemonic) + ' ' +locale.format('%.3F', _total_amount or 0, grouping = True)])
     _row_2.append(['Purchase Value',':','QR ' + str(locale.format('%.3F',_purchase_value or 0, grouping = True)),'','','Net Amount (QR)','',':','', str('QR') + ' ' + locale.format('%.3F', _local_amount or 0, grouping = True)])
 
-    _table_2 = Table(_row_2, colWidths=[20,70,'*',50,50,50,50,50,45,55])
+    _table_2 = Table(_row_2, colWidths=[20,70,'*',50,50,50,50,50,45,55],repeatRows=1)
     _table_2.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         # ('LINEABOVE', (0,0), (-1,0), 0.25, colors.Color(0, 0, 0, 1)),        
@@ -10034,7 +10114,7 @@ def purchase_receipt_reports(): # from workflow reports
             card(n.Purchase_Receipt_Transaction.quantity_invoiced,n.Purchase_Receipt_Transaction.uom),
             _wholesale_price, _retail_price])
 
-    _table_3 = Table(_row_3, colWidths=[20,70,'*',60,60,40,60,60,60])
+    _table_3 = Table(_row_3, colWidths=[20,70,'*',60,60,40,60,60,60],repeatRows=1)
     _table_3.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
         ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
@@ -10057,29 +10137,30 @@ def purchase_receipt_reports(): # from workflow reports
         ('ALIGN',(0,0),(0,-1),'CENTER'),
         
     ]))       
-    row.append(_header_table)
-    row.append(Spacer(1,.5*cm))
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
     row.append(_table)
     row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
-    row.append(PageBreak())
-    row.append(_header_table)
-    row.append(Spacer(1,.5*cm))
-    row.append(_table_2)
-    row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
+    # row.append(_addl_table)
     row.append(PageBreak())
 
-    row.append(_header_table)
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
+    row.append(_table_2)
     row.append(Spacer(1,.5*cm))
+    # row.append(_addl_table)
+    row.append(PageBreak())
+
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
     row.append(_table_3)
     row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
+    # row.append(_addl_table)
     row.append(Spacer(1,.5*cm))
     row.append(_table_4)
     row.append(PageBreak())
 
-    doc.build(row)
+    doc_pr.build(row, onFirstPage = get_purchase_receipt_canvas_id, onLaterPages = get_purchase_receipt_canvas_id,  canvasmaker=PurchaseReceiptPageNumCanvas)    
     pdf_data = open(tmpfilename,"rb").read()
     os.unlink(tmpfilename)
     response.headers['Content-Type']='application/pdf'    
@@ -10614,6 +10695,68 @@ def get_direct_purchase_receipt_draft_reports_id():
     response.headers['Content-Type']='application/pdf'    
     return pdf_data
 
+def get_direct_purchase_receipt_canvas_id(canvas, doc_pr):
+    canvas.saveState()
+    _id = db(db.Direct_Purchase_Receipt.id == request.args(0)).select().first()
+    _header = [
+        ['DIRECT PURCHASE RECEIPT'],
+        ['Purchase Receipt No.',':',str(_id.purchase_receipt_no_prefix_id.prefix)+str(_id.purchase_receipt_no),'','Purchase Receipt Date',':',_id.purchase_receipt_date.strftime('%d/%b/%Y')],        
+        ['Purchase Order No.',':',_id.purchase_order_no,'', 'Invoice ',':',_id.supplier_invoice],
+        ['Supplier Code',':',_id.account_code,'','Supplier Name',':',_id.supplier_code_id.supp_name],
+        ['Location',':',_id.location_code_id.location_name,'','Trade Terms',':',_id.trade_terms_id.trade_terms],
+        ['Department',':',str(_id.dept_code_id.dept_code)+' - ' + str(_id.dept_code_id.dept_name),'','Currency',':',_id.currency_id.description]]
+    header = Table(_header, colWidths=['*',20,'*',20,'*',20,'*'])
+    header.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('SPAN',(0,0),(-1,0)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),  
+        ('FONTSIZE',(0,0),(-1,0),10),        
+        ('FONTSIZE',(0,1),(-1,-1),8),
+        ('ALIGN',(0,0),(0,0),'CENTER'), 
+        ('BOTTOMPADDING',(0,0),(0,0),20),   
+        ('TOPPADDING',(0,1),(-1,-1),0),
+        ('BOTTOMPADDING',(0,1),(-1,-1),0),
+    ]))
+
+
+    _posted_by = [
+        [str(auth.user.first_name.upper()) + ' ' + str(auth.user.last_name.upper()),'',''],    
+        ['Posted By','','']]
+    posted_by = Table(_posted_by, colWidths=['*',100,'*'])
+    posted_by.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),                
+        ('LINEABOVE', (0,-1), (0,-1), 0.25, colors.black,None, (2,2)),        
+        ('TOPPADDING',(0,0),(-1,0),5),
+        ('TOPPADDING',(0,-2),(0,-2),25),
+        ('BOTTOMPADDING',(0,0),(-1,0),5),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN',(0,-2),(0,-1),'CENTER'),
+    ]))
+
+    _page = [
+        ['D1 Reference',':',_id.d1_reference,'','','',''],
+        ['Remarks',':',_id.remarks]]
+
+    footer = Table(_page, colWidths=[130,10,130,20,130,10,'*'])
+    footer.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),        
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0),
+    ]))
+
+    posted_by.wrap(doc_pr.width, doc_pr.bottomMargin)
+    posted_by.drawOn(canvas, doc_pr.leftMargin, doc_pr.bottomMargin - 2.4 * cm)
+
+    footer.wrap(doc_pr.width, doc_pr.bottomMargin)
+    footer.drawOn(canvas, doc_pr.leftMargin, doc_pr.bottomMargin - 4.6 * cm)
+    header.wrapOn(canvas, doc_pr.width, doc_pr.topMargin)
+    header.drawOn(canvas, doc_pr.leftMargin, doc_pr.height + doc_pr.topMargin - .5 * inch)
+
+
+    canvas.restoreState()
 def direct_purchase_receipt_reports():
     _dpr = db(db.Direct_Purchase_Receipt.id == request.args(0)).select().first()
     _header = [
@@ -10683,7 +10826,7 @@ def direct_purchase_receipt_reports():
     _row.append(['Custom Duty Ch.',':', 'QR ' + str(locale.format('%.3F',_dpr.custom_duty_charges or 0, grouping = True)),'','','Other Charges',':','',str(_dpr.currency_id.mnemonic) + ' ' + locale.format('%.3F', _dpr.other_charges or 0, grouping = True)])
     _row.append(['Selective Tax',':', 'QR ' + str(locale.format('%.3F',_dpr.selective_tax or 0, grouping = True)),'','','Net Amount',':','',  str(_dpr.currency_id.mnemonic) + ' ' + locale.format('%.3F', _net_total or 0, grouping = True)])
     _row.append(['Purchase Value',':', 'QR ' + str(locale.format('%.3F',_purchase_value or 0, grouping = True)),'','','Net Amount (QR)',':','', str('QR') + ' ' + locale.format('%.3F', _local_amount or 0, grouping = True)])
-    _table = Table(_row, colWidths=[20,70,'*',50,50,50,50,50,50])
+    _table = Table(_row, colWidths=[20,70,'*',50,50,50,50,50,50], repeatRows=1)
     _table.setStyle(TableStyle([
         # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
         ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
@@ -10839,30 +10982,30 @@ def direct_purchase_receipt_reports():
         
     ]))
         
-    row.append(_header_table)
-    row.append(Spacer(1,.5*cm))
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
     row.append(_table)
-    row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
+    # row.append(Spacer(1,.5*cm))
+    # row.append(_addl_table)
     row.append(PageBreak())
 
-    row.append(_header_table)
-    row.append(Spacer(1,.5*cm))
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
     row.append(_table_2)
-    row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
+    # row.append(Spacer(1,.5*cm))
+    # row.append(_addl_table)
     row.append(PageBreak())
 
-    row.append(_header_table)
-    row.append(Spacer(1,.5*cm))
+    # row.append(_header_table)
+    # row.append(Spacer(1,.5*cm))
     row.append(_table_3)
-    row.append(Spacer(1,.5*cm))
-    row.append(_addl_table)
+    # row.append(Spacer(1,.5*cm))
+    # row.append(_addl_table)
     row.append(Spacer(1,.5*cm))
     row.append(_table_4)
     row.append(PageBreak())
 
-    doc.build(row, onFirstPage=get_direct_purchase_receipt_header_id, onLaterPages=get_direct_purchase_receipt_header_id)
+    doc_pr.build(row, onFirstPage=get_direct_purchase_receipt_canvas_id, onLaterPages=get_direct_purchase_receipt_canvas_id,  canvasmaker=PurchaseReceiptPageNumCanvas)    
     pdf_data = open(tmpfilename,"rb").read()
     os.unlink(tmpfilename)
     response.headers['Content-Type']='application/pdf'    
@@ -11303,7 +11446,7 @@ def insurance_proposal_details_on_hold():
     return dict(form = form, _ckey = _ckey)
 
 ########################################################################
-class WarehousePageNumCanvas(canvas.Canvas):
+class PurchaseReceiptPageNumCanvas(canvas.Canvas):
     """
     http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
     http://code.activestate.com/recipes/576832/
@@ -11341,19 +11484,25 @@ class WarehousePageNumCanvas(canvas.Canvas):
     def draw_page_number(self, page_count):
         """        Add the page number        """                
         page = []
-        _page_count = page_count / 2
-        _page_number = self._pageNumber        
+        _page_count = page_count / 3
+        _page_number = self._pageNumber
         if _page_number > _page_count:
             _page_number -= _page_count
+        # if page_count == 3:
+        #     _page_number = 3
+        # else:            
+        #     if _page_number % 2:
+        #         _page_number = 1
+        #     else:
+        #         _page_number = 2    
         page = "Page %s of %s" % (_page_number, _page_count)                
         printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
         self.setFont("Courier", 7)
-        self.drawRightString(200*mm, 28*mm, printed_on)
-        self.drawRightString(115*mm, 28*mm, page)
+        self.drawRightString(200*mm, 10*mm, printed_on)
+        self.drawRightString(115*mm, 10*mm, page)
 
- 
+ ########################################################################
 
-########################################################################
 class PageNumCanvas(canvas.Canvas):
     """
     http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/

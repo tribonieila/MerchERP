@@ -1185,9 +1185,11 @@ db.define_table('Sales_Order',
     Field('discount_added','decimal(10,2)', default = 0),
     Field('total_vat_amount', 'decimal(20,6)', default = 0),
     Field('sales_order_date_approved','datetime', writable = False),
-    Field('sales_order_approved_by','reference auth_user', ondelete = 'NO ACTION',writable = False),
+    Field('sales_order_approved_by','reference auth_user', ondelete = 'NO ACTION',writable = False), # 9
     Field('remarks', 'string'),
-
+    Field('management_approval','boolean', writable = False), # 30
+    Field('management_date_approved','datetime', writable = False),
+    Field('management_approved_by','reference auth_user', ondelete = 'NO ACTION',writable = False),
     Field('delivery_note_no_prefix_id', 'reference Transaction_Prefix', ondelete = 'NO ACTION',writable = False),   
     Field('delivery_note_no', 'integer', writable = False),
     Field('delivery_note_approved_by','reference auth_user', ondelete = 'NO ACTION',writable = False),
@@ -1269,7 +1271,7 @@ db.define_table('Sales_Order_Transaction_Temporary',
     Field('ticket_no_id', 'string', length = 10),
     Field('process','boolean',default=False),
     Field('net_price_computed', 'decimal(20,6)', compute = lambda r: (float(r.wholesale_price or 0) - ((float(r.wholesale_price or 0) * float(r.discount_percentage or 0)) / 100.0)) + ((float(r.selective_tax or 0) / int(r.total_pieces)) * int(r.uom))),
-    Field('total_amount_computed','decimal(20,6)', compute = lambda r: r['net_price_computed']/r['uom']*r['total_pieces']),        
+    Field('total_amount_computed','decimal(20,6)', compute = lambda r: float(r.net_price_computed or 0) / float(r.uom or 0) * r.total_pieces),        
     Field('amount_diff','decimal(20,6)', default = 0, compute = lambda r: r['total_amount_computed']-r['total_amount']),            
     Field('created_on', 'datetime', default=request.now, writable = False, readable = False),
     Field('created_by', db.auth_user, ondelete = 'NO ACTION', default=auth.user_id, writable = False, readable = False))
@@ -1721,10 +1723,10 @@ dc.define_table('Almeera_Sales_Invoice_Temporary_Transaction',
     Field('updated_on', 'datetime', update=request.now, writable = False, readable = False),
     Field('updated_by', 'integer', writable = False, readable = False))
 
-dd.define_table('POS_SALES_PERSON',
-    Field('USER_NAME','string'),
-    Field('FIRST_NAME','string'),
-    Field('LAST_NAME','string'))
+# dd.define_table('POS_SALES_PERSON',
+#     Field('USER_NAME','string'),
+#     Field('FIRST_NAME','string'),
+#     Field('LAST_NAME','string'))
 
 db.define_table('POS_End_User',
     Field('account_code', 'string', length = 10),

@@ -3,7 +3,10 @@
         <div class="card card-underline">
             <div class="card-head">
                 <span class="card-title">Item Master</span>
-                <ul class="nav nav-tabs pull-right" data-toggle="tabs">                    
+                <ul class="nav nav-tabs pull-right" data-toggle="tabs">              
+                    {{ if auth.has_membership(role = 'ROOT'): }}
+                    <li><a href="#"onclick=window.location="{{=URL('post_item_code')}}";>+ MANUAL</a></li>
+                    {{ pass }}
                     <li><a href="#"onclick=window.location="{{=URL('itm_add_form')}}";>+ ADD NEW</a></li>
                     <li><a href="#"onclick=window.location="{{=URL('itm_add_batch_form')}}";>+ NEW BATCH</a></li>
                     <li class="active"><a href="#update">edit</a></li>

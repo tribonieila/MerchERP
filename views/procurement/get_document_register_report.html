@@ -16,7 +16,8 @@
                 </div>
                 <div class="col-md-5">
                     <div class="form-group">                        
-                        <div class="col-sm-6">                                                     
+                        <div class="col-sm-6">       
+                            
                               <div class="col-sm-12">
                                 <label class="radio-inline radio-styled">
                                     <input type="radio" name="paid_id" id="paid_id" value="1"><span>Paid</span>
@@ -28,10 +29,12 @@
                                     <input type="radio" name="paid_id" id="paid_id" value="3"><span>Paid/Unpaid</span>
                                 </label>
                                 </div>
-                              {{=form.custom.widget.supplier_code_id}}                            
+                                
+                              {{=form.custom.widget.supplier_code_id}}
                             {{=form.custom.widget.due_date}}
                         </div>
                         <div class="col-sm-6">
+                            {{=form.custom.widget.bank_master_id}}                                              
                             {{=form.custom.widget.dept_code_id}}
                         </div>
                     </div>                        
@@ -62,20 +65,23 @@
 
 <script>
 $(document).ready( function () {    
-    $("#no_table_supplier_code_id, #no_table_due_date, #no_table_dept_code_id, .radio-styled").hide();    
+    $("#no_table_supplier_code_id, #no_table_due_date, #no_table_dept_code_id, .radio-styled, #no_table_bank_master_id").hide();    
     $("#btnSubmit").click(function(){                        
         var category_id = document.getElementById('no_table_category_id').value        
+        var bank_master_id = document.getElementById('no_table_bank_master_id').value        
         var from_date = document.getElementById('from_date').value        
         var to_date = document.getElementById('to_date').value        
         var paid_id = document.querySelector('input[name="paid_id"]:checked').value;
-        window.open("{{=URL('document_register_report','get_document_register_report_id')}}" + '/' + category_id + '/' + from_date + '/' + to_date + '/' + paid_id);
+        window.open("{{=URL('document_register_report','get_document_register_report_id')}}" + '/' + category_id +'/' + from_date + '/' + to_date + '/' + paid_id + '/' + bank_master_id);
     });
 
     $("#no_table_category_id").change(function(){   
         if ($("#no_table_category_id").val() == 1) {
             $(".radio-styled").show();
+            $("#no_table_bank_master_id").show();
         } else {
             $(".radio-styled").hide();
+            $("#no_table_bank_master_id").hide();
         }
         if ($("#no_table_category_id").val() == 2) {
             $("#no_table_supplier_code_id, #no_table_dept_code_id").show();

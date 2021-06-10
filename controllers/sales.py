@@ -830,8 +830,7 @@ def discount_session():
 def item_code_description():
     response.js = "$('#btnadd, #no_table_pieces, #discount').removeAttr('disabled')"
     # _icode = db(db.Item_Master.item_code == str(request.vars.item_code)).select().first()
-    _icode = db((db.Item_Master.item_code == request.vars.item_code.upper()) & (db.Item_Master.dept_code_id == session.dept_code_id)).select().first()
-    print ':', request.vars.item_code, session.dept_code_id
+    _icode = db((db.Item_Master.item_code == request.vars.item_code.upper()) & (db.Item_Master.dept_code_id == session.dept_code_id)).select().first()    
     
     if not _icode:
         # response.js = "$('#btnadd').attr('disabled','disabled')"        
@@ -904,6 +903,8 @@ def validate_sales_order_transaction(form):      # validate item if  saleable or
         # form.errors.item_code =  CENTER(DIV(B('DANGER! '),'Item code does not exist in stock file',_class='alert alert-danger',_role='alert'))
     # elif request.vars.item_code and request.vars.category_id == 3:
     #     response.flash = 'RECORD ADDED'
+    elif request.vars.category_id == None:
+        form.errors.item_code = 'Item category must not empty.'
 
     else:
         _stk_file = db((db.Stock_File.item_code_id == _id.id) & (db.Stock_File.location_code_id == session.stock_source_id)).select().first()
@@ -2915,7 +2916,10 @@ def sales_return_form():
     else:
         _q_cstmr = (db.Master_Account.master_account_type_id == 'C') | (db.Master_Account.master_account_type_id == 'A') | (db.Master_Account.master_account_type_id == 'E')
         # _q_cstmr = (db.Sales_Man_Customer.sales_man_id == _usr.id) & (db.Sales_Man_Customer.master_account_type_id == db.Master_Account.master_account_type_id)
-        _q_dept = db.Department.id == 3
+        if _usr.department_id == 3:
+            _q_dept = db.Department.id == 3
+        else:
+            _q_dept = db.Department.id != 3
         _default = 0
     ticket_no_id = id_generator()
     session.ticket_no_id = ticket_no_id    
@@ -4187,8 +4191,8 @@ def sales_order_manager_grid():
         _usr = db(db.Sales_Manager_User.user_id == auth.user_id).select().first()
         if int(_usr.department_id) == 3:
             _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == _usr.section_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id == 3)).select()            
-        else:            
-            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == _usr.section_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id != 3)).select()            
+        else:
+            _query = db((db.Sales_Order.status_id == 4) & (db.Sales_Order.section_id == _usr.section_id) & (db.Sales_Order.cancelled == False) & (db.Sales_Order.dept_code_id != 3) & (db.Sales_Order.management_approval == False)).select()            
         head = THEAD(TR(TH('#'),TH('Date'),TH('Sales Order No.'),TH('Department'),TH('Customer'),TH('Location Source'),TH('Total Amount'),TH('Requested By'),TH('Status'),TH('Required Action'),TH('Action'), _class='bg-primary'))
     elif auth.has_membership(role = 'INVENTORY STORE KEEPER'): # db.Warehouse_Manager_User
         _usr = db(db.Warehouse_Manager_User.user_id == auth.user_id).select().first()    
@@ -4219,8 +4223,7 @@ def sales_order_manager_grid():
         appr_lnk = A(I(_class='fas fa-user-check'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')                    
         reje_lnk = A(I(_class='fas fa-user-times'), _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
         if auth.has_membership(role = 'MANAGEMENT') | auth.has_membership(role = 'ROOT'):
-            edit_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-info btn-icon-toggle', callback = URL('sales','get_id', args = n.id))        
-            # edit_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-info btn-icon-toggle', _href = URL('sales','sales_order_manager_view', args = n.id, extension = False))        
+            edit_lnk = A(I(_class='fas fa-search'), _title='View Row', _type='button ', _role='button', _class='btn btn-info btn-icon-toggle', callback = URL('sales','get_id', args = n.id))                    
             appr_lnk = A(I(_class='fas fa-user-check'), _title='Approved Row', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')            
             reje_lnk = A(I(_class='fas fa-user-times'), _title='Reject Row', _type='button ', _role='button', _class='btn btn-icon-toggle disabled')
             prin_lnk = A(I(_class='fas fa-print'), _title="Print Sales Order", _type='button ', _target='blank', _role='button', _class='btn btn-icon-toggle disabled')  
@@ -4262,7 +4265,7 @@ def sales_order_manager_grid():
         if not n.transaction_prefix_id:
             _sales = 'None'
         else:
-            _sales = str(n.transaction_prefix_id.prefix) + str(n.sales_order_no)            
+            _sales = str(n.transaction_prefix_id.prefix) + str(n.sales_order_no)
             _sales = A(_sales,_class='text-primary')#, _title='Sales Order', _type='button  ', _role='button', **{'_data-toggle':'popover','_data-placement':'right','_data-html':'true','_data-content': sales_info(n.id)})
         if not n.delivery_note_no_prefix_id:
             _note = 'None'
@@ -4281,6 +4284,8 @@ def sales_order_manager_grid():
         elif auth.has_membership(role = 'ACCOUNTS MANAGER') | auth.has_membership(role = 'ACCOUNTS'):            
             row.append(TR(TD(ctr),TD(n.delivery_note_date_approved),TD(_note),TD(_sales),TD(n.dept_code_id.dept_name),TD(n.customer_code_id.account_name,', ', SPAN(n.customer_code_id.account_code,_class='text-muted')),TD(n.stock_source_id.location_name),TD(locale.format('%.2F',n.total_amount_after_discount or 0, grouping = True), _align = 'right'),TD(n.created_by.first_name.upper(), ' ',n.created_by.last_name.upper()),TD(n.status_id.description),TD(n.status_id.required_action),TD(btn_lnk)))        
         elif auth.has_membership(auth.has_membership(role = 'MANAGEMENT') | auth.has_membership(role = 'ROOT')):
+            if n.management_approval == True:                
+                _sales = SPAN(n.transaction_prefix_id.prefix,n.sales_order_no, _class='badge style-danger')                
             row.append(TR(
                 TD(ctr),
                 TD(n.sales_order_date),
@@ -4836,6 +4841,9 @@ def validate_mngr_approved(form):
     _id = db(db.Sales_Order.id == request.args(0)).select().first()
     if _id.status_id == 9:
         response.flash = 'already process'
+    elif (_id.total_amount_after_discount == 0) and (_id.dept_code_id != 3):
+        _id.update_record(status_id = 30, management_approval = True)
+        redirect(URL('inventory','mngr_req_grid'))
     else:
         for n in db((db.Sales_Order_Transaction.sales_order_no_id == _id.id) & (db.Sales_Order_Transaction.delete == False)).select(orderby = db.Sales_Order_Transaction.id):
             _i = db(db.Item_Prices.item_code_id == n.item_code_id).select().first()        
@@ -5435,14 +5443,17 @@ def sale_order_manager_invoice_no_form_approved(): # manoj from forms approval
        
 def sales_order_cancel_id():
     _id = db(db.Sales_Order.id == request.args(0)).select().first() 
-    _dn = db(db.Delivery_Note.sales_order_no == _id.sales_order_no).update(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)    
-    _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)
-    for n in db((db.Sales_Order_Transaction.sales_order_no_id == _id.id) & (db.Sales_Order_Transaction.delete == False)).select(orderby = db.Sales_Order_Transaction.id):
-        _s = db((db.Stock_File.item_code_id == n.item_code_id) & (db.Stock_File.location_code_id == _id.stock_source_id)).select().first()
-        _s.stock_in_transit += int(n.quantity)
-        _s.probational_balance = int(_s.closing_stock) + int(_s.stock_in_transit)
-        _s.update_record()
-    session.flash = 'Transaction cancelled.'
+    if int(_id.status_id) == 10:
+        session.flash = 'Sales Order No. ' + str(_id.sales_order_no) + ' already been cancelled.'
+    else:
+        _dn = db(db.Delivery_Note.sales_order_no == _id.sales_order_no).update(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)    
+        _id.update_record(status_id = 10, cancelled = True, cancelled_by = auth.user_id, cancelled_on = request.now)
+        for n in db((db.Sales_Order_Transaction.sales_order_no_id == _id.id) & (db.Sales_Order_Transaction.delete == False)).select(orderby = db.Sales_Order_Transaction.id):
+            _s = db((db.Stock_File.item_code_id == n.item_code_id) & (db.Stock_File.location_code_id == _id.stock_source_id)).select().first()
+            _s.stock_in_transit += int(n.quantity)
+            _s.probational_balance = int(_s.closing_stock) + int(_s.stock_in_transit)
+            _s.update_record()
+        session.flash = 'Transaction cancelled.'
 
 def sales_return_cancel_id():
     _id = db(db.Sales_Return.id == request.args(0)).select().first()

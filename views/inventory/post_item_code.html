@@ -4,10 +4,9 @@
         <div class="card-head">
             <ul class="nav nav-tabs pull-right" data-toggle="tabs">
                 {{ if auth.has_membership(role = 'ROOT'): }}
-                <li><a href="#"onclick=window.location="{{=URL('post_item_code')}}";>+ MANUAL</a></li>
+                <li class="active"><a href="#">+ MANUAL</a></li>
                 {{ pass }}
-
-                <li class="active"><a href="#">+ ADD NEW</a></li>
+                <li><a href="#"onclick=window.location="{{=URL('itm_add_form')}}";>+ ADD NEW</a></li>
                 <li class=""><a href="#"onclick=window.location="{{=URL('itm_add_batch_form')}}";>+ NEW BATCH</a></li>
                 <li class=""><a href="#" onclick=window.location="{{=URL('itm_mas')}}";>BROWSE</a></li>
             </ul>
@@ -19,7 +18,7 @@
                     <div class="form-group">
                         <label class="col-sm-1 control-label">Item Code</label>
                         <div class="col-sm-2">
-                            <input type="text" class="form-control" id="item_code" name = "item_code" value="" readonly>
+                            {{=form.custom.widget.item_code}}
                         </div>    
                     </div>
                     <div class="form-group">
@@ -107,28 +106,31 @@
 <script>
 
 $(document).ready(function(){
-    $("#no_table_division_id").change(function(){      
-        if ($("#no_table_division_id").val() == 2) {
-            $("#no_table_gender_code_id, #no_table_fragrance_code_id, #no_table_collection_code_id").val(1);
-            $("#no_table_color_code_id").val(12);
+    $("#Item_Master_division_id").change(function(){      
+        if ($("#Item_Master_division_id").val() == 2) {
+            $("#Item_Master_gender_code_id, #Item_Master_fragrance_code_id, #Item_Master_collection_code_id").val(1);
+            $("#Item_Master_color_code_id").val(12);
             // console.log("fmcg");
         } else {
             console.log("not fmcg");
         }
     });
 
-    $("#no_table_item_description").change(function(){
+    $("#Item_Master_item_description").change(function(){
         var regex = /^[A-Za-z0-9]+$/;
         
     })
 
-    $("#no_table_int_barcode").change(function(){
-        var _barcode = $("#no_table_int_barcode").val();
+    $("#Item_Master_int_barcode").change(function(){
+        var _barcode = $("#Item_Master_int_barcode").val();
         // # 80050278
         ajax("{{=URL('inventory','validate_barcode_id')}}", ['int_barcode'])
         
     });
 
+    $("#Item_Master_item_code").change(function(){
+        ajax("{{=URL('inventory','get_request_vars_item_code')}}", ['item_code'])
+    })
 
 
 });
@@ -177,15 +179,15 @@ $(document).ready(function(){
                                                 { text: '{{=b.brand_line_code}} - {{=b.brand_line_name}}', value: '{{=b.id}}',
                                         children: [ { text: 'Choose Brand Classification', value: null}, {{for c in db((db.Brand_Classification.status_id == 1) & (db.Brand_Classification.brand_line_code_id == b.id)).select(db.Brand_Classification.ALL):}}
                                                     { text: '{{=c.brand_cls_code}} - {{=c.brand_cls_name}}', value: '{{=c.id}}'}, {{pass}} ], }, {{pass}} ], }, {{pass}} ], }, {{pass}} ],  }, {{pass}} ], }, {{pass}}];
-        $('#no_table_division_id').cascadingSelect({
-            subSelects: ['#no_table_dept_code_id','#no_table_supplier_code_id','#no_table_group_line_id','#no_table_brand_line_code_id','#no_table_brand_cls_code_id'],
+        $('#Item_Master_division_id').cascadingSelect({
+            subSelects: ['#Item_Master_dept_code_id','#Item_Master_supplier_code_id','#Item_Master_group_line_id','#Item_Master_brand_line_code_id','#Item_Master_brand_cls_code_id'],
             data: data
         });
     });
 
-    $("#no_table_supplier_code_id").change(function(){
+    $("#Item_Master_supplier_code_id").change(function(){
         
-        if ($('#no_table_supplier_code_id').val() > 0) {            
+        if ($('#Item_Master_supplier_code_id').val() > 0) {            
             ajax("{{=URL('inventory','get_supplier_master_id')}}", ['supplier_code_id']);
         }
     });

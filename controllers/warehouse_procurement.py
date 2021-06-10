@@ -108,14 +108,15 @@ def put_warehouse_purchase_receipt_id():
     trow = []
     ctr = _after_discount = _total_amount = grand_total = discount_percentage = _foc_amount = _loc_amount = _total_row_amount =  0
     _id = db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select().first()
-    head = THEAD(TR(TH('Date / Transaction No.'),TH('Date / Purchase Order No.'),TH('Date / Purchase Request No.'),TH('Location'),TH('Supplier'),_class='active'))
+    head = THEAD(TR(TH('Date / Transaction No.'),TH('Date / Purchase Order No.'),TH('Date / Purchase Request No.'),TH('Location'),TH('Supplier'),TH('Invoice No'),_class='active'))
     for n in db(db.Purchase_Warehouse_Receipt.id == request.args(0)).select():
         row.append(TR(                        
             TD(n.transaction_date,' / ',n.transaction_no),
             TD(n.purchase_order_date_approved,' / ',n.purchase_order_no_prefix_id.prefix, n.purchase_order_no),
             TD(n.purchase_request_date,' / ',n.purchase_request_no_prefix_id.prefix, n.purchase_request_no),
             TD(n.location_code_id.location_code,' - ',n.location_code_id.location_name),
-            TD(n.supplier_code_id.supp_sub_code, ' - ',n.supplier_code_id.supp_name)))
+            TD(n.supplier_code_id.supp_sub_code, ' - ',n.supplier_code_id.supp_name),
+            TD(DIV(DIV(DIV(INPUT(_type='text',_class='form-control', _name = 'supplier_reference_order', _id = 'supplier_reference_order',_value = _id.supplier_reference_order),_class='input-group-content'),DIV(BUTTON('Save',_class='btn btn-default',_type='button',_id='btnPost'),_class='input-group-btn'),_class='input-group'),_class='from-group'))))
     body = TBODY(*row)
     table = TABLE(*[head, body], _class = 'table table-bordered', _id='PCtbl')
     return dict(table = table)

@@ -145,7 +145,6 @@
                             <!-- <button class="btn btn-info" type="button" onclick="window.open('{{=URL('procurement','purchase_history', args = request.args(0))}}')"> Purchase History</button> -->
                         {{ elif _id.status_id == 29: }}
                             <input class="btn btn-success" type="button" value="approved" onclick=onCANCApproved()>
-                            <!-- <input class="btn btn-warning" type="button" value="reject" onclick=onCANCReject()>                                     -->
                             <button class="btn btn-info" type="button" onclick=onPurchaseHistory()> Purchase History</button>
 
                         {{ else: }}

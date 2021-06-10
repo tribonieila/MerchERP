@@ -789,6 +789,89 @@ def stock_transaction_report():
     response.headers['Content-Type']='application/pdf'    
     return pdf_data   
 
+def _request_header_footer(canvas, doc_xfr):
+    # Save the state of our canvas so we can draw on it
+    canvas.saveState()
+    _id = db(db.Stock_Request.id == request.args(0)).select().first()
+    _head = [
+        ['STOCK TRANSFER VOUCHER'],
+        [str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no)],
+        ['Stock Transfer No',':', str(_id.stock_transfer_no_id.prefix)+str(_id.stock_transfer_no),'', 'Stock Transfer Date',':',str(_id.stock_transfer_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Request No',':',str(_id.stock_request_no_id.prefix)+str(_id.stock_request_no),'', 'Stock Request Date',':',str(_id.stock_request_date_approved.strftime('%d/%b/%Y'))],
+        ['Stock Transfer From',':',_id.stock_source_id.location_name,'','Stock Transfer To',':',_id.stock_destination_id.location_name],
+        ['Department',':',_id.dept_code_id.dept_name,'','','',''],
+        ['','','','','','',''],
+        ['','','','','','','']]        
+    header = Table(_head, colWidths=['*',20,'*',10,'*',20,'*'])
+    header.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),        
+        ('SPAN',(0,0),(6,0)),
+        ('SPAN',(0,1),(-1,1)),
+        ('ALIGN', (0,0), (-1,1), 'CENTER'),                
+        ('FONTNAME', (0, 0), (-1, 1), 'Courier',12),           
+        ('FONTNAME', (0, 1), (-1, 1), 'Courier-Bold'),
+        ('FONTSIZE',(0,1),(-1,-1),13),                
+        ('FONTNAME', (0, 2), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,2),(-1,-1),8),        
+        ('TOPPADDING',(0,0),(0,0),5),        
+        ('BOTTOMPADDING',(0,0),(0,0),12),                                     
+        ('TOPPADDING',(0,1),(-1,-1),10),
+        ('BOTTOMPADDING',(0,1),(-1,1),25),
+        ('TOPPADDING',(0,2),(-1,-1),0),
+        ('BOTTOMPADDING',(0,2),(-1,-1),0)
+        ]))
+    header.wrapOn(canvas, doc_xfr.width, doc_xfr.topMargin)
+    header.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.height + doc_xfr.topMargin - .7 * inch)
+    
+    if _id.stock_transfer_dispatched_by == None:
+        _dispatched_by = _dispatched_date = ''
+    else:
+        _dispatched_by = str(_id.stock_transfer_dispatched_by.first_name)+' '+str(_id.stock_transfer_dispatched_by.last_name)
+        _dispatched_date = _id.stock_transfer_dispatched_date.strftime('%d/%b/%Y')
+    if _id.stock_receipt_no_id == None:
+        _receipt_no = _receipt_date = ''
+    else:
+        _receipt_no = str(_id.stock_receipt_no_id.prefix)+str(_id.stock_receipt_no)
+        _receipt_date = _id.stock_receipt_date_approved.strftime('%d/%b/%Y')
+
+    _signatory = [        
+        [_dispatched_by,'','','',''],
+        ['Issued by','','Receive by','','Delivered by']]
+
+    signatory = Table(_signatory, colWidths=['*',20,'*',20,'*'])
+    signatory.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('ALIGN',(0,0),(-1,-1),'CENTER'),      
+        ('LINEBELOW', (0,0), (0,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (2,0), (2,0), 0.25, colors.black,None   , (2,2)),
+        ('LINEBELOW', (4,0), (4,0), 0.25, colors.black,None   , (2,2)),
+    ]))
+
+    _footer = [
+        ['Dispatched By',':',_dispatched_by,'','Stock Receipt No.',':',_receipt_no],
+        ['Dispatched Date',':',_dispatched_date,'','Stock Receipt Date',':',_receipt_date],
+        ['Remarks',':',_id.remarks,'','','','']]
+
+    footer = Table(_footer, colWidths=['*',20,'*',10,'*',20,'*'])
+    footer.setStyle(TableStyle([
+        # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
+        ('FONTNAME', (0, 0), (-1, -1), 'Courier'),
+        ('FONTSIZE',(0,0),(-1,-1),8),
+        ('TOPPADDING',(0,0),(-1,-1),0),
+        ('BOTTOMPADDING',(0,0),(-1,-1),0)]))
+
+    signatory.wrap(doc_xfr.width, doc_xfr.bottomMargin)
+    signatory.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.bottomMargin - 2.6 * cm)
+
+    footer.wrap(doc_xfr.width, doc_xfr.bottomMargin)
+    footer.drawOn(canvas, doc_xfr.leftMargin, doc_xfr.bottomMargin - 4.6 * cm)
+
+    # Release the canvas
+    canvas.restoreState()
+
+
 def get_stock_request_report_id():    # auto generate report 
     _id = db(db.Stock_Request.id == request.args(0)).select().first()
     _grand_total = 0    
@@ -797,28 +880,22 @@ def get_stock_request_report_id():    # auto generate report
 
     ctr = _grand_total= 0
     stk_trn = [['#', 'Item Code', 'Item Description/Barcode','Unit','Cat.', 'UOM','Qty.','Price','Total']]
-    for i in db((db.Stock_Request_Transaction.stock_request_id == request.args(0)) & (db.Stock_Request_Transaction.delete == False)).select():
+    for n in db((db.Stock_Request_Transaction.stock_request_id == request.args(0)) & (db.Stock_Request_Transaction.delete == False)).select():
         ctr += 1
-        _im = db(db.Item_Master.id == n.item_code_id).select().first()
-        _grand_total += i.total_amount        
-        if i.Item_Master.uom_id == None:
-            _uom = ''
-        else:
-            _uom = i.Item_Master.uom_id.mnemonic
-        if i.Item_Master.int_barcode == None:
+        _grand_total += n.total_amount        
+        _barcode = n.item_code_id.int_barcode
+        if n.item_code_id == None:
             _barcode = ''
-        else:
-            _barcode = i.Item_Master.int_barcode
         stk_trn.append([ctr,
-        Paragraph(i.item_code_id.item_code, style=_courier),        
-        str(i.item_code_id.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(i.item_code_id.item_description.upper()),        
-        _uom,
+        Paragraph(n.item_code_id.item_code, style=_courier),        
+        Paragraph(str(n.item_code_id.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(n.item_code_id.item_description.upper()), style=_courier),        
+        n.item_code_id.uom_id.mnemonic,
         # i.Item_Master.uom_id.mnemonic,
-        i.Stock_Request_Transaction.category_id.mnemonic,
-        i.Stock_Request_Transaction.uom,
-        card(i.Item_Master.id, i.Stock_Request_Transaction.quantity, i.Stock_Request_Transaction.uom),        
-        locale.format('%.3F',i.Stock_Request_Transaction.unit_price or 0, grouping = True),
-        locale.format('%.2F',i.Stock_Request_Transaction.total_amount or 0, grouping = True)])
+        n.category_id.mnemonic,
+        n.uom,
+        card(n.item_code_id, n.quantity, n.uom),        
+        locale.format('%.3F',n.unit_price or 0, grouping = True),
+        locale.format('%.2F',n.total_amount or 0, grouping = True)])
     (_whole, _frac) = (int(_grand_total), locale.format('%.2f',_grand_total or 0, grouping = True))
     stk_trn.append(['QAR ' + string.upper(w.number_to_words(_whole, andword='')) + ' AND ' + str(str(_frac)[-2:]) + '/100 DIRHAMS','', '','', '','','Total Amount',':',locale.format('%.2F',_grand_total or 0, grouping = True)])
     trn_tbl = Table(stk_trn, colWidths = [25,70,'*',30,30,30,50,50,50], repeatRows=1)
@@ -862,11 +939,10 @@ def get_stock_request_report_id():    # auto generate report
     row.append(Spacer(1,2*cm))
     row.append(PageBreak())
 
-    doc_xfr.build(row, onFirstPage=_transfer_header_footer, onLaterPages=_transfer_header_footer, canvasmaker=PageNumCanvas)    
+    doc_xfr.build(row, onFirstPage=_request_header_footer, onLaterPages=_request_header_footer, canvasmaker=PageNumCanvas)    
     pdf_data = open(tmpfilename,"rb").read()
     os.unlink(tmpfilename)
-    response.headers['Content-Type']='application/pdf'
-    
+    response.headers['Content-Type']='application/pdf'    
     return pdf_data   
 
 def get_stock_transfer_report_id():    # final report 
@@ -896,7 +972,7 @@ def get_stock_transfer_report_id():    # final report
             _barcode = i.Item_Master.int_barcode
         stk_trn.append([ctr,
         Paragraph(i.Stock_Transfer_Transaction.item_code_id.item_code, style=_courier),        
-        str(i.Item_Master.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(i.Item_Master.item_description.upper()),        
+        Paragraph(str(i.Item_Master.brand_line_code_id.brand_line_name)+str(', ')+str(_barcode)+str('\n')+str(i.Item_Master.item_description.upper()), style=_courier),     
         _uom,
         # i.Item_Master.uom_id.mnemonic,
         i.Stock_Transfer_Transaction.category_id.mnemonic,

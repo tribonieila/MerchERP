@@ -243,6 +243,24 @@ def generate():
     table = SQLFORM.grid(db.Document_Register)
     return dict(table = 'table')
 
+def page_number():
+    page_count = 15
+    _page_count = page_count / 3
+    _page_number = 0
+    print("-")
+    for n in range(page_count):
+        _page_number += 1
+        if _page_count < _page_number:
+            _page_number = 0
+            _page_number += 1
+        # else:
+        #     if _page_number % 2:
+        #         _page_number = 1
+        #     else:
+        #         _page_number = 2
+
+        print("Page %s of %s") %(_page_number, _page_count)#, page_count
+
 def validate():
     print '---'
     _count = db(db.Sales_Invoice.id).count()
@@ -267,8 +285,56 @@ def merch():
 
 
 @auth.requires_login()
-def admin():
-    return dict()
+def sync():
+    # for n in de(de.Brand_Classification.dept_code_id == 4).select(orderby = de.Brand_Classification.id):
+    #     _id = db(db.Brand_Classification.brand_cls_code == n.brand_cls_code).select().first()
+    #     if not _id:
+    #         db.Brand_Classification.insert(
+    #             prefix_id = n.prefix_id,
+    #             group_line_id = n.group_line_id,
+    #             dept_code_id = n.dept_code_id,
+    #             brand_line_code_id = n.brand_line_code_id,
+    #             brand_cls_code = n.brand_cls_code,
+    #             brand_cls_name = n.brand_cls_name,
+    #             old_brand_code = n.old_brand_code,
+    #             status_id = n.status_id,
+    #             transfer_switch = n.transfer_switch)
+    # for n in de(de.Item_Master.dept_code_id == 4).select(orderby = de.Item_Master.id):
+    #     _id = db(db.Item_Master.item_code == n.item_code).select().first()
+    #     if not _id:
+    #         db.Item_Master.insert(
+    #             item_code = n.item_code,
+    #             item_description = n.item_description,
+    #             supplier_item_ref =n.supplier_item_ref,
+    #             int_barcode = n.int_barcode,
+    #             loc_barcode = n.loc_barcode,
+    #             size_code_id = n.size_code_id,
+    #             gender_code_id = n.gender_code_id,
+    #             fragrance_code_id = n.fragrance_code_id,
+    #             color_code_id = n.color_code_id,
+    #             purchase_point = n.purchase_point,
+    #             uom_value = n.uom_value,
+    #             uom_id = n.uom_id,
+    #             supplier_uom_value = n.supplier_uom_value,
+    #             supplier_uom_id = n.supplier_uom_id,
+    #             weight_value = n.weight_value,
+    #             weight_id = n.weight_id,
+    #             type_id = n.type_id,
+    #             # selective_tax = n.selective_tax,
+    #             # vat_percentage = n.vat_percentage,
+    #             division_id = n.division_id,
+    #             dept_code_id = n.dept_code_id,
+    #             supplier_code_id = n.supplier_code_id,
+    #             product_code_id = n.product_code_id,
+    #             subproduct_code_id = n.subproduct_code_id,
+    #             group_line_id = n.group_line_id,
+    #             brand_line_code_id = n.brand_line_code_id,
+    #             brand_cls_code_id = n.brand_cls_code_id,
+    #             section_code_id = n.section_code_id,
+    #             collection_code_id = n.collection_code_id,
+    #             made_in_id = n.made_in_id,
+    #             item_status_code_id = n.item_status_code_id)
+    #         return dict()
 
 
 def get_users_login2():

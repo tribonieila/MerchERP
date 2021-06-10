@@ -1,4 +1,6 @@
 import locale
+
+
 @auth.requires_login()
 def get_sales_order_table():
     _usr = db(db.User_Department.user_id == auth.user_id).select().first()

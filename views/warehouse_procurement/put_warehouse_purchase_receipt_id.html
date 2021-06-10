@@ -4,8 +4,7 @@
         <div class="card-head">
             <span class="card-title">WAREHOUSE PURCHASE RECEIPT</span>
         </div>
-        <div class="card-body tab-content">                   
-                    
+        <div class="card-body tab-content">                                 
             {{=table}}
             <br>   
             {{=LOAD('warehouse_procurement','put_warehouse_purchase_receipt_transaction_id.load', ajax = True, args = request.args(0), target = 'PTtbl')}}
@@ -17,6 +16,7 @@
 
 <script>
 $(document).ready(function(){
+
     var $tblrows = $("#PTtbl tbody tr");
     $tblrows.each(function(index){
         var $tblrow = $(this);
@@ -45,6 +45,11 @@ $(document).ready(function(){
     });
     $('#btnRefresh').click(function(){
         location.reload();
+    });
+    $("#btnPost").click(function(){
+        var _invoice = $("#supplier_reference_order").val();
+        ajax("{{=URL('procurement','put_purchase_receipt_invoice_no', args = request.args(0))}}", ['supplier_reference_order'])        
+        alertify.notify('Invoice No. ' + _invoice + 'save')
     });
     function save(){
         console.log('save draft');

@@ -181,7 +181,7 @@ function Cancel(){
             callback: function (result) {
                 if (result) {                    
                     ajax("{{=URL('sales','sales_order_cancel_id', args = request.args(0))}}");
-                    window.location.assign("{{=URL('inventory','get_back_off_workflow_grid')}}");                        
+                    window.location.assign("{{=URL('default','index')}}");                        
                 } else {
                     $("#btnCancel").prop("checked", false);
                 }

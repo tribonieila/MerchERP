@@ -187,7 +187,10 @@ def post_sales_order_form():
             _sale_cost = ((float(_trnx.sale_cost) * int(_trnx.quantity)) - float(_id.discount_added or 0)) / int(_trnx.quantity)
             _trnx.update_record(sale_cost = _sale_cost, discounted = True, discount_added = _id.discount_added)
         _after_discount = float(_grand_total) - float(request.vars.discount_var or 0)
-        _id.update_record(total_amount = _grand_total,  total_amount_after_discount = _after_discount, total_selective_tax = _total_selective_tax, total_selective_tax_foc = _total_selective_tax_foc) # discount_added = _discount,
+        _management_approval = False
+        if (_after_discount <= 0) and (_id.dept_code_id != 3):
+            _management_approval = True
+        _id.update_record(total_amount = _grand_total,  total_amount_after_discount = _after_discount, total_selective_tax = _total_selective_tax, total_selective_tax_foc = _total_selective_tax_foc, management_approval = _management_approval) # discount_added = _discount,
         # db(db.Sales_Order_Transaction_Temporary.ticket_no_id == request.vars.ticket_no_id).delete()
         response.flash = 'SAVING SALES ORDER NO ' + str(_skey) + '.'    
     elif form.errors:

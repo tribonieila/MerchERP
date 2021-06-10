@@ -20,6 +20,7 @@ opacity:1;
         <td>{{=form.custom.widget.item_code}} </td>
         <td>{{=form.custom.widget.quantity}}</td>
         <td>{{=form.custom.widget.pieces}}</td>
+        <!-- <td>{{=form.custom.widget.category_id}}</td> -->
         <td><div id="cat_id"></div></td>
         <td><input class="btn btn-success" type="submit" value="+ ADD" id="add" ></td>
     </tr>        
@@ -130,6 +131,7 @@ $(document).ready(function(){
         $('#no_table_stock_source_id').removeAttr('disabled');    
         $('#no_table_stock_destination_id').removeAttr('disabled');     
         ajax('{{=URL('itm_description')}}',['item_code', 'dept_code_id','stock_source_id'], 'desc'); 
+        // ajax('{{=URL('get_category_id')}}',['item_code', 'stock_destination_id'],'cat_id');
         ajax('{{=URL('category_option')}}',['item_code', 'stock_destination_id'],'cat_id');
         $('#no_table_dept_code_id').attr('disabled','disabled');
         $('#no_table_stock_source_id').attr('disabled','disabled');

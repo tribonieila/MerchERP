@@ -512,7 +512,10 @@ def get_workflow_sales_invoice_reports_id():
             _qty = card(t.Item_Master.id, t.Sales_Invoice_Transaction.quantity, t.Sales_Invoice_Transaction.uom)
 
         if t.Sales_Invoice_Transaction.category_id == 3:
-            _net_price = 'FOC-Price'
+            if t.Item_Master.type_id == 1:
+                _net_price = 'FOC'
+            else:
+                _net_price = 'FOC-Price'
         else:
             _net_price = locale.format('%.3F',t.Sales_Invoice_Transaction.net_price or 0, grouping = True)
         if t.Sales_Invoice_Transaction.category_id != 4:
@@ -690,6 +693,9 @@ def get_workflow_sales_invoice_reports_id():
     response.headers['Content-Type']='application/pdf'
     return pdf_data
 
+def management_workflow():
+    return dict()
+
 def get_sales_invoice_pdf_canvas(canvas, doc_invoice):      # # for pdf file
     # Save the state of our canvas so we can draw on it
     canvas.saveState()    
@@ -832,7 +838,10 @@ def get_sales_invoice_pdf_id():  # for pdf file
             _qty = card(t.Item_Master.id, t.Sales_Invoice_Transaction.quantity, t.Sales_Invoice_Transaction.uom)
 
         if t.Sales_Invoice_Transaction.category_id == 3:
-            _net_price = 'FOC-Price'
+            if t.Item_Master.type_id == 1:
+                _net_price = 'FOC'
+            else:
+                _net_price = 'FOC-Price'
         else:
             _net_price = locale.format('%.3F',t.Sales_Invoice_Transaction.net_price or 0, grouping = True)
         if t.Sales_Invoice_Transaction.category_id != 4:
@@ -993,9 +1002,7 @@ def get_sales_order_header_footer(canvas, doc_invoice):     # audited
         ('TOPPADDING',(0,1),(-1,1),10),
         ('BOTTOMPADDING',(0,1),(-1,1),25),
         ('TOPPADDING',(0,2),(-1,-1),0),
-        ('BOTTOMPADDING',(0,2),(-1,-1),0),
-        
-        ]))
+        ('BOTTOMPADDING',(0,2),(-1,-1),0)]))
     header.wrapOn(canvas, doc_invoice.width, doc_invoice.topMargin)
     header.drawOn(canvas, doc_invoice.leftMargin, doc_invoice.height + doc_invoice.topMargin - .7 * inch)
 
@@ -1063,7 +1070,10 @@ def get_sales_order_id(): # print direct to printer
             _qty = card(t.Item_Master.id, t.Sales_Order_Transaction.quantity, t.Sales_Order_Transaction.uom)
 
         if t.Sales_Order_Transaction.category_id == 3:
-            _net_price = 'FOC-Price'
+            if t.Item_Master.type_id == 1:
+                _net_price = 'FOC'
+            else:
+                _net_price = 'FOC-Price'
         else:
             _net_price = locale.format('%.3F',t.Sales_Order_Transaction.net_price or 0, grouping = True)
         if t.Sales_Order_Transaction.category_id != 4:
@@ -1206,8 +1216,10 @@ def get_sales_order_computed_id(): # print direct to printer
             _qty = card(t.Item_Master.id, t.Sales_Order_Transaction.quantity, t.Sales_Order_Transaction.uom)
 
         if t.Sales_Order_Transaction.category_id == 3:
-            _net_price = 'FOC-Price'
-            _total_amount = 0
+            if t.Item_Master.type_id == 1:
+                _net_price = 'FOC'
+            else:
+                _net_price = 'FOC-Price'
         else:
             var_net_price = (t.Sales_Order_Transaction.wholesale_price - ((t.Sales_Order_Transaction.wholesale_price * t.Sales_Order_Transaction.discount_percentage or 0) / 100)) + t.Sales_Order_Transaction.selective_tax or 0
             _net_price = locale.format('%.3F',var_net_price or 0, grouping = True)
@@ -2342,14 +2354,11 @@ class PageNumCanvas(canvas.Canvas):
         page = []        
         _page_count = page_count / 3
         _page_number = self._pageNumber
-        if page_count == 3:
-            _page_number = 1
-        else:            
-            if _page_number % 2:
-                _page_number = 1
-            else:
-                _page_number = 2       
-        page = "Page %s of %s" % (_page_number, _page_count)        
+        if _page_count < _page_number:            
+            _page_number -= _page_count
+            if _page_number > _page_count:
+                _page_number -= _page_count
+        page = "Page %s of %s" % (_page_number, _page_count)                
         printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
         self.setFont("Courier", 7)
         self.drawRightString(200*mm, 10*mm, printed_on)

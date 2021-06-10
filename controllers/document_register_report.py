@@ -88,39 +88,20 @@ def _landscape_header(canvas, doc):
     # Release the canvas
     canvas.restoreState()
 
-def xget_document_register_report_id():    
-    print ':', request.vars.category_id#, request.vars.from_date, request.vars.to_date, request.vars.supplier_code_id, request.vars.dept_code_id, request.vars.due_date
-    if int(request.vars.category_id) == 1:        
-        response.js = "PrintCIL(1)"
-        _report = '1'
-    elif int(request.vars.category_id) == 2:
-        response.js = "PrintCIL(2)"
-        _report = '2'
-    elif int(request.vars.category_id) == 3:
-        response.js = "PrintCIL(3)"
-        _report = '3'
-    rows = [[_report]]
-    row_table = Table(rows, colWidths = '*')
-    row_table.setStyle(TableStyle([
-        ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2))
-    ]))
-    row.append(row_table)
-    a3.build(row)    
-    pdf_data = open(tmpfilename,"rb").read()
-    os.unlink(tmpfilename)
-    response.headers['Content-Type']='application/pdf'
-    return pdf_data
-
 def get_document_register_report_id():    
-    if int(request.args(0)) == 1:               
-        ctr = 0        
+    if int(request.args(0)) == 1:    
+        if request.args(4) == None:
+            _bank_master_id = db.Document_Register.bank_master_id > 0
+        else:
+            _bank_master_id = db.Document_Register.bank_master_id == request.args(4)
+        ctr = _total_amount = 0        
         _row = [['#','Date','Register No','Purchase Order','Supplier Name','CIL No','Order No','Bank','Currency','Amount Invoice','Amount QAR','Due Date']]
-        if int(request.args(3)) == 1:
-            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == True) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )
+        if int(request.args(3)) == 1:            
+            _query = db((_bank_master_id) & (db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == True) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.document_register_date | db.Document_Register.bank_master_id |  db.Document_Register.supplier_code_id | db.Document_Register.id)
         elif int(request.args(3)) == 2:
-            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == False) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )
+            _query = db((_bank_master_id) &(db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.paid == False) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.document_register_date | db.Document_Register.bank_master_id |  db.Document_Register.supplier_code_id | db.Document_Register.id)
         elif int(request.args(3)) == 3:
-            _query = db((db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id  )        
+            _query = db((_bank_master_id) & (db.Document_Register.document_register_date >= request.args(1)) & (db.Document_Register.cil_no != None) & (db.Document_Register.document_register_date <= request.args(2))).select(orderby = db.Document_Register.document_register_date | db.Document_Register.bank_master_id | db.Document_Register.supplier_code_id | db.Document_Register.id)
         for n in _query:
             _po = db(db.Document_Register_Purchase_Order.document_register_no_id == int(n.id)).select().first()
             _purchase_order = ""
@@ -151,11 +132,14 @@ def get_document_register_report_id():
                 str(locale.format('%.2F',n.invoice_amount or 0, grouping = True)),
                 str(locale.format('%.2F',n.total_amount_in_qr or 0, grouping = True)),
                 n.due_date.strftime('%d/%b/%Y')])
+            _total_amount += n.total_amount_in_qr
+        _row.append(['','','','','','','','','','Total Amount: ', locale.format('%.2F',_total_amount or 0, grouping = True)])
         _table = Table(_row, colWidths=[25,65,80,80,'*',50,50,'*',50,75,75,65], repeatRows = 1)
         _table.setStyle(TableStyle([
             # ('GRID',(0,0),(-1,-1),0.5, colors.Color(0, 0, 0, 0.2)),
             ('LINEABOVE', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
-            ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),        
+            ('LINEBELOW', (0,0), (-1,0), 0.25, colors.black,None, (2,2)),
+            ('LINEABOVE', (0,-1), (-1,-1), 0.25, colors.black,None, (2,2)),        
             ('FONTSIZE',(0,0),(-1,-1),8),
             ('FONTNAME',(0,0),(-1,-1), 'Courier'),
             ('ALIGN',(9,0),(10,-1),'RIGHT'),
@@ -163,7 +147,7 @@ def get_document_register_report_id():
             ]))
         row.append(_table)
         p_doc.pagesize = landscape(A4)
-        p_doc.build(row)
+        p_doc.build(row, canvasmaker=LandscapePageNumCanvas)
         pdf_data = open(tmpfilename,"rb").read()
         os.unlink(tmpfilename)
         response.headers['Content-Type']='application/pdf'    
@@ -175,3 +159,50 @@ def get_document_register_report_id():
         print '3'
 
     # print ':', request.vars.category_id, request.vars.from_date, request.vars.to_date, request.vars.supplier_code_id, request.vars.dept_code_id, request.vars.due_date
+
+########################################################################
+class LandscapePageNumCanvas(canvas.Canvas):
+    """
+    http://code.activestate.com/recipes/546511-page-x-of-y-with-reportlab/
+    http://code.activestate.com/recipes/576832/
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, *args, **kwargs):
+        """Constructor"""
+        canvas.Canvas.__init__(self, *args, **kwargs)
+        self.pages = []
+ 
+    #----------------------------------------------------------------------
+    def showPage(self):
+        """
+        On a page break, add information to the list
+        """
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+ 
+    #----------------------------------------------------------------------
+    def save(self):
+        """
+        Add the page number to each page (page x of y)
+        """
+        page_count = len(self.pages)
+ 
+        for page in self.pages:
+            self.__dict__.update(page)
+            self.draw_page_number(page_count)
+            canvas.Canvas.showPage(self)
+ 
+        canvas.Canvas.save(self)
+ 
+    #----------------------------------------------------------------------
+    def draw_page_number(self, page_count):
+        """        Add the page number        """                
+        page = []
+        _page_count = page_count 
+        _page_number = self._pageNumber        
+        page = "Page %s of %s" % (_page_number, _page_count)                
+        printed_on = 'Printed On: '+ str(request.now.strftime('%d/%m/%Y,%H:%M'))
+        self.setFont("Courier", 7)
+        self.drawRightString(290*mm, 10*mm, printed_on)
+        self.drawRightString(25*mm, 10*mm, page)
